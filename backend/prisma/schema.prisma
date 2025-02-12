@@ -31,6 +31,8 @@ model User {
   summaries          Summary[]
   preferences        UserPreference?
   deepExplanations   DeepExplanation[]
+  quizzes            Quiz[]
+  quizAttempts       QuizAttempt[]
 }
 
 model UserPreference {
@@ -77,6 +79,7 @@ model Summary {
   createdAt    DateTime      @default(now())
   user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
   chatMessages ChatMessage[]
+  quizzes      Quiz[]
 }
 
 model ChatMessage {
@@ -152,4 +155,50 @@ enum Depth {
   quick
   standard
   detailed
+}
+
+// ============== QUIZ ==============
+
+model Quiz {
+  id            String         @id @default(uuid())
+  userId        String
+  user          User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  summaryId     String?
+  summary       Summary?       @relation(fields: [summaryId], references: [id], onDelete: SetNull)
+  title         String
+  description   String?
+  sourceType    QuizSourceType
+  sourceContent String?        @db.Text
+  difficulty    QuizDifficulty @default(MEDIUM)
+  questionCount Int            @default(10)
+  questions     Json
+  creditsUsed   Int            @default(0)
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  attempts      QuizAttempt[]
+}
+
+model QuizAttempt {
+  id        String   @id @default(uuid())
+  quizId    String
+  quiz      Quiz     @relation(fields: [quizId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  answers   Json
+  score     Float
+  timeTaken Int?
+  createdAt DateTime @default(now())
+}
+
+enum QuizSourceType {
+  TEXT
+  URL
+  SUMMARY
+  PDF
+}
+
+enum QuizDifficulty {
+  EASY
+  MEDIUM
+  HARD
 }
