@@ -12,6 +12,7 @@ import authRoute from "./routes/authRoute.js"
 import summarizerRoute from "./routes/summarizerRoute.js"
 import chatRoute from "./routes/chatRoute.js"
 import deepExplainRoute from "./routes/deepExplainRoute.js"
+import quizRoute from "./routes/quizRoute.js"
 import { verifyToken } from "../src/middleware/verifyToken.js";
 import { errorHandler } from "./middleware/errorMiddleware.js";
 import "./queue/worker.js";
@@ -37,6 +38,7 @@ app.use("/api/podcast", verifyToken, podcastRoute)
 app.use("/api/summarize", verifyToken, summarizerRoute)
 app.use("/api/chat", verifyToken, chatRoute)
 app.use("/api/deep-explain", verifyToken, deepExplainRoute)
+app.use("/api/quiz", verifyToken, quizRoute)
 app.use("/api/auth", authRoute)
 
 app.use(errorHandler)
