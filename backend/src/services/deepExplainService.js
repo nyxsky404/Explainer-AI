@@ -38,22 +38,31 @@ export const generateDeepExplanation = async (userId, topic, mode = 'easy', sour
       ],
     });
 
-    const content = completion.choices[0].message.content;
+    if (!completion?.choices?.length || !completion.choices[0]?.message) {
+      throw new Error('AI model returned an empty or invalid response');
+    }
+    const content = completion.choices[0].message.content || '';
 
-    // Store in database
-    const explanation = await prisma.deepExplanation.create({
-      data: {
-        userId,
-        topic,
-        mode: mode.toUpperCase(),
-        content,
-        sourceContent,
-        creditsUsed: CREDIT_COSTS.DEEP_EXPLAIN,
-      },
-    });
-
-    // Deduct credits
+    // Deduct credits first
     await deductCredits(userId, CREDIT_COSTS.DEEP_EXPLAIN);
+
+    // Store in database (refund if save fails)
+    let explanation;
+    try {
+      explanation = await prisma.deepExplanation.create({
+        data: {
+          userId,
+          topic,
+          mode: mode.toUpperCase(),
+          content,
+          sourceContent,
+          creditsUsed: CREDIT_COSTS.DEEP_EXPLAIN,
+        },
+      });
+    } catch (dbError) {
+      await refundCredits(userId, CREDIT_COSTS.DEEP_EXPLAIN);
+      throw dbError;
+    }
 
     return explanation;
   } catch (error) {
@@ -86,6 +95,9 @@ export const getExplanationById = async (explanationId, userId) => {
  * Get all explanations for a user
  */
 export const getUserExplanations = async (userId, page = 1, limit = 10) => {
+  const MAX_LIMIT = 100;
+  page = Math.max(1, Math.floor(Number(page) || 1));
+  limit = Math.max(1, Math.min(Math.floor(Number(limit) || 10), MAX_LIMIT));
   const skip = (page - 1) * limit;
 
   const [explanations, total] = await Promise.all([
@@ -148,7 +160,10 @@ export const addFollowUp = async (explanationId, userId, question) => {
       ],
     });
 
-    const answer = completion.choices[0].message.content;
+    if (!completion?.choices?.length || !completion.choices[0]?.message) {
+      throw new Error('AI model returned an empty or invalid response');
+    }
+    const answer = completion.choices[0].message.content || '';
 
     // Update explanation with new follow-up
     const updatedFollowUps = [
@@ -160,16 +175,22 @@ export const addFollowUp = async (explanationId, userId, question) => {
       },
     ];
 
-    const updated = await prisma.deepExplanation.update({
-      where: { id: explanationId },
-      data: {
-        followUps: updatedFollowUps,
-        creditsUsed: explanation.creditsUsed + CREDIT_COSTS.DEEP_EXPLAIN_FOLLOWUP,
-      },
-    });
-
-    // Deduct credits
+    // Deduct credits before DB update
     await deductCredits(userId, CREDIT_COSTS.DEEP_EXPLAIN_FOLLOWUP);
+
+    let updated;
+    try {
+      updated = await prisma.deepExplanation.update({
+        where: { id: explanationId },
+        data: {
+          followUps: updatedFollowUps,
+          creditsUsed: explanation.creditsUsed + CREDIT_COSTS.DEEP_EXPLAIN_FOLLOWUP,
+        },
+      });
+    } catch (dbError) {
+      await refundCredits(userId, CREDIT_COSTS.DEEP_EXPLAIN_FOLLOWUP);
+      throw dbError;
+    }
 
     return {
       followUp: updatedFollowUps[updatedFollowUps.length - 1],
