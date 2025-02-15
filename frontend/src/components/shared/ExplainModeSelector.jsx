@@ -33,7 +33,7 @@ export default function ExplainModeSelector({ value = 'easy', onChange }) {
         type="single"
         value={value}
         onValueChange={(val) => {
-          if (val) onChange(val);
+          if (val && typeof onChange === 'function') onChange(val);
         }}
         variant="outline"
         className="w-full grid grid-cols-3 gap-1"
