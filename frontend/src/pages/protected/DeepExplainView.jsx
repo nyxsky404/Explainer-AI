@@ -33,6 +33,7 @@ export default function DeepExplainView() {
     }, [id]);
 
     const fetchExplanation = async () => {
+        setLoading(true);
         try {
             const res = await api.get(`/deep-explain/${id}`);
             setExplanation(res.data.data);
@@ -80,6 +81,8 @@ export default function DeepExplainView() {
                 setTimeout(() => {
                     followUpRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
                 }, 100);
+            } else {
+                toast.error(res.data.message || 'Failed to get follow-up answer');
             }
         } catch (error) {
             console.error('Failed to ask follow-up:', error);
@@ -116,7 +119,8 @@ export default function DeepExplainView() {
         );
     }
 
-    const ModeIcon = modeInfo[explanation.mode].icon;
+    const modeData = modeInfo[explanation.mode] || { icon: Lightbulb, label: 'Unknown', color: 'bg-gray-500' };
+    const ModeIcon = modeData.icon;
 
     return (
         <div className="space-y-6 max-w-4xl mx-auto">
@@ -145,7 +149,7 @@ export default function DeepExplainView() {
                             <div className="flex items-center gap-2 flex-wrap">
                                 <Badge variant="outline" className="gap-1.5">
                                     <ModeIcon className="size-3" />
-                                    {modeInfo[explanation.mode].label} Mode
+                                    {modeData.label} Mode
                                 </Badge>
                                 <Badge variant="secondary">
                                     {explanation.creditsUsed} credit{explanation.creditsUsed !== 1 ? 's' : ''} used
@@ -195,7 +199,7 @@ export default function DeepExplainView() {
                             onChange={(e) => setFollowUpQuestion(e.target.value)}
                             disabled={askingFollowUp}
                         />
-                        <Button type="submit" disabled={askingFollowUp}>
+                        <Button type="submit" disabled={askingFollowUp} aria-label={askingFollowUp ? 'Sending follow-up' : 'Send follow-up'}>
                             {askingFollowUp ? (
                                 <Loader2 className="size-4 animate-spin" />
                             ) : (

@@ -40,6 +40,8 @@ export default function DeepExplain() {
             if (res.data.success) {
                 toast.success('Explanation generated successfully! (2 credits used)');
                 navigate(`/dashboard/deep-explain/${res.data.data.id}`);
+            } else {
+                toast.error(res.data.message || 'Failed to generate explanation');
             }
         } catch (error) {
             toast.error(getFriendlyErrorMessage(error));
