@@ -15,7 +15,7 @@ import {
     TableHeader,
     TableRow,
 } from '@/components/ui/table';
-import { Mic, Library, ExternalLink, Youtube, Globe, Coins, Volume2, FileText, Type, Layers, BookOpen } from 'lucide-react';
+import { Mic, Library, ExternalLink, Youtube, Globe, Coins, Volume2, FileText, Type, Layers, BookOpen, ClipboardList } from 'lucide-react';
 import ToolsGrid from '@/components/blocks/Dashboard/tools-grid';
 import { useCreditPricing } from '@/hooks/useCreditPricing';
 import { truncateUrl } from '@/lib/utils';
@@ -38,6 +38,15 @@ const tools = [
         icon: <BookOpen className="size-8 text-foreground" />,
         link: '/dashboard/deep-explain',
         buttonText: 'Explain Topic',
+    },
+    {
+        id: 'quiz-generator',
+        title: 'AI Quiz Generator',
+        description: 'Generate quizzes from any content to test your knowledge',
+        credits: 2,
+        icon: <ClipboardList className="size-8 text-foreground" />,
+        link: '/dashboard/quiz/generate',
+        buttonText: 'Generate Quiz',
     },
     {
         id: 'youtube-summarizer',
