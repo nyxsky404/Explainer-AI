@@ -24,6 +24,9 @@ import BatchSummarize from './pages/protected/BatchSummarize'
 import SummaryView from './pages/protected/SummaryView'
 import DeepExplain from './pages/protected/DeepExplain'
 import DeepExplainView from './pages/protected/DeepExplainView'
+import QuizGenerate from './pages/protected/QuizGenerate'
+import QuizAttempt from './pages/protected/QuizAttempt'
+import QuizLibrary from './pages/protected/QuizLibrary'
 import PublicSummaryView from './pages/public/PublicSummaryView'
 import PublicPodcastView from './pages/public/PublicPodcastView'
 
@@ -46,6 +49,9 @@ function App() {
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/dashboard/deep-explain" element={<DeepExplain />} />
           <Route path="/dashboard/deep-explain/:id" element={<DeepExplainView />} />
+          <Route path="/dashboard/quiz" element={<QuizLibrary />} />
+          <Route path="/dashboard/quiz/generate" element={<QuizGenerate />} />
+          <Route path="/dashboard/quiz/:id" element={<QuizAttempt />} />
           <Route path="/dashboard/podcast/generate" element={<PodcastGenerate />} />
           <Route path="/dashboard/podcast/:id" element={<PodcastDetail />} />
           <Route path="/dashboard/library" element={<Library />} />

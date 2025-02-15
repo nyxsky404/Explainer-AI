@@ -35,6 +35,8 @@ import {
   FileText,
   Type,
   Layers,
+  BookOpen,
+  ClipboardList,
 } from "lucide-react";
 import Logo from "@/assets/logo";
 import DashboardNavigation from "@/components/blocks/Dashboard/sidebar/nav-main";
@@ -77,6 +79,18 @@ const dashboardRoutes = [
     title: "Generate Podcast",
     icon: <Mic className="size-4 text-foreground" />,
     link: "/dashboard/podcast/generate",
+  },
+  {
+    id: "deep-explain",
+    title: "AI Deep Explain",
+    icon: <BookOpen className="size-4 text-foreground" />,
+    link: "/dashboard/deep-explain",
+  },
+  {
+    id: "quiz-generator",
+    title: "Quiz Generator",
+    icon: <ClipboardList className="size-4 text-foreground" />,
+    link: "/dashboard/quiz",
   },
   {
     id: "youtube-summarizer",
