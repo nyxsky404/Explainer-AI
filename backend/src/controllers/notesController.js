@@ -1,0 +1,304 @@
+import {
+  generateNote,
+  generateNoteFromSummary,
+  getNoteById,
+  getUserNotes,
+  updateNote,
+  deleteNote,
+} from '../services/notesService.js';
+import prisma from '../config/db.js';
+
+/**
+ * Generate a new note from content
+ * POST /api/notes/generate
+ */
+export const generateNoteController = async (req, res) => {
+  try {
+    const userId = req.userID;
+    const { sourceType, sourceContent, style, pages } = req.body;
+
+    // Validation
+    if (!sourceContent || !sourceContent.trim()) {
+      return res.status(400).json({
+        success: false,
+        message: 'Source content is required',
+      });
+    }
+
+    if (!['TEXT', 'URL', 'PDF'].includes(sourceType?.toUpperCase())) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid source type. Must be TEXT, URL, or PDF',
+      });
+    }
+
+    if (!['CORNELL', 'OUTLINE', 'FLOW', 'BULLET'].includes(style?.toUpperCase())) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid style. Must be CORNELL, OUTLINE, FLOW, or BULLET',
+      });
+    }
+
+    const pageCount = parseInt(pages) || 2;
+    if (pageCount < 1 || pageCount > 5) {
+      return res.status(400).json({
+        success: false,
+        message: 'Pages must be between 1 and 5',
+      });
+    }
+
+    const note = await generateNote(userId, sourceContent, {
+      sourceType,
+      style,
+      pages: pageCount,
+    });
+
+    res.status(201).json({
+      success: true,
+      message: 'Note generated successfully',
+      data: note,
+    });
+  } catch (error) {
+    console.error('Error in generateNoteController:', error);
+    
+    const statusCode = error.message === 'Insufficient credits' ? 403 : 500;
+    
+    res.status(statusCode).json({
+      success: false,
+      message: error.message || "Failed to process request",
+      error: error.message,
+    });
+  }
+};
+
+/**
+ * Generate note from existing summary
+ * POST /api/notes/generate-from-summary/:summaryId
+ */
+export const generateNoteFromSummaryController = async (req, res) => {
+  try {
+    const userId = req.userID;
+    const { summaryId } = req.params;
+    const { style, pages } = req.body;
+
+    if (!summaryId) {
+      return res.status(400).json({
+        success: false,
+        message: 'Summary ID is required',
+      });
+    }
+
+    if (style && !['CORNELL', 'OUTLINE', 'FLOW', 'BULLET'].includes(style?.toUpperCase())) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid style. Must be CORNELL, OUTLINE, FLOW, or BULLET',
+      });
+    }
+
+    const pageCount = parseInt(pages) || 2;
+    if (pageCount < 1 || pageCount > 5) {
+      return res.status(400).json({
+        success: false,
+        message: 'Pages must be between 1 and 5',
+      });
+    }
+
+    const note = await generateNoteFromSummary(userId, summaryId, {
+      style,
+      pages: pageCount,
+    });
+
+    res.status(201).json({
+      success: true,
+      message: 'Note generated from summary successfully',
+      data: note,
+    });
+  } catch (error) {
+    console.error('Error in generateNoteFromSummaryController:', error);
+    
+    let statusCode = 500;
+    if (error.message === 'Insufficient credits') statusCode = 403;
+    if (error.message === 'Summary not found') statusCode = 404;
+    
+    res.status(statusCode).json({
+      success: false,
+      message: error.message || "Failed to process request",
+      error: error.message,
+    });
+  }
+};
+
+/**
+ * Get note by ID
+ * GET /api/notes/:id
+ */
+export const getNote = async (req, res) => {
+  try {
+    const userId = req.userID;
+    const { id } = req.params;
+
+    const note = await getNoteById(id, userId);
+
+    res.status(200).json({
+      success: true,
+      data: note,
+    });
+  } catch (error) {
+    console.error('Error in getNote:', error);
+    
+    const statusCode = error.message === 'Note not found' ? 404 : 500;
+    
+    res.status(statusCode).json({
+      success: false,
+      message: error.message || "Failed to process request",
+      error: error.message,
+    });
+  }
+};
+
+/**
+ * Get all notes for current user
+ * GET /api/notes/list
+ */
+export const listNotes = async (req, res) => {
+  try {
+    const userId = req.userID;
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+
+    const result = await getUserNotes(userId, page, limit);
+
+    res.status(200).json({
+      success: true,
+      data: result.notes,
+      pagination: result.pagination,
+    });
+  } catch (error) {
+    console.error('Error in listNotes:', error);
+    
+    res.status(500).json({
+      success: false,
+      message: error.message || 'Failed to retrieve notes',
+      error: error.message,
+    });
+  }
+};
+
+/**
+ * Update note
+ * PUT /api/notes/:id
+ */
+export const updateNoteController = async (req, res) => {
+  try {
+    const userId = req.userID;
+    const { id } = req.params;
+    const { title, sections, quickReview, formulas } = req.body;
+
+    if (!title && !sections && !quickReview && !formulas) {
+      return res.status(400).json({
+        success: false,
+        message: 'At least one field to update is required',
+      });
+    }
+
+    const updates = {};
+    if (title) updates.title = title;
+    if (sections) updates.sections = sections;
+    if (quickReview) updates.quickReview = quickReview;
+    if (formulas) updates.formulas = formulas;
+
+    const note = await updateNote(id, userId, updates);
+
+    res.status(200).json({
+      success: true,
+      message: 'Note updated successfully',
+      data: note,
+    });
+  } catch (error) {
+    console.error('Error in updateNoteController:', error);
+    
+    const statusCode = error.message === 'Note not found' ? 404 : 500;
+    
+    res.status(statusCode).json({
+      success: false,
+      message: error.message || "Failed to process request",
+      error: error.message,
+    });
+  }
+};
+
+/**
+ * Delete note
+ * DELETE /api/notes/:id
+ */
+export const deleteNoteController = async (req, res) => {
+  try {
+    const userId = req.userID;
+    const { id } = req.params;
+
+    const result = await deleteNote(id, userId);
+
+    res.status(200).json({
+      success: true,
+      message: result.message,
+    });
+  } catch (error) {
+    console.error('Error in deleteNoteController:', error);
+    
+    const statusCode = error.message === 'Note not found' ? 404 : 500;
+    
+    res.status(statusCode).json({
+      success: false,
+      message: error.message || "Failed to process request",
+      error: error.message,
+    });
+  }
+};
+
+/**
+ * Get note by ID (public sharing)
+ * GET /api/notes/share/:id
+ */
+export const getNotePublic = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const note = await prisma.note.findUnique({
+      where: { id },
+      select: {
+        id: true,
+        title: true,
+        style: true,
+        sections: true,
+        quickReview: true,
+        formulas: true,
+        createdAt: true,
+        user: {
+          select: {
+            name: true,
+          },
+        },
+      },
+    });
+
+    if (!note) {
+      return res.status(404).json({
+        success: false,
+        message: 'Note not found',
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      data: note,
+    });
+  } catch (error) {
+    console.error('Error in getNotePublic:', error);
+    
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch note',
+      error: error.message,
+    });
+  }
+};
