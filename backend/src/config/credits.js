@@ -18,7 +18,7 @@ export const CREDIT_COSTS = {
   NOTES_GENERATE: 2,
   NOTES_FROM_SUMMARY: 1,
   VISUALIZER_MERMAID: 1,
-  VISUALIZER_IMAGE: 3,
+  VISUALIZER_IMAGE: 5,
 };
 
 // Individual exports for convenience (existing)
