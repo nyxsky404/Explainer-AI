@@ -147,14 +147,23 @@ Use LaTeX for all mathematical notation: $inline$ and $$display$$`,
 };
 
 export const getFollowUpPrompt = (originalTopic, originalMode, chatHistory, userQuestion) => {
-  return `You are continuing a deep explanation session about "${originalTopic}" in ${originalMode.toUpperCase()} mode.
+  const mode = (originalMode || 'default').toUpperCase();
+  const history = Array.isArray(chatHistory) ? chatHistory : [];
+  const question = String(userQuestion || '');
+  const recentHistory = history.slice(-2).map((msg) => {
+    const role = String(msg?.role || 'unknown');
+    const content = typeof msg?.content === 'string' ? msg.content.substring(0, 500) : '';
+    return `${role}: ${content}`;
+  }).join('\n\n');
+
+  return `You are continuing a deep explanation session about "${originalTopic}" in ${mode} mode.
 
 Previous explanation context:
-${chatHistory.slice(-2).map(msg => `${msg.role}: ${msg.content.substring(0, 500)}`).join('\n\n')}
+${recentHistory}
 
-User's follow-up question: "${userQuestion}"
+User's follow-up question: "${question}"
 
-Provide a focused answer to this specific question while maintaining the same ${originalMode} level of complexity and style. Use Markdown formatting with LaTeX for math ($inline$ and $$display$$).
+Provide a focused answer to this specific question while maintaining the same ${(originalMode || 'default')} level of complexity and style. Use Markdown formatting with LaTeX for math ($inline$ and $$display$$).
 
 Keep your response concise but thorough (200-500 words unless the question requires more depth).`;
 };
