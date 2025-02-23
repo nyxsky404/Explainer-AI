@@ -43,9 +43,9 @@ export const generateExplanation = async (req, res) => {
     });
   } catch (error) {
     console.error('Error in generateExplanation controller:', error);
-    return res.status(error.message.includes('credits') ? 402 : 500).json({
+    return res.status((error?.message || '').includes('credits') ? 402 : 500).json({
       success: false,
-      message: error.message || 'Failed to generate explanation',
+      message: error?.message || 'Failed to generate explanation',
     });
   }
 };
@@ -67,12 +67,13 @@ export const getExplanation = async (req, res) => {
       message: 'Explanation retrieved successfully',
     });
   } catch (error) {
-    console.error('Error in getExplanation controller:', error);
-    const status = error.message.includes('not found') ? 404 : 
-                   error.message.includes('Unauthorized') ? 403 : 500;
+    const msg = error?.message || String(error);
+    console.error('Error in getExplanation controller:', msg);
+    const status = msg.includes('not found') ? 404 : 
+                   msg.includes('Unauthorized') ? 403 : 500;
     return res.status(status).json({
       success: false,
-      message: error.message || 'Failed to retrieve explanation',
+      message: msg || 'Failed to retrieve explanation',
     });
   }
 };
@@ -84,8 +85,8 @@ export const getExplanation = async (req, res) => {
 export const listExplanations = async (req, res) => {
   try {
     const userId = req.userID;
-    const page = parseInt(req.query.page) || 1;
-    const limit = parseInt(req.query.limit) || 10;
+    const page = Math.max(1, Math.floor(parseInt(req.query.page) || 1));
+    const limit = Math.max(1, Math.min(Math.floor(parseInt(req.query.limit) || 10), 100));
 
     const result = await getUserExplanations(userId, page, limit);
 
@@ -129,11 +130,13 @@ export const addFollowUpQuestion = async (req, res) => {
     });
   } catch (error) {
     console.error('Error in addFollowUpQuestion controller:', error);
-    const status = error.message.includes('credits') ? 402 : 
-                   error.message.includes('not found') ? 404 : 500;
+    const msg = error?.message || '';
+    const status = msg.includes('Unauthorized') ? 403 :
+                   msg.includes('credits') ? 402 : 
+                   msg.includes('not found') ? 404 : 500;
     return res.status(status).json({
       success: false,
-      message: error.message || 'Failed to add follow-up',
+      message: error?.message || 'Failed to add follow-up',
     });
   }
 };
@@ -156,11 +159,12 @@ export const deleteExplanationById = async (req, res) => {
     });
   } catch (error) {
     console.error('Error in deleteExplanationById controller:', error);
-    const status = error.message.includes('not found') ? 404 : 
-                   error.message.includes('Unauthorized') ? 403 : 500;
+    const msg = error?.message || '';
+    const status = msg.includes('not found') ? 404 : 
+                   msg.includes('Unauthorized') ? 403 : 500;
     return res.status(status).json({
       success: false,
-      message: error.message || 'Failed to delete explanation',
+      message: error?.message || 'Failed to delete explanation',
     });
   }
 };
