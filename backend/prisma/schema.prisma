@@ -9,11 +9,19 @@ datasource db {
 }
 
 model user {
-  id        Int      @id @default(autoincrement())
+  id        String     @id @default(uuid())
   name      String
   email     String   @unique
   password  String
   lastLogin DateTime @default(now())
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+model Podcast {
+  id        String   @id @default(uuid())
+  blogUrl   String
+  audioUrl  String
+  status    String
+  createdAt DateTime @default(now())
 }
