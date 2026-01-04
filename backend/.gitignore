@@ -1,0 +1,25 @@
+node_modules
+# Keep environment variables out of version control
+.env
+
+# Prisma
+/src/generated/prisma
+/generated
+
+# OS
+.DS_Store
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+logs
+*.log
+pids
+*.pid
+*.seed
+*.pid.lock
+
+# Generated Audio
+*.wav
+*.mp3
