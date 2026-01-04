@@ -84,7 +84,7 @@ export const login = async (req, res)=> {
 			user: {...findUser, password: undefined}})
     }
     catch(err){
-        console.log(err)
+        throw new Error(err)
     }
 }
 

@@ -27,42 +27,47 @@ async function pcmToWavBuffer(
 }
 
 export const generatePodcast = async(blogUrl) => {
-    const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+    try {
 
-    const prompt = await generateScript(blogUrl);
-
-    const response = await ai.models.generateContent({
-        model: "gemini-2.5-flash-preview-tts",
-        contents: [{ parts: [{ text: prompt }] }],
-        config: {
-            responseModalities: ['AUDIO'],
-            speechConfig: {
-                multiSpeakerVoiceConfig: {
-                    speakerVoiceConfigs: [
-                        {
-                            speaker: 'Sophia',
-                            voiceConfig: {
-                                prebuiltVoiceConfig: { voiceName: 'Kore' }
+        const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+    
+        const prompt = await generateScript(blogUrl);
+    
+        const response = await ai.models.generateContent({
+            model: "gemini-2.5-flash-preview-tts",
+            contents: [{ parts: [{ text: prompt }] }],
+            config: {
+                responseModalities: ['AUDIO'],
+                speechConfig: {
+                    multiSpeakerVoiceConfig: {
+                        speakerVoiceConfigs: [
+                            {
+                                speaker: 'Sophia',
+                                voiceConfig: {
+                                    prebuiltVoiceConfig: { voiceName: 'Kore' }
+                                }
+                            },
+                            {
+                                speaker: 'Alex',
+                                voiceConfig: {
+                                    prebuiltVoiceConfig: { voiceName: 'Enceladus' }
+                                }
                             }
-                        },
-                        {
-                            speaker: 'Alex',
-                            voiceConfig: {
-                                prebuiltVoiceConfig: { voiceName: 'Enceladus' }
-                            }
-                        }
-                    ]
+                        ]
+                    }
                 }
             }
-        }
-    });
-
-    const data = response.candidates?.[0]?.content?.parts?.[0]?.inlineData?.data;
-    const audioBuffer = Buffer.from(data, 'base64');
-
-    const wavBuffer = await pcmToWavBuffer(audioBuffer );
-
-    console.log("Audio Generated 🎉")
-
-    return wavBuffer
+        });
+    
+        const data = response.candidates?.[0]?.content?.parts?.[0]?.inlineData?.data;
+        const audioBuffer = Buffer.from(data, 'base64');
+    
+        const wavBuffer = await pcmToWavBuffer(audioBuffer );
+    
+        console.log("Audio Generated 🎉")
+    
+        return wavBuffer
+    }catch(err){
+        throw new Error(err)
+    }
 }

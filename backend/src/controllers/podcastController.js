@@ -23,14 +23,74 @@ export const podcastGenerate = async(req, res) => {
                 id: podcastId,
                 blogUrl,
                 audioUrl,
-                status: "Completed"
-            }
+                status: "Completed",
+                user: {
+                    connect: {
+                        id: req.userID
+                    }
+                }
+            },
         })
 
         res.status(200).json(data)
 
 
     }catch(err){
-        console.error(err);
+        throw new Error(err)
+    }
+}
+
+export const checkPodcast = async(req, res)=>{
+    const userId = req.userID
+
+    try{
+
+        if (!userId){
+            return res.status(400).json({
+                msg: "No id provided"
+            })
+        }
+    
+        const data = await prisma.podcast.findUnique({
+            where: {id: userId}
+        })
+    
+        if (!data){
+            return res.status(400).json({
+                msg: "No data found"
+            })
+        }
+    
+        res.status(200).json({
+            msg: "podcast found 🎉",
+            data
+        })
+    }catch(err){
+        throw new Error(err)
+    }
+
+}
+
+
+export const getPodcast = async(req, res) => {
+    const userId = req.userID
+
+    try {
+        const data = await prisma.user.findMany({
+            where : {id: userId},
+            include: {
+                podcasts: true,
+            }
+        })
+
+        if (!data){
+            return res.status(400).json({
+                msg: "No data found"
+            })
+        }
+    
+        res.status(200).json(data)
+    }catch(err){
+        throw new Error(err)
     }
 }
