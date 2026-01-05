@@ -1,6 +1,6 @@
 import { GoogleGenAI } from "@google/genai";
 import wav from 'wav';
-import { generateScript } from "./scriptService.js";
+import { uploadAudioBuffer } from "./storageService";
 
 async function pcmToWavBuffer(
    pcmData,
@@ -26,16 +26,14 @@ async function pcmToWavBuffer(
    });
 }
 
-export const generatePodcast = async(blogUrl) => {
+export const generateAudio = async(script, podcastId) => {
     try {
 
         const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
     
-        const prompt = await generateScript(blogUrl);
-    
         const response = await ai.models.generateContent({
             model: "gemini-2.5-flash-preview-tts",
-            contents: [{ parts: [{ text: prompt }] }],
+            contents: [{ parts: [{ text: script }] }],
             config: {
                 responseModalities: ['AUDIO'],
                 speechConfig: {
@@ -63,10 +61,11 @@ export const generatePodcast = async(blogUrl) => {
         const audioBuffer = Buffer.from(data, 'base64');
     
         const wavBuffer = await pcmToWavBuffer(audioBuffer );
+        const audioUrl = await uploadAudioBuffer(wavBuffer, podcastId)
     
         console.log("Audio Generated 🎉")
     
-        return wavBuffer
+        return audioUrl
     }catch(err){
         throw new Error(err)
     }

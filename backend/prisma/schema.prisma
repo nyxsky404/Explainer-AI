@@ -22,9 +22,11 @@ model User {
 
 model Podcast {
   id        String   @id @default(uuid())
-  userId    String   
+  userId    String
   blogUrl   String
-  audioUrl  String
+  scrapedText String? @db.LongText
+  script    String?   @db.LongText
+  audioUrl  String?
   status    String
   createdAt DateTime @default(now())
 

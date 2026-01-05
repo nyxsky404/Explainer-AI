@@ -1,7 +1,5 @@
-import { v4 as uuid } from 'uuid';
-import { generatePodcast } from "../services/podcastService.js";
-import { uploadAudioBuffer } from "../services/storageService.js";
 import prisma from '../config/db.js';
+import { addJobs } from '../queue/producer.js';
 
 export const podcastGenerate = async(req, res) => {
     console.log(req.body)
@@ -14,16 +12,10 @@ export const podcastGenerate = async(req, res) => {
             })
         }
 
-        const wavBuffer = await generatePodcast(blogUrl)
-        const podcastId = uuid()
-        const audioUrl = await uploadAudioBuffer(wavBuffer, podcastId)
-
         const data = await prisma.podcast.create({
             data: {
-                id: podcastId,
                 blogUrl,
-                audioUrl,
-                status: "Completed",
+                status: "processing",
                 user: {
                     connect: {
                         id: req.userID
@@ -31,6 +23,8 @@ export const podcastGenerate = async(req, res) => {
                 }
             },
         })
+
+        await addJobs(data.id, blogUrl);
 
         res.status(200).json(data)
 

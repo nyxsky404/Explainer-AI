@@ -9,9 +9,9 @@ export const scrapeUrl = async(url) => {
             onlyMainContent: true 
         });
     
-        console.log(result)
+        console.log(result.markdown)
     
-        return result
+        return result.markdown
     }catch(err){
         throw new Error(err.m)
     }
