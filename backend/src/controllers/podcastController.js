@@ -41,18 +41,18 @@ export const podcastGenerate = async(req, res) => {
 }
 
 export const checkPodcast = async(req, res)=>{
-    const userId = req.userID
+    const {id} = req.params
 
     try{
 
-        if (!userId){
+        if (!id){
             return res.status(400).json({
                 msg: "No id provided"
             })
         }
     
         const data = await prisma.podcast.findUnique({
-            where: {id: userId}
+            where: {id}
         })
     
         if (!data){
@@ -66,6 +66,7 @@ export const checkPodcast = async(req, res)=>{
             data
         })
     }catch(err){
+        console.log(err)
         throw new Error(err)
     }
 

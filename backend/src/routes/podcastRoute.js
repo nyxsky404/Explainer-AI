@@ -7,7 +7,7 @@ import { getPodcast } from "../controllers/podcastController.js";
 const Router = express.Router()
 
 Router.post("/generate", podcastGenerate )
-Router.get("/check", checkPodcast)
+Router.get("/check/:id", checkPodcast)
 Router.get("/get", getPodcast)
 
 export default Router
