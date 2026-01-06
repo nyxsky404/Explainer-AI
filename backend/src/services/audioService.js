@@ -1,6 +1,7 @@
 import { GoogleGenAI } from "@google/genai";
 import wav from 'wav';
-import { uploadAudioBuffer } from "./storageService";
+import { uploadAudioBuffer } from "./storageService.js";
+import { parseBuffer } from "music-metadata";
 
 async function pcmToWavBuffer(
    pcmData,
@@ -61,11 +62,19 @@ export const generateAudio = async(script, podcastId) => {
         const audioBuffer = Buffer.from(data, 'base64');
     
         const wavBuffer = await pcmToWavBuffer(audioBuffer );
-        const audioUrl = await uploadAudioBuffer(wavBuffer, podcastId)
+        
+        // extract duration
+        const metadata = await parseBuffer(wavBuffer, {
+            mimeType: "audio/wav",
+        });
     
-        console.log("Audio Generated 🎉")
+        const audioDuration = metadata.format.duration; // seconds (float)
     
-        return audioUrl
+        const audioUrl = await uploadAudioBuffer(wavBuffer, podcastId);
+    
+        console.log("Audio Generated 🎉", { audioDuration });
+    
+        return { audioUrl, audioDuration };
     }catch(err){
         throw new Error(err)
     }
