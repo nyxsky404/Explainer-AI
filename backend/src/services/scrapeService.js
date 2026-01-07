@@ -13,6 +13,6 @@ export const scrapeUrl = async(url) => {
     
         return result.markdown
     }catch(err){
-        throw new Error(err.m)
+        throw new Error(err)
     }
 }
