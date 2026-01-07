@@ -1,13 +1,13 @@
 import express from "express"
-import { podcastGenerate } from "../controllers/podcastController.js"
-import { checkPodcast } from "../controllers/podcastController.js";
-import { getPodcast } from "../controllers/podcastController.js";
-
+import { podcastGenerate, getPodcastById, getAllPodcasts, deletePodcast, getPodcastProgress, retryPodcast } from "../controllers/podcastController.js"
 
 const Router = express.Router()
 
 Router.post("/generate", podcastGenerate )
-Router.get("/check/:id", checkPodcast)
-Router.get("/get", getPodcast)
+Router.get("/get/:id", getPodcastById)
+Router.get("/progress/:id", getPodcastProgress)
+Router.post("/retry/:id", retryPodcast)
+Router.get("/get", getAllPodcasts)
+Router.delete("/delete/:id", deletePodcast)
 
 export default Router
