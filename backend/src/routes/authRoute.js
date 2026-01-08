@@ -8,6 +8,7 @@ import {
   resetPassword,
   updateProfile,
   getUsage,
+  deleteAccount,
 } from "../controllers/authController.js";
 import { verifyToken } from "../middleware/verifyToken.js";
 const router = express.Router();
@@ -30,5 +31,8 @@ router.put("/update-profile", verifyToken, updateProfile);
 
 // Usage information (requires authentication)
 router.get("/usage", verifyToken, getUsage);
+
+// Delete account (requires authentication and password confirmation)
+router.delete("/delete-account", verifyToken, deleteAccount);
 
 export default router;

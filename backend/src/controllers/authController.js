@@ -2,6 +2,9 @@ import prisma from "../config/db.js";
 import bcrypt from "bcryptjs";
 import crypto from "crypto";
 import { generateTokenAndSetCookie } from "../utils/generateTokenAndSetCookie.js";
+import { deleteAudioFile } from "../services/storageService.js";
+import { sendPasswordResetEmail } from "../services/emailService.js";
+import { sendPasswordResetEmail } from "../services/emailService.js";
 
 export const signup = async (req, res) => {
   try {
@@ -158,16 +161,38 @@ export const forgotPassword = async (req, res) => {
       },
     });
 
-    // TODO: Send email with reset token
+    // Send email with reset token
+    try {
+      const emailResult = await sendPasswordResetEmail(
+        user.email,
+        resetToken,
+        user.name
+      );
 
-    res.status(200).json({
-      success: true,
-      message:
-        "Password reset token generated. Check your email for reset instructions.",
-      // Remove this in production - only for development
-      resetToken:
-        process.env.NODE_ENV === "development" ? resetToken : undefined,
-    });
+      res.status(200).json({
+        success: true,
+        message:
+          "Password reset link has been sent to your email. Please check your inbox.",
+        // Include preview URL in development for Ethereal emails
+        previewUrl:
+          process.env.NODE_ENV === "development"
+            ? emailResult.previewUrl
+            : undefined,
+      });
+    } catch (emailError) {
+      // Log error but don't expose it to user for security
+      console.error("Failed to send password reset email:", emailError);
+
+      // Still return success to user (security best practice)
+      res.status(200).json({
+        success: true,
+        message:
+          "If an account with that email exists, a password reset link has been sent.",
+        // In development, include token if email fails
+        resetToken:
+          process.env.NODE_ENV === "development" ? resetToken : undefined,
+      });
+    }
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
   }
@@ -348,6 +373,74 @@ export const getUsage = async (req, res) => {
         resetDate: user.usageResetDate,
         daysUntilReset: Math.max(0, daysUntilReset),
       },
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+};
+
+// Delete Account
+export const deleteAccount = async (req, res) => {
+  try {
+    const userId = req.userID;
+    const { password } = req.body;
+
+    // Get user to verify password
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      include: {
+        podcasts: {
+          select: { id: true, audioUrl: true },
+        },
+      },
+    });
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    // Require password confirmation for security
+    if (!password) {
+      return res.status(400).json({
+        success: false,
+        message: "Password is required to delete account",
+      });
+    }
+
+    // Verify password
+    const isPasswordValid = await bcrypt.compare(password, user.password);
+    if (!isPasswordValid) {
+      return res.status(401).json({
+        success: false,
+        message:
+          "Invalid password. Account deletion requires password confirmation.",
+      });
+    }
+
+    // Delete all audio files from storage
+    if (user.podcasts && user.podcasts.length > 0) {
+      const deletePromises = user.podcasts
+        .filter((podcast) => podcast.audioUrl)
+        .map((podcast) => deleteAudioFile(podcast.id));
+
+      // Wait for all deletions to complete (don't fail if some fail)
+      await Promise.allSettled(deletePromises);
+    }
+
+    // Delete user (this will cascade delete all podcasts due to the relation)
+    await prisma.user.delete({
+      where: { id: userId },
+    });
+
+    // Clear auth cookie
+    res.clearCookie("token");
+
+    res.status(200).json({
+      success: true,
+      message: "Account deleted successfully",
     });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
