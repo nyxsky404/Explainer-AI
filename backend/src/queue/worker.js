@@ -120,7 +120,10 @@ const worker = new Worker(
       throw error;
     }
   },
-  { connection }
+  {
+    connection,
+    concurrency: 3, // Process up to 3 jobs simultaneously
+  }
 );
 
 worker.on("completed", (job) => {
