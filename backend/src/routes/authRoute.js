@@ -20,7 +20,7 @@ router.post("/logout", logout);
 //TODO: verify email and password routes
 
 // check if user authenticated or not?
-router.get("/check-auth", verifyToken, profile);
+router.get("/profile", verifyToken, profile);
 
 // Password reset routes
 router.post("/forgot-password", forgotPassword);
