@@ -105,7 +105,7 @@ export const logout = (req, res) => {
   res.status(200).json({ success: true, message: "Logged out successfully" });
 };
 
-export const checkAuth = async (req, res) => {
+export const profile = async (req, res) => {
   const id = req.userID;
   try {
     const findUser = await prisma.user.findUnique({

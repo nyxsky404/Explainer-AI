@@ -3,7 +3,7 @@ import {
   login,
   logout,
   signup,
-  checkAuth,
+  profile,
   forgotPassword,
   resetPassword,
   updateProfile,
@@ -20,7 +20,7 @@ router.post("/logout", logout);
 //TODO: verify email and password routes
 
 // check if user authenticated or not?
-router.get("/check-auth", verifyToken, checkAuth);
+router.get("/check-auth", verifyToken, profile);
 
 // Password reset routes
 router.post("/forgot-password", forgotPassword);
