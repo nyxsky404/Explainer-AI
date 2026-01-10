@@ -4,7 +4,6 @@ import crypto from "crypto";
 import { generateTokenAndSetCookie } from "../utils/generateTokenAndSetCookie.js";
 import { deleteAudioFile } from "../services/storageService.js";
 import { sendPasswordResetEmail } from "../services/emailService.js";
-import { sendPasswordResetEmail } from "../services/emailService.js";
 
 export const signup = async (req, res) => {
   try {
