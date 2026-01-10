@@ -4,8 +4,9 @@ generator client {
 }
 
 datasource db {
-  provider = "mysql"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
 }
 
 enum PodcastStatus {
@@ -40,8 +41,8 @@ model Podcast {
   id            String        @id @default(uuid())
   userId        String
   blogUrl       String
-  scrapedText   String?       @db.LongText
-  script        String?       @db.LongText
+  scrapedText   String?       
+  script        String?       
   audioUrl      String?
   status        PodcastStatus @default(processing)
   progress      Int           @default(0)
