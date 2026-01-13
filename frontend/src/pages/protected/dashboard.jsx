@@ -1,63 +1,147 @@
-import { useNavigate } from 'react-router';
+import { useEffect, useState } from 'react';
+import { Link } from 'react-router';
 import { useAuth } from '@/context/AuthContext';
-import { toast } from 'sonner';
-
+import api from '@/api/axios';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Progress } from '@/components/ui/progress';
 import { Button } from '@/components/ui/button';
+import { Skeleton } from '@/components/ui/skeleton';
+import { Mic, ArrowRight, Library, ExternalLink } from 'lucide-react';
 
-function Dashboard() {
-    const { user, logout } = useAuth();
-    const navigate = useNavigate();
+export default function Dashboard() {
+    const { user } = useAuth();
+    const [usage, setUsage] = useState(null);
+    const [recentPodcasts, setRecentPodcasts] = useState([]);
+    const [loading, setLoading] = useState(true);
 
-    const handleLogout = async () => {
+    useEffect(() => {
+        fetchData();
+    }, []);
+
+    const fetchData = async () => {
         try {
-            await logout();
-            toast.success('Logged out successfully');
-            navigate('/login');
+            const [usageRes, podcastsRes] = await Promise.all([
+                api.get('/auth/usage'),
+                api.get('/podcast/get?limit=3'),
+            ]);
+            setUsage(usageRes.data.usage);
+            setRecentPodcasts(podcastsRes.data.data.podcasts || []);
         } catch (error) {
-            toast.error('Failed to logout');
+            console.error('Failed to fetch data:', error);
+        } finally {
+            setLoading(false);
         }
     };
 
+    const usagePercentage = usage ? (usage.current / usage.limit) * 100 : 0;
+
     return (
-        <div className="min-h-screen bg-background p-8">
-            <div className="max-w-4xl mx-auto">
-                <div className="flex items-center justify-between mb-8">
-                    <div>
-                        <h1 className="text-3xl font-bold">Dashboard</h1>
-                        <p className="text-muted-foreground mt-1">
-                            Welcome back{user?.name ? `, ${user.name}` : ''}!
+        <div className="space-y-8">
+            {/* Welcome Header */}
+            <div>
+                <h1 className="text-3xl font-bold">Welcome back, {user?.name?.split(' ')[0]}</h1>
+                <p className="text-muted-foreground">What would you like to create today?</p>
+            </div>
+
+            {/* Usage Stats */}
+            <Card>
+                <CardHeader className="pb-2">
+                    <CardTitle className="text-base">Monthly Usage</CardTitle>
+                    <CardDescription>
+                        {loading ? (
+                            <Skeleton className="h-4 w-48" />
+                        ) : (
+                            `${usage?.current || 0} of ${usage?.limit || 10} podcasts used`
+                        )}
+                    </CardDescription>
+                </CardHeader>
+                <CardContent>
+                    {loading ? (
+                        <Skeleton className="h-2 w-full" />
+                    ) : (
+                        <Progress value={usagePercentage} className="h-2" />
+                    )}
+                    {usage && (
+                        <p className="text-xs text-muted-foreground mt-2">
+                            Resets in {usage.daysUntilReset} days
                         </p>
-                    </div>
-                    <Button variant="outline" onClick={handleLogout}>
-                        Logout
-                    </Button>
+                    )}
+                </CardContent>
+            </Card>
+
+            {/* Tool Selector */}
+            <div>
+                <h2 className="text-xl font-semibold mb-4">Tools</h2>
+                <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <Link to="/dashboard/podcast/generate">
+                        <Card className="hover:border-primary transition-colors cursor-pointer h-full">
+                            <CardHeader>
+                                <div className="w-12 h-12 bg-primary text-primary-foreground flex items-center justify-center mb-2">
+                                    <Mic className="size-6" />
+                                </div>
+                                <CardTitle className="text-lg">Podcast Generator</CardTitle>
+                                <CardDescription>
+                                    Transform any URL into an engaging podcast
+                                </CardDescription>
+                            </CardHeader>
+                            <CardContent>
+                                <Button variant="outline" className="gap-2 w-full">
+                                    Create Podcast <ArrowRight className="size-4" />
+                                </Button>
+                            </CardContent>
+                        </Card>
+                    </Link>
                 </div>
+            </div>
 
-                <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-                    <div className="p-6 bg-card rounded-lg border">
-                        <h2 className="font-semibold mb-2">Your Profile</h2>
-                        <p className="text-sm text-muted-foreground">
-                            Email: {user?.email || 'Not available'}
-                        </p>
-                    </div>
-
-                    <div className="p-6 bg-card rounded-lg border">
-                        <h2 className="font-semibold mb-2">Quick Stats</h2>
-                        <p className="text-sm text-muted-foreground">
-                            Coming soon...
-                        </p>
-                    </div>
-
-                    <div className="p-6 bg-card rounded-lg border">
-                        <h2 className="font-semibold mb-2">Recent Activity</h2>
-                        <p className="text-sm text-muted-foreground">
-                            No recent activity
-                        </p>
-                    </div>
+            {/* Recent Podcasts */}
+            <div>
+                <div className="flex items-center justify-between mb-4">
+                    <h2 className="text-xl font-semibold">Recent Podcasts</h2>
+                    <Link to="/library">
+                        <Button variant="ghost" size="sm" className="gap-2">
+                            <Library className="size-4" />
+                            View All
+                        </Button>
+                    </Link>
                 </div>
+                {loading ? (
+                    <div className="grid gap-4">
+                        {[1, 2, 3].map((i) => (
+                            <Skeleton key={i} className="h-20 w-full" />
+                        ))}
+                    </div>
+                ) : recentPodcasts.length === 0 ? (
+                    <Card>
+                        <CardContent className="py-8 text-center text-muted-foreground">
+                            <p>No podcasts yet. Create your first one!</p>
+                            <Link to="/dashboard/podcast/generate">
+                                <Button variant="outline" className="mt-4">
+                                    Get Started
+                                </Button>
+                            </Link>
+                        </CardContent>
+                    </Card>
+                ) : (
+                    <div className="grid gap-4">
+                        {recentPodcasts.map((podcast) => (
+                            <Link key={podcast.id} to={`/dashboard/podcast/${podcast.id}`}>
+                                <Card className="hover:border-primary transition-colors cursor-pointer">
+                                    <CardContent className="flex items-center justify-between py-4">
+                                        <div className="flex-1 min-w-0">
+                                            <p className="font-medium truncate">{podcast.blogUrl}</p>
+                                            <p className="text-sm text-muted-foreground capitalize">
+                                                {podcast.status}
+                                            </p>
+                                        </div>
+                                        <ExternalLink className="size-4 text-muted-foreground flex-shrink-0" />
+                                    </CardContent>
+                                </Card>
+                            </Link>
+                        ))}
+                    </div>
+                )}
             </div>
         </div>
     );
 }
-
-export default Dashboard;

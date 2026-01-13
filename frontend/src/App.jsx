@@ -11,6 +11,10 @@ import NotFound from './pages/public/error-page'
 import PublicLayout from './Layouts/PublicLayout'
 import ProtectedLayout from './Layouts/ProtectedLayout'
 import Dashboard from './pages/protected/dashboard'
+import Library from './pages/protected/Library'
+import PodcastDetail from './pages/protected/PodcastDetail'
+import PodcastGenerate from './pages/protected/PodcastGenerate'
+import Profile from './pages/protected/Profile'
 
 function App() {
   return (
@@ -28,7 +32,10 @@ function App() {
         {/* Protected routes - redirect to login if not authenticated */}
         <Route element={<ProtectedLayout />}>
           <Route path="/dashboard" element={<Dashboard />} />
-          {/* Add other protected routes here */}
+          <Route path="/dashboard/podcast/generate" element={<PodcastGenerate />} />
+          <Route path="/dashboard/podcast/:id" element={<PodcastDetail />} />
+          <Route path="/library" element={<Library />} />
+          <Route path="/profile" element={<Profile />} />
         </Route>
 
         {/* Landing page - accessible to all */}

@@ -9,7 +9,7 @@ export const scrapeUrl = async(url) => {
             onlyMainContent: true 
         });
     
-        console.log(result.markdown)
+        console.log("scraped")
     
         return result.markdown
     }catch(err){
