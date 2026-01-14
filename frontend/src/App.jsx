@@ -3,7 +3,7 @@ import { Toaster } from '@/components/ui/sonner'
 
 import Landing from './pages/public/landing'
 import Login from './pages/public/login'
-import Signup from './pages/public/signup'
+import Signup from './pages/public/Signup'
 import ForgotPassword from './pages/public/forgot-password/forgot-password'
 import ResetPassword from './pages/public/reset-password/reset-password'
 import VerifyEmail from './pages/public/verify-email'
