@@ -6,6 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Progress } from '@/components/ui/progress';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Badge } from '@/components/ui/badge';
 import { Mic, ArrowRight, Library, ExternalLink } from 'lucide-react';
 
 export default function Dashboard() {
@@ -76,8 +77,8 @@ export default function Dashboard() {
                     <Link to="/dashboard/podcast/generate">
                         <Card className="hover:border-primary transition-colors cursor-pointer h-full">
                             <CardHeader>
-                                <div className="w-12 h-12 bg-primary text-primary-foreground flex items-center justify-center mb-2">
-                                    <Mic className="size-6" />
+                                <div className="w-12 h-12 flex items-center justify-center mb-2">
+                                    <Mic className="size-8 text-foreground" />
                                 </div>
                                 <CardTitle className="text-lg">Podcast Generator</CardTitle>
                                 <CardDescription>
@@ -85,7 +86,7 @@ export default function Dashboard() {
                                 </CardDescription>
                             </CardHeader>
                             <CardContent>
-                                <Button variant="outline" className="gap-2 w-full">
+                                <Button className="gap-2 w-full">
                                     Create Podcast <ArrowRight className="size-4" />
                                 </Button>
                             </CardContent>
@@ -130,9 +131,15 @@ export default function Dashboard() {
                                     <CardContent className="flex items-center justify-between py-4">
                                         <div className="flex-1 min-w-0">
                                             <p className="font-medium truncate">{podcast.blogUrl}</p>
-                                            <p className="text-sm text-muted-foreground capitalize">
-                                                {podcast.status}
-                                            </p>
+                                            {podcast.status === 'failed' ? (
+                                                <Badge variant="destructive" className="mt-1">
+                                                    Failed
+                                                </Badge>
+                                            ) : (
+                                                <p className="text-sm text-muted-foreground capitalize">
+                                                    {podcast.status}
+                                                </p>
+                                            )}
                                         </div>
                                         <ExternalLink className="size-4 text-muted-foreground flex-shrink-0" />
                                     </CardContent>

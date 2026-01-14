@@ -1,16 +1,12 @@
-"use client";
-
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Switch } from "@/components/ui/switch";
 import {
   Tooltip,
   TooltipContent,
@@ -18,45 +14,29 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
-import { CheckIcon, CopyIcon, ExternalLink, Link, Share2 } from "lucide-react";
+import { CheckIcon, CopyIcon, ExternalLink, Link } from "lucide-react";
 import { useRef, useState } from "react";
 
-export default function Dialog09() {
-  const [open, setOpen] = useState(true);
+export default function ShareDialog({ open, onOpenChange, url }) {
   const [copied, setCopied] = useState(false);
   const inputRef = useRef(null);
 
   const handleCopy = () => {
-    if (inputRef.current) {
-      navigator.clipboard.writeText(inputRef.current.value);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 1500);
-    }
+    navigator.clipboard.writeText(url);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 1500);
   };
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button>
-          <Share2 className="mr-2 h-4 w-4" />
-          Share
-        </Button>
-      </DialogTrigger>
+    <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Share & Collaborate</DialogTitle>
+          <DialogTitle>Share Podcast</DialogTitle>
           <p className="text-sm text-muted-foreground">
-            Share this project with your team to collaborate on it.
+            Copy the link below to share this podcast
           </p>
         </DialogHeader>
         <div className="space-y-4 py-4">
-          <div className="flex items-center justify-between space-x-2">
-            <div className="flex items-center space-x-2">
-              <span>Enable comments and suggestions</span>
-            </div>
-            <Switch id="comments" />
-          </div>
-
           <div className="space-y-1.5">
             <Label htmlFor="share-link" className="sr-only">
               Share Link
@@ -66,7 +46,7 @@ export default function Dialog09() {
                 ref={inputRef}
                 id="share-link"
                 readOnly
-                value="https://writer.so/app/projects/123?share=true"
+                value={url}
                 className="pe-9" />
               <TooltipProvider delayDuration={0}>
                 <Tooltip>
@@ -102,9 +82,11 @@ export default function Dialog09() {
               <Link className="h-4 w-4" />
               Copy Link
             </Button>
-            <Button variant="outline" className="flex-1 gap-2">
-              <ExternalLink className="h-4 w-4" />
-              Preview
+            <Button variant="outline" className="flex-1 gap-2" asChild>
+              <a href={url} target="_blank" rel="noopener noreferrer">
+                <ExternalLink className="h-4 w-4" />
+                Preview
+              </a>
             </Button>
           </div>
         </div>

@@ -6,17 +6,6 @@ import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
-import {
-    Dialog,
-    DialogContent,
-    DialogDescription,
-    DialogHeader,
-    DialogTitle,
-    DialogTrigger,
-    DialogFooter,
-    DialogClose,
-} from '@/components/ui/dialog';
-import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
 import {
     Play,
@@ -24,13 +13,13 @@ import {
     Share2,
     Trash2,
     RefreshCw,
-    Copy,
-    Check,
     ArrowLeft,
     Loader2,
     ExternalLink,
     Volume2,
 } from 'lucide-react';
+import ShareDialog from '@/components/blocks/DetailsDialogs/share-dialog';
+import DeletePodcastDialog from '@/components/blocks/DetailsDialogs/delete-podcast-dialog';
 
 const STATUS_MAP = {
     processing: { label: 'Processing', progress: 10 },
@@ -51,11 +40,13 @@ export default function PodcastDetail() {
     const [deleting, setDeleting] = useState(false);
     const [retrying, setRetrying] = useState(false);
     const [isPlaying, setIsPlaying] = useState(false);
-    const [copied, setCopied] = useState(false);
     const [currentTime, setCurrentTime] = useState(0);
     const [duration, setDuration] = useState(0);
     const audioRef = useRef(null);
     const pollIntervalRef = useRef(null);
+
+    const [shareDialogOpen, setShareDialogOpen] = useState(false);
+    const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
     useEffect(() => {
         fetchPodcast();
@@ -124,12 +115,7 @@ export default function PodcastDetail() {
         }
     };
 
-    const handleCopyLink = () => {
-        navigator.clipboard.writeText(window.location.href);
-        setCopied(true);
-        toast.success('Link copied to clipboard');
-        setTimeout(() => setCopied(false), 2000);
-    };
+
 
     const togglePlay = () => {
         if (audioRef.current) {
@@ -255,52 +241,26 @@ export default function PodcastDetail() {
             )}
 
             <div className="flex gap-4">
-                <Dialog>
-                    <DialogTrigger asChild>
-                        <Button variant="outline" className="flex-1">
-                            <Share2 className="mr-2 size-4" />
-                            Share
-                        </Button>
-                    </DialogTrigger>
-                    <DialogContent>
-                        <DialogHeader>
-                            <DialogTitle>Share Podcast</DialogTitle>
-                            <DialogDescription>Copy the link below to share this podcast</DialogDescription>
-                        </DialogHeader>
-                        <div className="flex gap-2">
-                            <Input value={window.location.href} readOnly />
-                            <Button onClick={handleCopyLink}>
-                                {copied ? <Check className="size-4" /> : <Copy className="size-4" />}
-                            </Button>
-                        </div>
-                    </DialogContent>
-                </Dialog>
+                <Button variant="outline" className="flex-1" onClick={() => setShareDialogOpen(true)}>
+                    <Share2 className="mr-2 size-4" />
+                    Share
+                </Button>
+                <ShareDialog
+                    open={shareDialogOpen}
+                    onOpenChange={setShareDialogOpen}
+                    url={window.location.href}
+                />
 
-                <Dialog>
-                    <DialogTrigger asChild>
-                        <Button variant="outline" className="text-destructive hover:text-destructive">
-                            <Trash2 className="mr-2 size-4" />
-                            Delete
-                        </Button>
-                    </DialogTrigger>
-                    <DialogContent>
-                        <DialogHeader>
-                            <DialogTitle>Delete Podcast</DialogTitle>
-                            <DialogDescription>
-                                Are you sure you want to delete this podcast? This action cannot be undone.
-                            </DialogDescription>
-                        </DialogHeader>
-                        <DialogFooter>
-                            <DialogClose asChild>
-                                <Button variant="outline">Cancel</Button>
-                            </DialogClose>
-                            <Button variant="destructive" onClick={handleDelete} disabled={deleting}>
-                                {deleting && <Loader2 className="mr-2 size-4 animate-spin" />}
-                                Delete
-                            </Button>
-                        </DialogFooter>
-                    </DialogContent>
-                </Dialog>
+                <Button variant="outline" className="text-destructive hover:text-destructive" onClick={() => setDeleteDialogOpen(true)}>
+                    <Trash2 className="mr-2 size-4" />
+                    Delete
+                </Button>
+                <DeletePodcastDialog
+                    open={deleteDialogOpen}
+                    onOpenChange={setDeleteDialogOpen}
+                    onDelete={handleDelete}
+                    isDeleting={deleting}
+                />
             </div>
         </div>
     );

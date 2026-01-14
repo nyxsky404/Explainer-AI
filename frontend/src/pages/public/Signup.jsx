@@ -57,7 +57,7 @@ export default function Signup() {
     <div className="flex items-center justify-center min-h-screen">
       <div className="flex flex-1 flex-col justify-center px-4 py-10 lg:px-6">
         <div className="sm:mx-auto sm:w-full sm:max-w-md">
-          <Logo className="mx-auto" />
+          <Logo showText={false} className="mx-auto justify-center" />
           <h3
             className="mt-4 text-center text-lg font-bold text-foreground dark:text-foreground">
             Create new account

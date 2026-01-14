@@ -57,7 +57,7 @@ const Footer = () => {
         <p className='text-center font-medium text-balance'>
           {`©${new Date().getFullYear()}`}{' '}
           <Link to='/' className='hover:underline'>
-            Brand Name
+            Explainer AI
           </Link>
           . All rights reserved.
         </p>

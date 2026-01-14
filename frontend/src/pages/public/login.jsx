@@ -58,7 +58,7 @@ export default function Login() {
     <div className="flex items-center justify-center min-h-screen">
       <div className="flex flex-1 flex-col justify-center px-4 py-10 lg:px-6">
         <div className="sm:mx-auto sm:w-full sm:max-w-md">
-          <Logo />
+          <Logo showText={false} />
           <h3
             className="mt-6 text-lg font-semibold text-foreground dark:text-foreground">
             Sign in to your account
