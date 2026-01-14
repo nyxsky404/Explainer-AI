@@ -2,89 +2,81 @@ import { Link2, Sparkles, Headphones } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-
-const Feature51 = ({
+const Feature13 = ({
+  title = "How It Works",
+  description = "No equipment, no editing, no hassle.",
   features = [
     {
       id: "feature-1",
       heading: "Paste",
-      icon: <Link2 className="size-4" />,
+      label: "STEP 01",
       description:
         "If you can link it, we can voice it. Blogs, docs, or news. Turn static text into audio gold instantly.",
-      image: "https://deifkwefumgah.cloudfront.net/shadcnblocks/block/placeholder-1.svg",
-      isDefault: true,
+      icon: Link2,
     },
     {
       id: "feature-2",
-      icon: <Sparkles className="size-4" />,
       heading: "Generate",
+      label: "STEP 02",
       description:
         "Studio quality, sans studio. Our AI doesn't just read; it comprehends. It scripts, paces, and performs like a human host.",
-      image: "https://deifkwefumgah.cloudfront.net/shadcnblocks/block/placeholder-2.svg",
-      isDefault: false,
+      icon: Sparkles,
     },
     {
       id: "feature-3",
-      icon: <Headphones className="size-4" />,
       heading: "Listen",
+      label: "STEP 03",
       description:
         "Conquer your reading list. Lean back, hit play, and finally absorb that article while you drive, cook, or relax.",
-      image: "https://deifkwefumgah.cloudfront.net/shadcnblocks/block/placeholder-3.svg",
-      isDefault: false,
+      icon: Headphones,
     },
   ],
-
-  className
+  className,
 }) => {
-  const defaultTab =
-    features.find((tab) => tab.isDefault)?.id || features[0].id;
-
   return (
     <section className={cn("py-20", className)} id="features">
       <div className="container">
-        <Tabs defaultValue={defaultTab} className="p-0">
-          <TabsList
-            className="flex h-auto w-full flex-col gap-2 bg-background p-0 md:flex-row">
-            {features.map((tab) => {
-              return (
-                <TabsTrigger
-                  key={tab.id}
-                  value={tab.id}
-                  className={`group flex w-full flex-col items-start justify-start gap-1 rounded-md border p-4 text-left whitespace-normal shadow-none transition-opacity duration-200 hover:border-muted hover:opacity-80 data-[state=active]:bg-muted data-[state=active]:shadow-none ${tab.isDefault ? "" : ""
-                    }`}>
-                  <div className="flex items-center gap-2 md:flex-col md:items-start lg:gap-4">
-                    {tab.icon && (
-                      <span
-                        className="flex size-8 items-center justify-center rounded-full bg-muted text-muted-foreground transition-opacity duration-200 group-data-[state=active]:bg-primary group-data-[state=active]:text-primary-foreground lg:size-10">
-                        {tab.icon}
-                      </span>
-                    )}
-                    <p
-                      className="text-lg font-semibold transition-opacity duration-200 md:text-2xl lg:text-xl">
-                      {tab.heading}
-                    </p>
+        <div className="mx-auto mb-16 max-w-3xl text-center">
+          <h2 className="text-3xl font-semibold md:text-4xl lg:text-5xl mb-4">
+            {title}
+          </h2>
+          {description && (
+            <p className="text-muted-foreground lg:text-lg">
+              {description}
+            </p>
+          )}
+        </div>
+        <div className="grid gap-8 md:grid-cols-3">
+          {features.map((feature) => {
+            const Icon = feature.icon;
+            return (
+              <div
+                key={feature.id}
+                className="flex flex-col justify-between rounded-lg bg-[#f5f5f5]"
+              >
+                <div className="flex justify-between gap-6 border-b border-[#e0e0e0]">
+                  <div className="flex flex-col justify-between gap-6 py-6 pl-6 md:py-8 md:pl-8">
+                    <span className="font-mono text-xs text-[#888888]">
+                      {feature.label}
+                    </span>
+                    <h3 className="text-xl font-semibold md:text-2xl text-[#161716]">
+                      {feature.heading}
+                    </h3>
                   </div>
-                  <p
-                    className="font-normal text-muted-foreground transition-opacity duration-200 md:block">
-                    {tab.description}
-                  </p>
-                </TabsTrigger>
-              );
-            })}
-          </TabsList>
-          {features.map((tab) => (
-            <TabsContent key={tab.id} value={tab.id} className="transition-opacity duration-300">
-              <img
-                src={tab.image}
-                alt={tab.heading}
-                className="aspect-video w-full rounded-md object-cover transition-opacity duration-300" />
-            </TabsContent>
-          ))}
-        </Tabs>
+                  <div className="w-1/3 shrink-0 rounded-tr-lg border-l border-[#e0e0e0] bg-[#e8e8e8] flex items-center justify-center p-4">
+                    <Icon className="size-12 text-[#161716]" strokeWidth={1.5} />
+                  </div>
+                </div>
+                <p className="p-6 text-[#666666] md:p-8">
+                  {feature.description}
+                </p>
+              </div>
+            );
+          })}
+        </div>
       </div>
     </section>
   );
 };
 
-export { Feature51 };
+export { Feature13 };

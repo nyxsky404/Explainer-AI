@@ -8,28 +8,28 @@ const Feature166 = ({
     title: "Lightning Fast",
     description:
       "Podcasts at the speed of thought. Go from URL to finished episode in under 5 minutes. That's faster than your coffee brewing. (We timed it.)",
-    image: "https://deifkwefumgah.cloudfront.net/shadcnblocks/block/placeholder-1.svg",
+    image: "https://illustrations.popsy.co/amber/remote-work.svg",
   },
 
   feature2 = {
     title: "Natural Voices",
     description:
       "Voices so real, they breathe. Forget robotic monotones. Our AI hosts have personality, comedic timing, and the occasional dramatic flair.",
-    image: "https://deifkwefumgah.cloudfront.net/shadcnblocks/block/placeholder-2.svg",
+    image: "https://illustrations.popsy.co/amber/microphone.svg",
   },
 
   feature3 = {
     title: "Any Content Works",
     description:
       "Fluency in every format. Dense research papers, breezy blog posts, or technical docs. If it has words, we make it talk.",
-    image: "https://deifkwefumgah.cloudfront.net/shadcnblocks/block/placeholder-3.svg",
+    image: "https://illustrations.popsy.co/amber/paper-documents.svg",
   },
 
   feature4 = {
     title: "Share Anywhere",
     description:
       "Your content, unbound. Download the MP3, embed the player, or share the link. Take your content where eyes can't go, but ears can.",
-    image: "https://deifkwefumgah.cloudfront.net/shadcnblocks/block/placeholder-4.svg",
+    image: "https://illustrations.popsy.co/amber/video-call.svg",
   },
 
   className
