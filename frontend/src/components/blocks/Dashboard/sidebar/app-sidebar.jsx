@@ -33,10 +33,10 @@ import {
 } from "lucide-react";
 import Logo from "@/assets/logo";
 import DashboardNavigation from "@/components/blocks/Dashboard/sidebar/nav-main";
-import { NotificationsPopover } from "@/components/blocks/Dashboard/sidebar/nav-notifications";
+// import { NotificationsPopover } from "@/components/blocks/Dashboard/sidebar/nav-notifications";
 import LogoutDialog from "@/components/blocks/AuthDialogs/logout-dialog";
 
-const sampleNotifications = [
+/* const sampleNotifications = [
   {
     id: "1",
     avatar: "/avatars/01.png",
@@ -58,7 +58,7 @@ const sampleNotifications = [
     text: "New user signed up.",
     time: "2h ago",
   },
-];
+]; */
 
 const dashboardRoutes = [
   {
@@ -126,7 +126,7 @@ export function DashboardSidebar() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.8 }}>
-            <NotificationsPopover notifications={sampleNotifications} />
+            {/* <NotificationsPopover notifications={sampleNotifications} /> */}
             <SidebarTrigger />
           </motion.div>
         </SidebarHeader>

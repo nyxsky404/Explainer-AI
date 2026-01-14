@@ -125,10 +125,14 @@ export default function Dashboard() {
                                                 <Badge variant="destructive" className="mt-1">
                                                     Failed
                                                 </Badge>
+                                            ) : podcast.status === 'completed' ? (
+                                                <Badge className="mt-1 bg-green-500 hover:bg-green-600">
+                                                    Completed
+                                                </Badge>
                                             ) : (
-                                                <p className="text-sm text-muted-foreground capitalize">
-                                                    {podcast.status}
-                                                </p>
+                                                <Badge variant="secondary" className="mt-1 capitalize">
+                                                    {podcast.status?.replace(/_/g, ' ')}
+                                                </Badge>
                                             )}
                                         </div>
                                         <ExternalLink className="size-4 text-muted-foreground flex-shrink-0" />

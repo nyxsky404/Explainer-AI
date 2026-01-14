@@ -42,7 +42,7 @@ Read the input text and write the dialogue script.
 **Output Format:**
 *   Return *only* the spoken dialogue script.
 *   Use speaker labels: **Sophia:** and **Alex:**.
-*   Keep the total **length strictly not more than 3500 characters**.
+*   Keep the total **length strictly not more than 100 characters**.
 
 **Input Data:** ${content}
 `;

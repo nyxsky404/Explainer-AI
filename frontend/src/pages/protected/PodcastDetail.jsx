@@ -17,6 +17,7 @@ import {
     Loader2,
     ExternalLink,
     Volume2,
+    Download,
 } from 'lucide-react';
 import ShareDialog from '@/components/blocks/DetailsDialogs/share-dialog';
 import DeletePodcastDialog from '@/components/blocks/DetailsDialogs/delete-podcast-dialog';
@@ -241,6 +242,14 @@ export default function PodcastDetail() {
             )}
 
             <div className="flex gap-4">
+                {podcast?.status === 'completed' && podcast?.audioUrl && (
+                    <Button variant="outline" className="flex-1" asChild>
+                        <a href={podcast.audioUrl} download={`podcast-${id}.wav`}>
+                            <Download className="mr-2 size-4" />
+                            Download
+                        </a>
+                    </Button>
+                )}
                 <Button variant="outline" className="flex-1" onClick={() => setShareDialogOpen(true)}>
                     <Share2 className="mr-2 size-4" />
                     Share
@@ -248,7 +257,7 @@ export default function PodcastDetail() {
                 <ShareDialog
                     open={shareDialogOpen}
                     onOpenChange={setShareDialogOpen}
-                    url={window.location.href}
+                    url={podcast?.audioUrl}
                 />
 
                 <Button variant="outline" className="text-destructive hover:text-destructive" onClick={() => setDeleteDialogOpen(true)}>

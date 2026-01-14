@@ -12,7 +12,7 @@ export const generateScript = async(scrapedText) => {
     
         const result = Gemini_Response.text
     
-        console.log(result)
+        console.log("Script Generated")
     
         return result
     }catch(err){

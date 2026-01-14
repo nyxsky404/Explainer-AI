@@ -15,22 +15,31 @@ function getPodcastFilePath(podcastId) {
 
 export async function uploadAudioBuffer(wavBuffer, podcastId) {
   try {
+    console.log("Buffer size to upload:", wavBuffer.length);
+
     const supabase = getSupabaseClient();
     const filePath = getPodcastFilePath(podcastId);
+    console.log("Uploading to path:", filePath);
 
-    const { error } = await supabase.storage
+    const { data, error } = await supabase.storage
       .from("audio")
       .upload(filePath, wavBuffer, {
         contentType: "audio/wav",
         upsert: true,
       });
 
-    if (error) throw error;
+    if (error) {
+      console.error("Supabase upload error:", error.message);
+      throw error;
+    }
 
-    const { data } = supabase.storage.from("audio").getPublicUrl(filePath);
-    return data.publicUrl;
+    console.log("Upload successful:", data);
+    const { data: urlData } = supabase.storage.from("audio").getPublicUrl(filePath);
+    console.log("Public URL:", urlData.publicUrl);
+    return urlData.publicUrl;
   } catch (err) {
-    throw new Error(err.message);
+    console.error("Storage service error:", err);
+    throw new Error(`Upload failed: ${err.message}`);
   }
 }
 
