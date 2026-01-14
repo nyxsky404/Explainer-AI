@@ -1,4 +1,3 @@
-"use client";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -13,14 +12,9 @@ import {
 import { AlertTriangleIcon } from "lucide-react";
 import { useState } from "react";
 
-export default function Dialog02() {
-  const [open, setOpen] = useState(true);
-
+export default function LogoutDialog({ open, onOpenChange, onLogout }) {
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button variant="destructive">Deactivate</Button>
-      </DialogTrigger>
+    <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-lg">
         <div className="flex items-start space-x-4">
           <div
@@ -28,10 +22,9 @@ export default function Dialog02() {
             <AlertTriangleIcon className="h-6 w-6 text-red-600" />
           </div>
           <DialogHeader>
-            <DialogTitle>Deactivate account</DialogTitle>
+            <DialogTitle>Logout</DialogTitle>
             <DialogDescription>
-              Are you sure you want to deactivate your account? All of your data
-              will be permanently removed. This action cannot be undone.
+              Are you sure you want to logout?
             </DialogDescription>
           </DialogHeader>
         </div>
@@ -39,8 +32,8 @@ export default function Dialog02() {
           <DialogClose asChild>
             <Button variant="outline">Cancel</Button>
           </DialogClose>
-          <Button variant="destructive" onClick={() => setOpen(false)}>
-            Deactivate
+          <Button variant="destructive" onClick={onLogout}>
+            Logout
           </Button>
         </DialogFooter>
       </DialogContent>

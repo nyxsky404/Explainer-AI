@@ -6,18 +6,10 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
-import {
-    Dialog,
-    DialogContent,
-    DialogDescription,
-    DialogHeader,
-    DialogTitle,
-    DialogTrigger,
-    DialogFooter,
-    DialogClose,
-} from '@/components/ui/dialog';
 import { toast } from 'sonner';
 import { Loader2, User, Key, Trash2, LogOut } from 'lucide-react';
+import LogoutDialog from '@/components/blocks/AuthDialogs/logout-dialog';
+import DeleteAccountDialog from '@/components/blocks/AuthDialogs/delete-account-dialog';
 
 export default function Profile() {
     const { user, updateProfile, deleteAccount, logout } = useAuth();
@@ -33,6 +25,9 @@ export default function Profile() {
 
     const [deletePassword, setDeletePassword] = useState('');
     const [isDeleting, setIsDeleting] = useState(false);
+
+    const [logoutDialogOpen, setLogoutDialogOpen] = useState(false);
+    const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
     const handleUpdateProfile = async (e) => {
         e.preventDefault();
@@ -159,56 +154,28 @@ export default function Profile() {
                     <CardDescription>Irreversible actions for your account</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                    <Dialog>
-                        <DialogTrigger asChild>
-                            <Button variant="outline" className="w-full justify-start">
-                                <LogOut className="mr-2 size-4" />
-                                Logout
-                            </Button>
-                        </DialogTrigger>
-                        <DialogContent>
-                            <DialogHeader>
-                                <DialogTitle>Logout</DialogTitle>
-                                <DialogDescription>Are you sure you want to logout?</DialogDescription>
-                            </DialogHeader>
-                            <DialogFooter>
-                                <DialogClose asChild>
-                                    <Button variant="outline">Cancel</Button>
-                                </DialogClose>
-                                <Button onClick={handleLogout}>Logout</Button>
-                            </DialogFooter>
-                        </DialogContent>
-                    </Dialog>
+                    <Button variant="outline" className="w-full justify-start" onClick={() => setLogoutDialogOpen(true)}>
+                        <LogOut className="mr-2 size-4" />
+                        Logout
+                    </Button>
+                    <LogoutDialog
+                        open={logoutDialogOpen}
+                        onOpenChange={setLogoutDialogOpen}
+                        onLogout={handleLogout}
+                    />
 
-                    <Dialog>
-                        <DialogTrigger asChild>
-                            <Button variant="destructive" className="w-full justify-start">
-                                <Trash2 className="mr-2 size-4" />
-                                Delete Account
-                            </Button>
-                        </DialogTrigger>
-                        <DialogContent>
-                            <DialogHeader>
-                                <DialogTitle>Delete Account</DialogTitle>
-                                <DialogDescription>
-                                    This action cannot be undone. All your data including podcasts will be permanently deleted.
-                                </DialogDescription>
-                            </DialogHeader>
-                            <div className="space-y-2 py-4">
-                                <Label htmlFor="deletePassword">Enter your password to confirm</Label>
-                                <Input id="deletePassword" type="password" value={deletePassword} onChange={(e) => setDeletePassword(e.target.value)} placeholder="Enter password" />
-                            </div>
-                            <DialogFooter>
-                                <DialogClose asChild>
-                                    <Button variant="outline">Cancel</Button>
-                                </DialogClose>
-                                <Button variant="destructive" onClick={handleDeleteAccount} disabled={isDeleting}>
-                                    {isDeleting && <Loader2 className="mr-2 size-4 animate-spin" />}
-                                    Delete Account
-                                </Button>
-                            </DialogFooter>
-                        </DialogContent>
-                    </Dialog>
+                    <Button variant="destructive" className="w-full justify-start" onClick={() => setDeleteDialogOpen(true)}>
+                        <Trash2 className="mr-2 size-4" />
+                        Delete Account
+                    </Button>
+                    <DeleteAccountDialog
+                        open={deleteDialogOpen}
+                        onOpenChange={setDeleteDialogOpen}
+                        password={deletePassword}
+                        onPasswordChange={setDeletePassword}
+                        onDelete={handleDeleteAccount}
+                        isDeleting={isDeleting}
+                    />
                 </CardContent>
             </Card>
         </div>

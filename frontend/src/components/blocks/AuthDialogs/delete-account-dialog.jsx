@@ -1,5 +1,3 @@
-"use client";
-
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -15,36 +13,33 @@ import { Label } from "@/components/ui/label";
 import { EyeIcon, EyeOffIcon } from "lucide-react";
 import { useState } from "react";
 
-export default function Dialog05() {
-  const [isOpen, setIsOpen] = useState(true);
+export default function DeleteAccountDialog({ open, onOpenChange, password, onPasswordChange, onDelete, isDeleting }) {
   const [isVisible, setIsVisible] = useState(false);
 
   const toggleVisibility = () => setIsVisible((prevState) => !prevState);
 
   return (
-    <Dialog open={isOpen} onOpenChange={setIsOpen}>
-      <DialogTrigger asChild>
-        <Button variant="destructive">Delete Workspace</Button>
-      </DialogTrigger>
+    <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Delete workspace</DialogTitle>
+          <DialogTitle>Delete Account</DialogTitle>
           <DialogDescription>
-            All workspace data will be permanently deleted. There is no coming
-            back after you press delete.
+            This action cannot be undone. All your data including podcasts will be permanently deleted.
           </DialogDescription>
         </DialogHeader>
-        <form>
+        <form onSubmit={(e) => { e.preventDefault(); onDelete(); }}>
           <div>
-            <Label htmlFor="delete-workspace" className="text-sm font-medium">
-              Confirm password
+            <Label htmlFor="delete-account" className="text-sm font-medium">
+              Enter your password to confirm
             </Label>
             <div className="relative mt-2">
               <Input
-                id="delete-workspace"
-                name="delete-workspace"
+                id="delete-account"
+                name="delete-account"
                 type={isVisible ? "text" : "password"}
                 placeholder="Password"
+                value={password}
+                onChange={(e) => onPasswordChange(e.target.value)}
                 className="pe-9" />
               <button
                 className="absolute inset-y-0 end-0 flex h-full w-9 items-center justify-center rounded-e-md"
@@ -52,7 +47,7 @@ export default function Dialog05() {
                 onClick={toggleVisibility}
                 aria-label={isVisible ? "Hide password" : "Show password"}
                 aria-pressed={isVisible}
-                aria-controls="delete-workspace">
+                aria-controls="delete-account">
                 {isVisible ? (
                   <EyeOffIcon size={16} aria-hidden="true" />
                 ) : (
@@ -62,8 +57,8 @@ export default function Dialog05() {
             </div>
           </div>
           <DialogFooter className="mt-4">
-            <Button type="submit" variant="destructive" className="w-full">
-              Delete workspace permanently
+            <Button type="submit" variant="destructive" className="w-full" disabled={isDeleting}>
+              Delete Account
             </Button>
           </DialogFooter>
         </form>
