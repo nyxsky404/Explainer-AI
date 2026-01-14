@@ -8,7 +8,7 @@ import {
 } from "@/components/ui/accordion";
 
 const Faq1 = ({
-  heading = "Got questions? We've got answers.",
+  heading = "Got questions?",
 
   items = [
     {
@@ -59,22 +59,24 @@ const Faq1 = ({
 }) => {
   return (
     <section className={cn("py-20", className)} id="faq">
-      <div className="container max-w-3xl">
-        <h1 className="mb-4 text-3xl font-semibold md:mb-11 md:text-4xl">
-          {heading}
-        </h1>
-        <Accordion type="single" collapsible>
-          {items.map((item, index) => (
-            <AccordionItem key={index} value={`item-${index}`}>
-              <AccordionTrigger className="font-semibold hover:no-underline">
-                {item.question}
-              </AccordionTrigger>
-              <AccordionContent className="text-muted-foreground">
-                {item.answer}
-              </AccordionContent>
-            </AccordionItem>
-          ))}
-        </Accordion>
+      <div className="container">
+        <div className="mx-auto max-w-4xl">
+          <h1 className="mb-4 text-3xl font-semibold md:text-4xl lg:text-5xl md:mb-11 text-center">
+            {heading}
+          </h1>
+          <Accordion type="single" collapsible>
+            {items.map((item, index) => (
+              <AccordionItem key={index} value={`item-${index}`}>
+                <AccordionTrigger className="font-semibold hover:no-underline text-lg">
+                  {item.question}
+                </AccordionTrigger>
+                <AccordionContent className="text-muted-foreground text-base lg:text-lg">
+                  {item.answer}
+                </AccordionContent>
+              </AccordionItem>
+            ))}
+          </Accordion>
+        </div>
       </div>
     </section>
   );
