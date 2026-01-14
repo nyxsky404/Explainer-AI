@@ -1,5 +1,5 @@
 import { Asterisk, CornerDownRight } from "lucide-react";
-import React from "react";
+import { Link } from "react-router";
 
 import { cn } from "@/lib/utils";
 
@@ -11,51 +11,51 @@ const Process1 = ({
   const process = [
     {
       step: "01",
-      title: "Discover & Research",
+      title: "Feed the Engine",
       description:
-        "We begin by understanding your business goals, target audience, and current challenges. This phase involves research, analysis, and strategic planning to identify opportunities.",
+        "Grab a URL from any corner of the internet. Blogs, news, or wikis. If it links, it works.",
     },
     {
       step: "02",
-      title: "Strategy & Planning",
+      title: "The AI Director",
       description:
-        "Based on our findings, we develop a comprehensive strategy that aligns with your objectives. This includes defining the approach, timeline, and key milestones for success.",
+        "We analyze the text to identify key points, tone, and context, crafting a script that sounds like a conversation, not a lecture.",
     },
     {
       step: "03",
-      title: "Execute & Develop",
+      title: "The Studio",
       description:
-        "We bring the strategy to life through careful implementation and development. Our team works collaboratively to ensure every detail meets your requirements and standards.",
+        "The script is performed by ultra-realistic voices. No robotic glitches. Just smooth, professional narration.",
     },
     {
       step: "04",
-      title: "Optimize & Improve",
+      title: "Press Play",
       description:
-        "We continuously monitor performance and gather feedback to refine and improve the solution. This iterative process ensures long-term success and growth.",
+        "Your episode is served. Listen in-app, download for your commute, or share it to expand your audience reach.",
     },
   ];
 
   return (
-    <section className={cn("py-20", className)}>
+    <section className={cn("py-20", className)} id="process">
       <div className="container">
         <div className="grid grid-cols-1 gap-5 lg:grid-cols-6 lg:gap-20">
           <div className="top-10 col-span-2 h-fit w-fit gap-3 space-y-7 py-8 lg:sticky">
             <div
               className="relative w-fit text-5xl font-semibold tracking-tight lg:text-7xl">
               {" "}
-              <h1 className="w-fit">Our Process</h1>
+              <h1 className="w-fit">How It Works</h1>
               <Asterisk
                 className="absolute -top-2 -right-2 size-5 text-orange-500 md:size-10 lg:-right-14" />
             </div>
             <p className="text-base text-foreground/50">
-              Lorem ipsum dolor, sit amet consectetur adipisicing elit. Maxime
-              amet dolorem eum est voluptatem id repellendus ut laborum
-              laboriosam debitis.
+              Four simple steps between you and podcast glory. No equipment needed, no editing required, no excuses left.
             </p>
 
-            <Button variant="ghost" className="flex items-center justify-start gap-2">
-              <CornerDownRight className="text-orange-500" />
-              Get in touch
+            <Button variant="ghost" className="flex items-center justify-start gap-2" asChild>
+              <Link to="/signup">
+                <CornerDownRight className="text-orange-500" />
+                Try it free
+              </Link>
             </Button>
           </div>
           <ul className="relative col-span-4 w-full lg:pl-22">

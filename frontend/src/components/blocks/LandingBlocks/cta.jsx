@@ -1,4 +1,5 @@
 import { ArrowRightIcon } from 'lucide-react'
+import { Link } from 'react-router'
 
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
@@ -13,22 +14,21 @@ const CTASection = () => {
             <div className='space-y-4'>
               <h2
                 className='text-foreground text-2xl font-semibold md:text-3xl lg:text-4xl'>
-                Ready to Dive Deeper?
+                Stop reading. Start listening.
               </h2>
               <p className='text-muted-foreground text-lg md:text-xl'>
-                Everything from setup to advanced features is covered in our docs.
+                Join the audio revolution in seconds. No credit card, no microphone, no excuses.
               </p>
             </div>
             <div>
               <Button
                 size='lg'
-                variant='secondary'
                 className='shrink-0 rounded-lg text-base has-[>svg]:px-6'
                 asChild>
-                <a href='#' className='inline-flex items-center gap-2'>
-                  View Docs
+                <Link to='/signup' className='inline-flex items-center gap-2'>
+                  Get Started Free
                   <ArrowRightIcon className='size-5' />
-                </a>
+                </Link>
               </Button>
             </div>
           </CardContent>

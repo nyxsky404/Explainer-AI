@@ -1,4 +1,4 @@
-import { Cog, Lightbulb, ListChecks } from "lucide-react";
+import { Link2, Sparkles, Headphones } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 
@@ -8,34 +8,29 @@ const Feature51 = ({
   features = [
     {
       id: "feature-1",
-      heading: "Research",
-      icon: <Lightbulb className="size-4" />,
-
+      heading: "Paste",
+      icon: <Link2 className="size-4" />,
       description:
-        "Discover the powerful features that make our platform stand out from the rest.",
+        "If you can link it, we can voice it. Blogs, docs, or news. Turn static text into audio gold instantly.",
       image: "https://deifkwefumgah.cloudfront.net/shadcnblocks/block/placeholder-1.svg",
-      url: "https://shadcnblocks.com",
       isDefault: true,
     },
     {
       id: "feature-2",
-      icon: <ListChecks className="size-4" />,
-
-      heading: "Refine",
+      icon: <Sparkles className="size-4" />,
+      heading: "Generate",
       description:
-        "Built with the latest technology and designed for maximum productivity.",
+        "Studio quality, sans studio. Our AI doesn't just read; it comprehends. It scripts, paces, and performs like a human host.",
       image: "https://deifkwefumgah.cloudfront.net/shadcnblocks/block/placeholder-2.svg",
-      url: "https://shadcnblocks.com",
       isDefault: false,
     },
     {
       id: "feature-3",
-      icon: <Cog className="size-4" />,
-      heading: "Build",
+      icon: <Headphones className="size-4" />,
+      heading: "Listen",
       description:
-        "Create amazing experiences with our comprehensive toolkit and resources.",
+        "Conquer your reading list. Lean back, hit play, and finally absorb that article while you drive, cook, or relax.",
       image: "https://deifkwefumgah.cloudfront.net/shadcnblocks/block/placeholder-3.svg",
-      url: "https://shadcnblocks.com",
       isDefault: false,
     },
   ],
@@ -46,7 +41,7 @@ const Feature51 = ({
     features.find((tab) => tab.isDefault)?.id || features[0].id;
 
   return (
-    <section className={cn("py-20", className)}>
+    <section className={cn("py-20", className)} id="features">
       <div className="container">
         <Tabs defaultValue={defaultTab} className="p-0">
           <TabsList

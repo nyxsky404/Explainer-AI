@@ -1,2 +1,2 @@
-<!-- # TODO : use blocks for dashboard instead of making own -->
 <!-- Implement notifications app-sidebar.jsx -->
+<!-- // TODO: frontend route (/terms, /privacy for Terms of use and Privacy policy pages) -->

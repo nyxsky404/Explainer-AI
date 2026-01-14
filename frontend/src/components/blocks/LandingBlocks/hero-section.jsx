@@ -1,5 +1,6 @@
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
+import { Link } from 'react-router'
 
 const HeroSection = () => {
   return (
@@ -11,15 +12,16 @@ const HeroSection = () => {
         <div
           className='bg-muted flex items-center gap-3 rounded-full border px-4 py-2.5'>
           <Badge className='text-sm px-3 py-1'>AI-Powered</Badge>
-          <span className='text-muted-foreground text-sm sm:text-base'>Solution for client-facing businesses</span>
+          <span className='text-muted-foreground text-sm sm:text-base'>Turn any article into a podcast</span>
         </div>
 
         <h1
           className='text-4xl leading-[1.2] font-bold text-balance sm:text-5xl md:text-6xl lg:text-7xl'>
-          Sizzling Summer Delights
+          Turn your reading list
           <br />
+          into a{' '}
           <span className='relative'>
-            Effortless
+            playlist
             <svg
               width='223'
               height='12'
@@ -45,28 +47,19 @@ const HeroSection = () => {
                 </linearGradient>
               </defs>
             </svg>
-          </span>{' '}
-          Recipes for Parties!
+          </span>
         </h1>
 
         <p className='text-muted-foreground text-lg sm:text-xl max-w-2xl'>
-          Dive into a world of flavor this summer with our collection of Sizzling Summer Delights!
+          Transform any web page into a studio-quality podcast instantly.
           <br />
-          From refreshing appetizers to delightful desserts
+          Skip the mic, the editing, and the awkward pauses. It's not just text-to-speech; it's storytelling.
         </p>
 
         <Button size='lg' className='text-base px-8 py-6' asChild>
-          <a href='#'>Try It Now</a>
+          <Link to='/signup'>Get Started</Link>
         </Button>
       </div>
-      {/* Hero Image - Add your own image here */}
-      {/* 
-      <img
-        src='/your-hero-image.png'
-        alt='Hero Image'
-        className='min-h-67 w-full object-cover' 
-      /> 
-      */}
     </section>
   );
 }

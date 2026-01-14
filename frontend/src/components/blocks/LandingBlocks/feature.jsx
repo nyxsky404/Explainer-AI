@@ -1,34 +1,34 @@
 import { cn } from "@/lib/utils";
 
 const Feature166 = ({
-  title = "Blocks built with Shadcn & Tailwind",
-  description = "Finely crafted components built with React, Tailwind and Shadcn UI. Developers can copy and paste these blocks directly into their project.",
+  title = "Why you'll love Explainer AI",
+  description = "Podcast production used to take days. Now it takes a click.",
 
   feature1 = {
-    title: "UI/UX Design",
+    title: "Lightning Fast",
     description:
-      "Creating intuitive user experiences with modern interface design principles and user-centered methodologies.",
+      "Podcasts at the speed of thought. Go from URL to finished episode in under 5 minutes. That's faster than your coffee brewing. (We timed it.)",
     image: "https://deifkwefumgah.cloudfront.net/shadcnblocks/block/placeholder-1.svg",
   },
 
   feature2 = {
-    title: "Responsive Development",
+    title: "Natural Voices",
     description:
-      "Building websites that look and function perfectly across all devices and screen sizes.",
+      "Voices so real, they breathe. Forget robotic monotones. Our AI hosts have personality, comedic timing, and the occasional dramatic flair.",
     image: "https://deifkwefumgah.cloudfront.net/shadcnblocks/block/placeholder-2.svg",
   },
 
   feature3 = {
-    title: "Brand Integration",
+    title: "Any Content Works",
     description:
-      "Seamlessly incorporating your brand identity into every aspect of your website's design.",
+      "Fluency in every format. Dense research papers, breezy blog posts, or technical docs. If it has words, we make it talk.",
     image: "https://deifkwefumgah.cloudfront.net/shadcnblocks/block/placeholder-3.svg",
   },
 
   feature4 = {
-    title: "Performance Optimization",
+    title: "Share Anywhere",
     description:
-      "Ensuring fast loading times and smooth performance through optimized code and assets.",
+      "Your content, unbound. Download the MP3, embed the player, or share the link. Take your content where eyes can't go, but ears can.",
     image: "https://deifkwefumgah.cloudfront.net/shadcnblocks/block/placeholder-4.svg",
   },
 
