@@ -1,4 +1,4 @@
-import { FacebookIcon, InstagramIcon, TwitterIcon, YoutubeIcon } from 'lucide-react'
+import { GithubIcon } from 'lucide-react'
 import { Link } from 'react-router'
 
 import { Separator } from '@/components/ui/separator'
@@ -16,39 +16,30 @@ const Footer = () => {
 
         <div className='flex items-center gap-5 whitespace-nowrap'>
           <a
-            href='#'
+            href='/'
             className='opacity-80 transition-opacity duration-300 hover:opacity-100'>
-            About
+            Home
           </a>
           <a
-            href='#'
+            href='#features'
             className='opacity-80 transition-opacity duration-300 hover:opacity-100'>
             Features
           </a>
           <a
-            href='#'
+            href='#process'
             className='opacity-80 transition-opacity duration-300 hover:opacity-100'>
-            Works
+            Process
           </a>
           <a
-            href='#'
+            href='#faq'
             className='opacity-80 transition-opacity duration-300 hover:opacity-100'>
-            Career
+            FAQ
           </a>
         </div>
 
         <div className='flex items-center gap-4'>
-          <a href='#'>
-            <FacebookIcon className='size-5' />
-          </a>
-          <a href='#'>
-            <InstagramIcon className='size-5' />
-          </a>
-          <a href='#'>
-            <TwitterIcon className='size-5' />
-          </a>
-          <a href='#'>
-            <YoutubeIcon className='size-5' />
+          <a href='https://github.com/nyxsky404/Explainer-AI' target='_blank' rel='noopener noreferrer'>
+            <GithubIcon className='size-5 opacity-80 transition-opacity duration-300 hover:opacity-100' />
           </a>
         </div>
       </div>

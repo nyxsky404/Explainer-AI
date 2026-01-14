@@ -21,10 +21,10 @@ import Logo from '@/assets/logo'
 
 const Header = ({
   navigationData = [
+    { title: 'Home', href: '/' },
     { title: 'Features', href: '#features' },
     { title: 'Process', href: '#process' },
-    { title: 'FAQ', href: '#faq' },
-    { title: 'Community', href: '#community' }
+    { title: 'FAQ', href: '#faq' }
   ],
   className
 }) => {
@@ -39,13 +39,13 @@ const Header = ({
         </Link>
 
         {/* Navigation */}
-        <NavigationMenu className='max-md:hidden'>
+        <NavigationMenu className='hidden md:flex'>
           <NavigationMenuList className='flex-wrap justify-start gap-0'>
             {navigationData.map(navItem => (
               <NavigationMenuItem key={navItem.title}>
                 <NavigationMenuLink
                   href={navItem.href}
-                  className='text-muted-foreground hover:text-primary px-3 py-1.5 text-base! font-medium hover:bg-transparent'>
+                  className='text-muted-foreground hover:text-primary px-3 py-1.5 text-base font-medium hover:bg-transparent'>
                   {navItem.title}
                 </NavigationMenuLink>
               </NavigationMenuItem>
@@ -53,8 +53,8 @@ const Header = ({
           </NavigationMenuList>
         </NavigationMenu>
 
-        {/* Login Button */}
-        <Button className='rounded-lg max-md:hidden' asChild>
+        {/* Login Button - Desktop */}
+        <Button className='rounded-lg hidden md:inline-flex' asChild>
           <Link to='/login'>Login</Link>
         </Button>
 
