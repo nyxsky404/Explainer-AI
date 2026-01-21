@@ -71,7 +71,7 @@ export default function Login() {
               Sign up
             </Link>
           </p>
-          <div
+          {/* <div
             className="mt-8 flex flex-col items-center space-y-2 sm:flex-row sm:space-x-4 sm:space-y-0">
             <Button
               variant="outline"
@@ -91,9 +91,9 @@ export default function Login() {
                 <span className="text-sm font-medium">Login with Google</span>
               </a>
             </Button>
-          </div>
+          </div> */}
 
-          <div className="relative my-6">
+          {/* <div className="relative my-6">
             <div className="absolute inset-0 flex items-center">
               <Separator className="w-full" />
             </div>
@@ -102,7 +102,7 @@ export default function Login() {
                 or
               </span>
             </div>
-          </div>
+          </div> */}
 
           <form onSubmit={handleSubmit} className="mt-6 space-y-4">
             <div>
@@ -145,14 +145,14 @@ export default function Login() {
               {isLoading ? 'Signing in...' : 'Sign in'}
             </Button>
           </form>
-          <p className="mt-6 text-sm text-muted-foreground dark:text-muted-foreground">
+          {/* <p className="mt-6 text-sm text-muted-foreground dark:text-muted-foreground">
             Forgot your password?{' '}
             <Link
               to="/forgot-password"
               className="font-medium text-primary hover:text-primary/90 dark:text-primary hover:dark:text-primary/90">
               Reset password
             </Link>
-          </p>
+          </p> */}
         </div>
       </div>
     </div>

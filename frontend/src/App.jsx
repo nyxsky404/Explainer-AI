@@ -6,7 +6,8 @@ import Login from './pages/public/login'
 import Signup from './pages/public/Signup'
 import ForgotPassword from './pages/public/forgot-password/forgot-password'
 import ResetPassword from './pages/public/reset-password/reset-password'
-import VerifyEmail from './pages/public/verify-email'
+// TODO: Enable when backend verify-email endpoint is implemented
+// import VerifyEmail from './pages/public/verify-email'
 import NotFound from './pages/public/error-page'
 import PublicLayout from './Layouts/PublicLayout'
 import ProtectedLayout from './Layouts/ProtectedLayout'
@@ -26,7 +27,8 @@ function App() {
           <Route path="/signup" element={<Signup />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/reset-password" element={<ResetPassword />} />
-          <Route path="/verify-email" element={<VerifyEmail />} />
+          {/* TODO: Enable when backend verify-email endpoint is implemented */}
+          {/* <Route path="/verify-email" element={<VerifyEmail />} /> */}
         </Route>
 
         {/* Protected routes - redirect to login if not authenticated */}

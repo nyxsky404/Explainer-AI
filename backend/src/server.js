@@ -11,12 +11,9 @@ import podcastRoute from "./routes/podcastRoute.js"
 import authRoute from "./routes/authRoute.js"
 import { verifyToken } from "../src/middleware/verifyToken.js";
 import { errorHandler } from "./middleware/errorMiddleware.js";
-
-// Start the worker in Same Process as the server, later we can move it to a separate process
 import "./queue/worker.js";
 
 
-// CORS configuration
 app.use(cors({
     origin: process.env.FRONTEND_URL || "http://localhost:5173",
     credentials: true

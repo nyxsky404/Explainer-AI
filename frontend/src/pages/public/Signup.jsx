@@ -42,7 +42,8 @@ export default function Signup() {
       const result = await signup(name, email, password);
       if (result.success) {
         toast.success('Account created successfully!');
-        navigate('/verify-email');
+        // TODO: Change to '/verify-email' when backend verify-email endpoint is implemented
+        navigate('/dashboard');
       } else {
         toast.error(result.message || 'Signup failed');
       }

@@ -72,18 +72,20 @@ export function AuthProvider({ children }) {
         return res.data;
     };
 
-    const verifyEmail = async (token) => {
-        const res = await api.post('/auth/verify-email', { token });
-        if (res.data.success) {
-            setUser(res.data.user);
-        }
-        return res.data;
-    };
+    // TODO: Enable when backend verify-email endpoint is implemented
+    // const verifyEmail = async (token) => {
+    //     const res = await api.post('/auth/verify-email', { token });
+    //     if (res.data.success) {
+    //         setUser(res.data.user);
+    //     }
+    //     return res.data;
+    // };
 
-    const resendVerificationEmail = async (email) => {
-        const res = await api.post('/auth/resend-verification', { email });
-        return res.data;
-    };
+    // TODO: Enable when backend resend-verification endpoint is implemented
+    // const resendVerificationEmail = async (email) => {
+    //     const res = await api.post('/auth/resend-verification', { email });
+    //     return res.data;
+    // };
 
     const value = {
         user,
@@ -96,8 +98,9 @@ export function AuthProvider({ children }) {
         deleteAccount,
         forgotPassword,
         resetPassword,
-        verifyEmail,
-        resendVerificationEmail,
+        // TODO: Enable when backend endpoints are implemented
+        // verifyEmail,
+        // resendVerificationEmail,
         profile,
     };
 
