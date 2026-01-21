@@ -9,6 +9,44 @@ datasource db {
   directUrl = env("DIRECT_URL")
 }
 
+model User {
+  id                String    @id @default(uuid())
+  name              String
+  email             String    @unique
+  password          String?
+  githubId          String?   @unique
+  provider          String?   @default("email")
+  avatarUrl         String?
+  resetToken        String?
+  resetTokenExpiry  DateTime?
+  monthlyLimit      Int       @default(10)
+  currentUsage      Int       @default(0)
+  usageResetDate    DateTime  @default(now())
+  lastLogin         DateTime  @default(now())
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+  isVerified        Boolean   @default(false)
+  verificationToken String?
+  podcasts          Podcast[]
+}
+
+model Podcast {
+  id            String        @id @default(uuid())
+  userId        String
+  blogUrl       String
+  scrapedText   String?
+  script        String?
+  audioUrl      String?
+  status        PodcastStatus @default(processing)
+  progress      Int           @default(0)
+  audioDuration Float?
+  errorMessage  String?
+  failedAt      DateTime?
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+  user          User          @relation(fields: [userId], references: [id])
+}
+
 enum PodcastStatus {
   processing
   scraping
@@ -18,39 +56,4 @@ enum PodcastStatus {
   generating_audio
   completed
   failed
-}
-
-model User {
-  id               String    @id @default(uuid())
-  name             String
-  email            String    @unique
-  password         String
-  resetToken       String?
-  resetTokenExpiry DateTime?
-  monthlyLimit     Int       @default(10)
-  currentUsage     Int       @default(0)
-  usageResetDate   DateTime  @default(now())
-  lastLogin        DateTime  @default(now())
-  createdAt        DateTime  @default(now())
-  updatedAt        DateTime  @updatedAt
-
-  podcasts Podcast[]
-}
-
-model Podcast {
-  id            String        @id @default(uuid())
-  userId        String
-  blogUrl       String
-  scrapedText   String?       
-  script        String?       
-  audioUrl      String?
-  status        PodcastStatus @default(processing)
-  progress      Int           @default(0)
-  audioDuration Float? 
-  errorMessage  String?
-  failedAt      DateTime?
-  createdAt     DateTime      @default(now())
-  updatedAt     DateTime      @updatedAt
-
-  user User @relation(fields: [userId], references: [id])
 }

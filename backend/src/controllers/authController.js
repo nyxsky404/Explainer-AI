@@ -5,6 +5,125 @@ import { generateTokenAndSetCookie } from "../utils/generateTokenAndSetCookie.js
 import { deleteAudioFile } from "../services/storageService.js";
 import { sendPasswordResetEmail } from "../services/emailService.js";
 
+export const githubCallback = async (req, res) => {
+  try {
+    const { code } = req.query;
+
+    if (!code) {
+      return res.status(400).json({
+        success: false,
+        message: "Authorization code is required",
+      });
+    }
+
+    const tokenResponse = await fetch(
+      "https://github.com/login/oauth/access_token",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+        },
+        body: JSON.stringify({
+          client_id: process.env.GITHUB_CLIENT_ID,
+          client_secret: process.env.GITHUB_CLIENT_SECRET,
+          code,
+        }),
+      }
+    );
+
+    const tokenData = await tokenResponse.json();
+
+    if (tokenData.error) {
+      return res.status(400).json({
+        success: false,
+        message: tokenData.error_description || "Failed to authenticate with GitHub",
+      });
+    }
+
+    const accessToken = tokenData.access_token;
+
+    const userResponse = await fetch("https://api.github.com/user", {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        Accept: "application/json",
+      },
+    });
+
+    const githubUser = await userResponse.json();
+
+    let email = githubUser.email;
+    if (!email) {
+      const emailResponse = await fetch("https://api.github.com/user/emails", {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          Accept: "application/json",
+        },
+      });
+      const emails = await emailResponse.json();
+      const primaryEmail = emails.find((e) => e.primary && e.verified);
+      email = primaryEmail ? primaryEmail.email : emails[0]?.email;
+    }
+
+    if (!email) {
+      return res.status(400).json({
+        success: false,
+        message: "Unable to retrieve email from GitHub account",
+      });
+    }
+
+    let user = await prisma.user.findUnique({
+      where: { githubId: String(githubUser.id) },
+    });
+
+    if (!user) {
+      user = await prisma.user.findUnique({
+        where: { email: email.toLowerCase().trim() },
+      });
+
+      if (user) {
+        user = await prisma.user.update({
+          where: { id: user.id },
+          data: {
+            githubId: String(githubUser.id),
+            provider: "github",
+            avatarUrl: githubUser.avatar_url,
+            lastLogin: new Date(),
+          },
+        });
+      } else {
+        user = await prisma.user.create({
+          data: {
+            name: githubUser.name || githubUser.login,
+            email: email.toLowerCase().trim(),
+            githubId: String(githubUser.id),
+            provider: "github",
+            avatarUrl: githubUser.avatar_url,
+            password: null, // OAuth users don't have passwords
+          },
+        });
+      }
+    } else {
+      user = await prisma.user.update({
+        where: { id: user.id },
+        data: {
+          lastLogin: new Date(),
+          avatarUrl: githubUser.avatar_url, // Update avatar in case it changed
+        },
+      });
+    }
+
+    generateTokenAndSetCookie(res, user.id);
+
+    const frontendUrl = process.env.FRONTEND_URL || "http://localhost:5173";
+    res.redirect(`${frontendUrl}/auth/callback?success=true`);
+  } catch (err) {
+    console.error("GitHub OAuth error:", err);
+    const frontendUrl = process.env.FRONTEND_URL || "http://localhost:5173";
+    res.redirect(`${frontendUrl}/auth/callback?error=${encodeURIComponent(err.message)}`);
+  }
+};
+
 export const signup = async (req, res) => {
   try {
     const { name, email, password } = req.body;
@@ -35,13 +154,12 @@ export const signup = async (req, res) => {
       },
     });
 
-    // jwt
     generateTokenAndSetCookie(res, createUser.id);
 
     res.status(201).json({
       success: true,
       message: "user Created Successfully",
-      user: { ...createUser, password: undefined }, // not passing the password
+      user: { ...createUser, password: undefined },
     });
   } catch (err) {
     res.status(400).json({ success: false, message: err.message });
@@ -128,7 +246,6 @@ export const profile = async (req, res) => {
   }
 };
 
-// Forgot Password - Generate reset token
 export const forgotPassword = async (req, res) => {
   try {
     const { email } = req.body;
@@ -152,9 +269,8 @@ export const forgotPassword = async (req, res) => {
       });
     }
 
-    // Generate reset token
     const resetToken = crypto.randomBytes(32).toString("hex");
-    const resetTokenExpiry = new Date(Date.now() + 3600000); // 1 hour from now
+    const resetTokenExpiry = new Date(Date.now() + 3600000);
 
     await prisma.user.update({
       where: { email: key },
@@ -164,7 +280,6 @@ export const forgotPassword = async (req, res) => {
       },
     });
 
-    // Send email with reset token
     try {
       const emailResult = await sendPasswordResetEmail(
         user.email,
@@ -176,22 +291,18 @@ export const forgotPassword = async (req, res) => {
         success: true,
         message:
           "Password reset link has been sent to your email. Please check your inbox.",
-        // Include preview URL in development for Ethereal emails
         previewUrl:
           process.env.NODE_ENV === "development"
             ? emailResult.previewUrl
             : undefined,
       });
     } catch (emailError) {
-      // Log error but don't expose it to user for security
-      console.error("Failed to send password reset email:", emailError);
+        console.error("Failed to send password reset email:", emailError);
 
-      // Still return success to user (security best practice)
       res.status(200).json({
         success: true,
         message:
           "If an account with that email exists, a password reset link has been sent.",
-        // In development, include token if email fails
         resetToken:
           process.env.NODE_ENV === "development" ? resetToken : undefined,
       });
@@ -201,7 +312,6 @@ export const forgotPassword = async (req, res) => {
   }
 };
 
-// Reset Password - Use reset token to change password
 export const resetPassword = async (req, res) => {
   try {
     const { token, newPassword } = req.body;
@@ -217,7 +327,7 @@ export const resetPassword = async (req, res) => {
       where: {
         resetToken: token,
         resetTokenExpiry: {
-          gt: new Date(), // Token must not be expired
+          gt: new Date(),
         },
       },
     });
@@ -229,10 +339,8 @@ export const resetPassword = async (req, res) => {
       });
     }
 
-    // Hash new password
     const hashedPassword = await bcrypt.hash(newPassword, 10);
 
-    // Update password and clear reset token
     await prisma.user.update({
       where: { id: user.id },
       data: {
@@ -251,7 +359,6 @@ export const resetPassword = async (req, res) => {
   }
 };
 
-// Update User Profile
 export const updateProfile = async (req, res) => {
   try {
     const userId = req.userID;
@@ -269,17 +376,14 @@ export const updateProfile = async (req, res) => {
 
     const updateData = {};
 
-    // Update name if provided
     if (name) {
       updateData.name =
         name.trim().charAt(0).toUpperCase() + name.trim().slice(1);
     }
 
-    // Update email if provided
     if (email) {
       const key = String(email).toLowerCase().trim();
 
-      // Check if email is already taken by another user
       const emailExists = await prisma.user.findUnique({
         where: { email: key },
       });
@@ -294,7 +398,6 @@ export const updateProfile = async (req, res) => {
       updateData.email = key;
     }
 
-    // Update password if newPassword is provided
     if (newPassword) {
       if (!currentPassword) {
         return res.status(400).json({
@@ -303,7 +406,6 @@ export const updateProfile = async (req, res) => {
         });
       }
 
-      // Verify current password
       const isCurrentPasswordValid = await bcrypt.compare(
         currentPassword,
         user.password
@@ -318,7 +420,6 @@ export const updateProfile = async (req, res) => {
       updateData.password = await bcrypt.hash(newPassword, 10);
     }
 
-    // If no fields to update
     if (Object.keys(updateData).length === 0) {
       return res.status(400).json({
         success: false,
@@ -326,7 +427,6 @@ export const updateProfile = async (req, res) => {
       });
     }
 
-    // Update user
     const updatedUser = await prisma.user.update({
       where: { id: userId },
       data: updateData,
@@ -342,7 +442,6 @@ export const updateProfile = async (req, res) => {
   }
 };
 
-// Get Usage Information
 export const getUsage = async (req, res) => {
   try {
     const userId = req.userID;
@@ -382,13 +481,11 @@ export const getUsage = async (req, res) => {
   }
 };
 
-// Delete Account
 export const deleteAccount = async (req, res) => {
   try {
     const userId = req.userID;
     const { password } = req.body;
 
-    // Get user to verify password
     const user = await prisma.user.findUnique({
       where: { id: userId },
       include: {
@@ -405,7 +502,6 @@ export const deleteAccount = async (req, res) => {
       });
     }
 
-    // Require password confirmation for security
     if (!password) {
       return res.status(400).json({
         success: false,
@@ -413,7 +509,6 @@ export const deleteAccount = async (req, res) => {
       });
     }
 
-    // Verify password
     const isPasswordValid = await bcrypt.compare(password, user.password);
     if (!isPasswordValid) {
       return res.status(401).json({
@@ -423,22 +518,18 @@ export const deleteAccount = async (req, res) => {
       });
     }
 
-    // Delete all audio files from storage
     if (user.podcasts && user.podcasts.length > 0) {
       const deletePromises = user.podcasts
         .filter((podcast) => podcast.audioUrl)
         .map((podcast) => deleteAudioFile(podcast.id));
 
-      // Wait for all deletions to complete (don't fail if some fail)
       await Promise.allSettled(deletePromises);
     }
 
-    // Delete user (this will cascade delete all podcasts due to the relation)
     await prisma.user.delete({
       where: { id: userId },
     });
 
-    // Clear auth cookie
     res.clearCookie("token");
 
     res.status(200).json({
