@@ -1,0 +1,17 @@
+export const CREDIT_COSTS = {
+  PODCAST_GENERATION: 3,
+  YOUTUBE_SUMMARY: 2,
+  WEB_SUMMARY: 2,
+  AUDIO_GENERATION: 2,
+};
+
+// Individual exports for convenience
+export const PODCAST_GENERATION_COST = CREDIT_COSTS.PODCAST_GENERATION;
+export const YOUTUBE_SUMMARY_COST = CREDIT_COSTS.YOUTUBE_SUMMARY;
+export const WEB_SUMMARY_COST = CREDIT_COSTS.WEB_SUMMARY;
+export const AUDIO_GENERATION_COST = CREDIT_COSTS.AUDIO_GENERATION;
+
+// For summaries (both YouTube and Web use the same cost)
+export const SUMMARY_CREDIT_COST = CREDIT_COSTS.YOUTUBE_SUMMARY;
+
+export default CREDIT_COSTS;
