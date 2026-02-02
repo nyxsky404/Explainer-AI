@@ -1,0 +1,57 @@
+import { useState } from 'react';
+import api from '@/api/axios';
+import { toast } from 'sonner';
+import { Globe } from 'lucide-react';
+import { getFriendlyErrorMessage } from '@/utils/errorMessages';
+import UrlInputCard from '@/components/shared/UrlInputCard';
+
+import { useNavigate } from 'react-router';
+
+export default function WebSummarize() {
+    const navigate = useNavigate();
+    const [url, setUrl] = useState('');
+    const [isLoading, setIsLoading] = useState(false);
+
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+
+        if (!url.trim()) {
+            toast.error('Please enter a URL');
+            return;
+        }
+
+        setIsLoading(true);
+
+        try {
+            const res = await api.post('/summarize/web', { url: url.trim() });
+            if (res.data.success) {
+                toast.success('Page summarized successfully! (2 credits used)');
+                navigate(`/dashboard/summary/${res.data.data.id}`);
+            }
+        } catch (error) {
+            toast.error(getFriendlyErrorMessage(error));
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    return (
+        <div className="space-y-6">
+            <UrlInputCard
+                pageTitle="Web Page Summarizer"
+                pageDescription="Extract and summarize content from any webpage (2 credits)"
+                title="Web Page URL"
+                description="Paste the URL of the article or blog post you want to summarize"
+                label="Page URL"
+                placeholder="https://example.com/article"
+                icon={Globe}
+                buttonText="Summarize Page"
+                loadingText="Summarizing..."
+                value={url}
+                onChange={(e) => setUrl(e.target.value)}
+                onSubmit={handleSubmit}
+                isLoading={isLoading}
+            />
+        </div>
+    );
+}
