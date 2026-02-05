@@ -5,6 +5,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
     Table,
     TableBody,
@@ -21,48 +22,111 @@ import {
     PaginationNext,
     PaginationPrevious,
 } from '@/components/ui/pagination';
-import { ExternalLink, Mic, Plus } from 'lucide-react';
+import { ExternalLink, Mic, Plus, Youtube, Globe, Library as LibraryIcon } from 'lucide-react';
+import { truncateUrl } from '@/lib/utils';
 
 export default function Library() {
+    const [activity, setActivity] = useState([]);
     const [podcasts, setPodcasts] = useState([]);
-    const [pagination, setPagination] = useState(null);
+    const [summaries, setSummaries] = useState([]);
+    const [activityPagination, setActivityPagination] = useState(null);
+    const [podcastPagination, setPodcastPagination] = useState(null);
+    const [summaryPagination, setSummaryPagination] = useState(null);
     const [loading, setLoading] = useState(true);
-    const [currentPage, setCurrentPage] = useState(1);
+    const [activityPage, setActivityPage] = useState(1);
+    const [podcastPage, setPodcastPage] = useState(1);
+    const [summaryPage, setSummaryPage] = useState(1);
+    const [summaryType, setSummaryType] = useState(null);
+    const [activeTab, setActiveTab] = useState('all');
 
     useEffect(() => {
-        fetchPodcasts(currentPage);
-    }, [currentPage]);
+        fetchData();
+    }, [activeTab, activityPage, podcastPage, summaryPage, summaryType]);
 
-    const fetchPodcasts = async (page) => {
+    const fetchData = async () => {
         setLoading(true);
         try {
-            const res = await api.get(`/podcast/get?page=${page}&limit=10`);
-            setPodcasts(res.data.data.podcasts || []);
-            setPagination(res.data.pagination);
+            if (activeTab === 'all') {
+                const res = await api.get(`/summarize/activity?page=${activityPage}&limit=15`);
+                setActivity(res.data.data.activity || []);
+                setActivityPagination(res.data.pagination);
+            } else if (activeTab === 'podcasts') {
+                const res = await api.get(`/podcast/get?page=${podcastPage}&limit=10`);
+                setPodcasts(res.data.data.podcasts || []);
+                setPodcastPagination(res.data.pagination);
+            } else {
+                const typeQuery = summaryType ? `&type=${summaryType}` : '';
+                const res = await api.get(`/summarize/list?page=${summaryPage}&limit=10${typeQuery}`);
+                setSummaries(res.data.data.summaries || []);
+                setSummaryPagination(res.data.pagination);
+            }
         } catch (error) {
-            console.error('Failed to fetch podcasts:', error);
+            console.error('Failed to fetch data:', error);
         } finally {
             setLoading(false);
         }
     };
 
+    const handleTabChange = (tab) => {
+        setActiveTab(tab);
+        if (tab === 'youtube') setSummaryType('youtube');
+        else if (tab === 'web') setSummaryType('web');
+        else setSummaryType(null);
+    };
+
+    const getIcon = (item) => {
+        if (item.activityType === 'podcast') {
+            return <Mic className="size-4 text-purple-500" />;
+        } else if (item.type === 'youtube') {
+            return <Youtube className="size-4 text-red-500" />;
+        } else {
+            return <Globe className="size-4 text-blue-500" />;
+        }
+    };
+
+    const getBadge = (item) => {
+        if (item.activityType === 'podcast') {
+            const variants = { completed: 'default', failed: 'destructive' };
+            const variant = variants[item.status] || 'secondary';
+            const className = item.status === 'completed' ? 'bg-green-500 hover:bg-green-600' : '';
+            return (
+                <Badge variant={variant} className={`capitalize gap-1 ${className}`}>
+                    <Mic className="size-3" />
+                    {item.status?.replace(/_/g, ' ')}
+                </Badge>
+            );
+        } else {
+            return (
+                <Badge variant="outline" className="capitalize gap-1">
+                    {item.type === 'youtube' ? <Youtube className="size-3" /> : <Globe className="size-3" />}
+                    {item.type} Summary
+                </Badge>
+            );
+        }
+    };
+
     const getStatusBadge = (status) => {
-        const variants = {
-            completed: 'default',
-            failed: 'destructive',
-            processing: 'secondary',
-            scraping: 'secondary',
-            scraped: 'secondary',
-            generating_script: 'secondary',
-            script_generated: 'secondary',
-            generating_audio: 'secondary',
-        };
+        const variants = { completed: 'default', failed: 'destructive' };
+        const variant = variants[status] || 'secondary';
+        const className = status === 'completed' ? 'bg-green-500 hover:bg-green-600' : '';
         return (
-            <Badge variant={variants[status] || 'secondary'} className="capitalize">
+            <Badge variant={variant} className={`capitalize ${className}`}>
                 {status?.replace(/_/g, ' ')}
             </Badge>
         );
     };
+
+    const getSummaryBadge = (type) => (
+        <Badge variant="outline" className="capitalize gap-1">
+            {type === 'youtube' ? <Youtube className="size-3" /> : <Globe className="size-3" />}
+            {type}
+        </Badge>
+    );
+
+    const getUrl = (item) => item.blogUrl || item.sourceUrl;
+    const getLink = (item) => item.activityType === 'podcast' 
+        ? `/dashboard/podcast/${item.id}` 
+        : `/dashboard/summary/${item.id}`;
 
     const formatDate = (dateString) => {
         return new Date(dateString).toLocaleDateString('en-US', {
@@ -72,17 +136,59 @@ export default function Library() {
         });
     };
 
-    const truncateUrl = (url, maxLength = 40) => {
-        if (url.length <= maxLength) return url;
-        return url.slice(0, maxLength) + '...';
-    };
+
+
+    const renderPagination = (pagination, page, setPage) => (
+        pagination && pagination.totalPages > 1 && (
+            <Pagination>
+                <PaginationContent>
+                    <PaginationItem>
+                        <PaginationPrevious
+                            onClick={() => setPage((p) => Math.max(1, p - 1))}
+                            className={!pagination.hasPrevPage ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
+                        />
+                    </PaginationItem>
+                    {Array.from({ length: Math.min(5, pagination.totalPages) }, (_, i) => i + 1).map((p) => (
+                        <PaginationItem key={p}>
+                            <PaginationLink
+                                onClick={() => setPage(p)}
+                                isActive={p === page}
+                                className="cursor-pointer"
+                            >
+                                {p}
+                            </PaginationLink>
+                        </PaginationItem>
+                    ))}
+                    <PaginationItem>
+                        <PaginationNext
+                            onClick={() => setPage((p) => Math.min(pagination.totalPages, p + 1))}
+                            className={!pagination.hasNextPage ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
+                        />
+                    </PaginationItem>
+                </PaginationContent>
+            </Pagination>
+        )
+    );
+
+    const emptyState = (icon, message, link, linkText) => (
+        <Card>
+            <CardContent className="py-12 text-center">
+                {icon}
+                <h3 className="text-lg font-semibold mb-2">No content yet</h3>
+                <p className="text-muted-foreground mb-4">{message}</p>
+                <Link to={link}>
+                    <Button>{linkText}</Button>
+                </Link>
+            </CardContent>
+        </Card>
+    );
 
     return (
         <div className="space-y-6">
             <div className="flex items-center justify-between">
                 <div>
                     <h1 className="text-3xl font-bold">Library</h1>
-                    <p className="text-muted-foreground">All your generated podcasts</p>
+                    <p className="text-muted-foreground">All your generated content</p>
                 </div>
                 <Link to="/dashboard/podcast/generate">
                     <Button className="gap-2">
@@ -92,95 +198,262 @@ export default function Library() {
                 </Link>
             </div>
 
-            {loading ? (
-                <div className="space-y-4">
-                    {[1, 2, 3, 4, 5].map((i) => (
-                        <Skeleton key={i} className="h-16 w-full" />
-                    ))}
-                </div>
-            ) : podcasts.length === 0 ? (
-                <Card>
-                    <CardContent className="py-12 text-center">
-                        <Mic className="size-12 mx-auto mb-4 text-muted-foreground" />
-                        <h3 className="text-lg font-semibold mb-2">No podcasts yet</h3>
-                        <p className="text-muted-foreground mb-4">Create your first podcast to get started</p>
-                        <Link to="/dashboard/podcast/generate">
-                            <Button>Create Podcast</Button>
-                        </Link>
-                    </CardContent>
-                </Card>
-            ) : (
-                <>
-                    <div className="border border-border">
-                        <Table>
-                            <TableHeader>
-                                <TableRow>
-                                    <TableHead>Source URL</TableHead>
-                                    <TableHead>Status</TableHead>
-                                    <TableHead>Created</TableHead>
-                                    <TableHead className="w-[100px]">Action</TableHead>
-                                </TableRow>
-                            </TableHeader>
-                            <TableBody>
-                                {podcasts.map((podcast) => (
-                                    <TableRow key={podcast.id}>
-                                        <TableCell className="font-medium">
-                                            <a
-                                                href={podcast.blogUrl}
-                                                target="_blank"
-                                                rel="noopener noreferrer"
-                                                className="hover:underline inline-flex items-center gap-1"
-                                            >
-                                                {truncateUrl(podcast.blogUrl)}
-                                                <ExternalLink className="size-3" />
-                                            </a>
-                                        </TableCell>
-                                        <TableCell>{getStatusBadge(podcast.status)}</TableCell>
-                                        <TableCell>{formatDate(podcast.createdAt)}</TableCell>
-                                        <TableCell>
-                                            <Link to={`/dashboard/podcast/${podcast.id}`}>
-                                                <Button variant="outline" size="sm">
-                                                    View
-                                                </Button>
-                                            </Link>
-                                        </TableCell>
-                                    </TableRow>
-                                ))}
-                            </TableBody>
-                        </Table>
-                    </div>
+            <Tabs value={activeTab} onValueChange={handleTabChange}>
+                <TabsList className="grid w-full grid-cols-4">
+                    <TabsTrigger value="all" className="gap-2">
+                        <LibraryIcon className="size-4" />
+                        All
+                    </TabsTrigger>
+                    <TabsTrigger value="podcasts" className="gap-2">
+                        <Mic className="size-4" />
+                        Podcasts
+                    </TabsTrigger>
+                    <TabsTrigger value="youtube" className="gap-2">
+                        <Youtube className="size-4" />
+                        YouTube
+                    </TabsTrigger>
+                    <TabsTrigger value="web" className="gap-2">
+                        <Globe className="size-4" />
+                        Web
+                    </TabsTrigger>
+                </TabsList>
 
-                    {pagination && pagination.totalPages > 1 && (
-                        <Pagination>
-                            <PaginationContent>
-                                <PaginationItem>
-                                    <PaginationPrevious
-                                        onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-                                        className={!pagination.hasPrevPage ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
-                                    />
-                                </PaginationItem>
-                                {Array.from({ length: pagination.totalPages }, (_, i) => i + 1).map((page) => (
-                                    <PaginationItem key={page}>
-                                        <PaginationLink
-                                            onClick={() => setCurrentPage(page)}
-                                            isActive={page === currentPage}
-                                            className="cursor-pointer"
-                                        >
-                                            {page}
-                                        </PaginationLink>
-                                    </PaginationItem>
-                                ))}
-                                <PaginationItem>
-                                    <PaginationNext
-                                        onClick={() => setCurrentPage((p) => Math.min(pagination.totalPages, p + 1))}
-                                        className={!pagination.hasNextPage ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
-                                    />
-                                </PaginationItem>
-                            </PaginationContent>
-                        </Pagination>
+                {/* All Tab - Unified Activity */}
+                <TabsContent value="all" className="space-y-4 mt-6">
+                    {loading ? (
+                        <div className="space-y-4">
+                            {[1, 2, 3, 4, 5].map((i) => (
+                                <Skeleton key={i} className="h-16 w-full" />
+                            ))}
+                        </div>
+                    ) : activity.length === 0 ? (
+                        emptyState(
+                            <LibraryIcon className="size-12 mx-auto mb-4 text-muted-foreground" />,
+                            'Create your first content to get started',
+                            '/dashboard/podcast/generate',
+                            'Get Started'
+                        )
+                    ) : (
+                        <>
+                            <div className="border border-border rounded-lg overflow-hidden">
+                                <Table>
+                                    <TableHeader>
+                                        <TableRow>
+                                            <TableHead>Source</TableHead>
+                                            <TableHead>Type</TableHead>
+                                            <TableHead>Created</TableHead>
+                                            <TableHead className="w-24">Action</TableHead>
+                                        </TableRow>
+                                    </TableHeader>
+                                    <TableBody>
+                                        {activity.map((item) => (
+                                            <TableRow key={`${item.activityType || 'summary'}-${item.id}`}>
+                                                <TableCell className="font-medium max-w-md">
+                                                    <a
+                                                        href={getUrl(item)}
+                                                        target="_blank"
+                                                        rel="noopener noreferrer"
+                                                        className="hover:underline inline-flex items-center gap-2"
+                                                    >
+                                                        {getIcon(item)}
+                                                        <span className="truncate">{truncateUrl(getUrl(item))}</span>
+                                                        <ExternalLink className="size-3 shrink-0" />
+                                                    </a>
+                                                </TableCell>
+                                                <TableCell>{getBadge(item)}</TableCell>
+                                                <TableCell className="text-muted-foreground">{formatDate(item.createdAt)}</TableCell>
+                                                <TableCell>
+                                                    <Link to={getLink(item)}>
+                                                        <Button variant="outline" size="sm">View</Button>
+                                                    </Link>
+                                                </TableCell>
+                                            </TableRow>
+                                        ))}
+                                    </TableBody>
+                                </Table>
+                            </div>
+                            {renderPagination(activityPagination, activityPage, setActivityPage)}
+                        </>
                     )}
-                </>
-            )}
+                </TabsContent>
+
+                {/* Podcasts Tab */}
+                <TabsContent value="podcasts" className="space-y-4 mt-6">
+                    {loading ? (
+                        <div className="space-y-4">
+                            {[1, 2, 3, 4, 5].map((i) => (
+                                <Skeleton key={i} className="h-16 w-full" />
+                            ))}
+                        </div>
+                    ) : podcasts.length === 0 ? (
+                        emptyState(
+                            <Mic className="size-12 mx-auto mb-4 text-muted-foreground" />,
+                            'Create your first podcast',
+                            '/dashboard/podcast/generate',
+                            'Create Podcast'
+                        )
+                    ) : (
+                        <>
+                            <div className="border border-border rounded-lg overflow-hidden">
+                                <Table>
+                                    <TableHeader>
+                                        <TableRow>
+                                            <TableHead>Source URL</TableHead>
+                                            <TableHead>Status</TableHead>
+                                            <TableHead>Created</TableHead>
+                                            <TableHead className="w-24">Action</TableHead>
+                                        </TableRow>
+                                    </TableHeader>
+                                    <TableBody>
+                                        {podcasts.map((podcast) => (
+                                            <TableRow key={podcast.id}>
+                                                <TableCell className="font-medium">
+                                                    <a
+                                                        href={podcast.blogUrl}
+                                                        target="_blank"
+                                                        rel="noopener noreferrer"
+                                                        className="hover:underline inline-flex items-center gap-2"
+                                                    >
+                                                        <Mic className="size-4 text-purple-500" />
+                                                        {truncateUrl(podcast.blogUrl)}
+                                                        <ExternalLink className="size-3" />
+                                                    </a>
+                                                </TableCell>
+                                                <TableCell>{getStatusBadge(podcast.status)}</TableCell>
+                                                <TableCell className="text-muted-foreground">{formatDate(podcast.createdAt)}</TableCell>
+                                                <TableCell>
+                                                    <Link to={`/dashboard/podcast/${podcast.id}`}>
+                                                        <Button variant="outline" size="sm">View</Button>
+                                                    </Link>
+                                                </TableCell>
+                                            </TableRow>
+                                        ))}
+                                    </TableBody>
+                                </Table>
+                            </div>
+                            {renderPagination(podcastPagination, podcastPage, setPodcastPage)}
+                        </>
+                    )}
+                </TabsContent>
+
+                {/* YouTube Tab */}
+                <TabsContent value="youtube" className="space-y-4 mt-6">
+                    {loading ? (
+                        <div className="space-y-4">
+                            {[1, 2, 3, 4, 5].map((i) => (
+                                <Skeleton key={i} className="h-16 w-full" />
+                            ))}
+                        </div>
+                    ) : summaries.length === 0 ? (
+                        emptyState(
+                            <Youtube className="size-12 mx-auto mb-4 text-red-400" />,
+                            'Summarize your first YouTube video',
+                            '/dashboard/youtube-summarize',
+                            'Summarize Video'
+                        )
+                    ) : (
+                        <>
+                            <div className="border border-border rounded-lg overflow-hidden">
+                                <Table>
+                                    <TableHeader>
+                                        <TableRow>
+                                            <TableHead>Source URL</TableHead>
+                                            <TableHead>Type</TableHead>
+                                            <TableHead>Created</TableHead>
+                                            <TableHead className="w-24">Action</TableHead>
+                                        </TableRow>
+                                    </TableHeader>
+                                    <TableBody>
+                                        {summaries.map((summary) => (
+                                            <TableRow key={summary.id}>
+                                                <TableCell className="font-medium">
+                                                    <a
+                                                        href={summary.sourceUrl}
+                                                        target="_blank"
+                                                        rel="noopener noreferrer"
+                                                        className="hover:underline inline-flex items-center gap-2"
+                                                    >
+                                                        <Youtube className="size-4 text-red-500" />
+                                                        {truncateUrl(summary.sourceUrl)}
+                                                        <ExternalLink className="size-3" />
+                                                    </a>
+                                                </TableCell>
+                                                <TableCell>{getSummaryBadge(summary.type)}</TableCell>
+                                                <TableCell className="text-muted-foreground">{formatDate(summary.createdAt)}</TableCell>
+                                                <TableCell>
+                                                    <Link to={`/dashboard/summary/${summary.id}`}>
+                                                        <Button variant="outline" size="sm">View</Button>
+                                                    </Link>
+                                                </TableCell>
+                                            </TableRow>
+                                        ))}
+                                    </TableBody>
+                                </Table>
+                            </div>
+                            {renderPagination(summaryPagination, summaryPage, setSummaryPage)}
+                        </>
+                    )}
+                </TabsContent>
+
+                {/* Web Tab */}
+                <TabsContent value="web" className="space-y-4 mt-6">
+                    {loading ? (
+                        <div className="space-y-4">
+                            {[1, 2, 3, 4, 5].map((i) => (
+                                <Skeleton key={i} className="h-16 w-full" />
+                            ))}
+                        </div>
+                    ) : summaries.length === 0 ? (
+                        emptyState(
+                            <Globe className="size-12 mx-auto mb-4 text-blue-400" />,
+                            'Summarize your first web page',
+                            '/dashboard/web-summarize',
+                            'Summarize Page'
+                        )
+                    ) : (
+                        <>
+                            <div className="border border-border rounded-lg overflow-hidden">
+                                <Table>
+                                    <TableHeader>
+                                        <TableRow>
+                                            <TableHead>Source URL</TableHead>
+                                            <TableHead>Type</TableHead>
+                                            <TableHead>Created</TableHead>
+                                            <TableHead className="w-24">Action</TableHead>
+                                        </TableRow>
+                                    </TableHeader>
+                                    <TableBody>
+                                        {summaries.map((summary) => (
+                                            <TableRow key={summary.id}>
+                                                <TableCell className="font-medium">
+                                                    <a
+                                                        href={summary.sourceUrl}
+                                                        target="_blank"
+                                                        rel="noopener noreferrer"
+                                                        className="hover:underline inline-flex items-center gap-2"
+                                                    >
+                                                        <Globe className="size-4 text-blue-500" />
+                                                        {truncateUrl(summary.sourceUrl)}
+                                                        <ExternalLink className="size-3" />
+                                                    </a>
+                                                </TableCell>
+                                                <TableCell>{getSummaryBadge(summary.type)}</TableCell>
+                                                <TableCell className="text-muted-foreground">{formatDate(summary.createdAt)}</TableCell>
+                                                <TableCell>
+                                                    <Link to={`/dashboard/summary/${summary.id}`}>
+                                                        <Button variant="outline" size="sm">View</Button>
+                                                    </Link>
+                                                </TableCell>
+                                            </TableRow>
+                                        ))}
+                                    </TableBody>
+                                </Table>
+                            </div>
+                            {renderPagination(summaryPagination, summaryPage, setSummaryPage)}
+                        </>
+                    )}
+                </TabsContent>
+            </Tabs>
         </div>
     );
 }
