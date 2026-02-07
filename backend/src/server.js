@@ -25,7 +25,9 @@ app.use(cookieParser());
 
 // Public routes (no auth required)
 import { getSummaryPublic } from "./controllers/summarizerController.js";
+import { getPodcastPublic } from "./controllers/podcastController.js";
 app.get("/api/summary/share/:id", getSummaryPublic);
+app.get("/api/podcast/share/:id", getPodcastPublic);
 
 // Protected routes
 app.use("/", initialRoute)

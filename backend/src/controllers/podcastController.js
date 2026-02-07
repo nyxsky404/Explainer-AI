@@ -3,8 +3,6 @@ import { addJobs } from "../queue/producer.js";
 import { deleteAudioFile } from "../services/storageService.js";
 import { PODCAST_GENERATION_COST } from "../config/credits.js";
 import { checkCredits } from "../services/creditService.js";
-import { PODCAST_GENERATION_COST } from "../config/credits.js";
-import { checkCredits } from "../services/creditService.js";
 import redis from "../config/redis.js";
 const PODCAST_CREDIT_COST = PODCAST_GENERATION_COST;
 
@@ -402,5 +400,49 @@ export const deletePodcast = async (req, res) => {
       success: false,
       message: err.message,
     });
+  }
+};
+
+// Get public podcast details (no auth required)
+export const getPodcastPublic = async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const podcast = await prisma.podcast.findUnique({
+      where: { id },
+      include: {
+        user: {
+          select: { name: true },
+        },
+      },
+    });
+
+    if (!podcast) {
+      return res.status(404).json({
+        success: false,
+        message: "Podcast not found",
+      });
+    }
+
+    if (podcast.status !== "completed") {
+      return res.status(400).json({
+        success: false,
+        message: "Podcast is not ready for public viewing",
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      data: {
+        id: podcast.id,
+        blogUrl: podcast.blogUrl,
+        audioUrl: podcast.audioUrl,
+        audioDuration: podcast.audioDuration,
+        createdAt: podcast.createdAt,
+        author: podcast.user.name,
+      },
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
   }
 };

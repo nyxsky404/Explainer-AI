@@ -20,6 +20,7 @@ import YouTubeSummarize from './pages/protected/YouTubeSummarize'
 import WebSummarize from './pages/protected/WebSummarize'
 import SummaryView from './pages/protected/SummaryView'
 import PublicSummaryView from './pages/public/PublicSummaryView'
+import PublicPodcastView from './pages/public/PublicPodcastView'
 
 function App() {
   return (
@@ -49,6 +50,7 @@ function App() {
 
         {/* Public Share Routes */}
         <Route path="/share/summary/:id" element={<PublicSummaryView />} />
+        <Route path="/share/podcast/:id" element={<PublicPodcastView />} />
 
         {/* Landing page - accessible to all */}
         <Route path="/" element={<Landing />} />

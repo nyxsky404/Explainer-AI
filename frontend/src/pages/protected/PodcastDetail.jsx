@@ -192,15 +192,21 @@ export default function PodcastDetail() {
                         </a>
                     </Button>
                 )}
-                <Button variant="outline" className="flex-1" onClick={() => setShareDialogOpen(true)}>
-                    <Share2 className="mr-2 size-4" />
-                    Share
-                </Button>
-                <ShareDialog
-                    open={shareDialogOpen}
-                    onOpenChange={setShareDialogOpen}
-                    url={podcast?.audioUrl}
-                />
+                {podcast?.status === 'completed' && (
+                    <>
+                        <Button variant="outline" className="flex-1" onClick={() => setShareDialogOpen(true)}>
+                            <Share2 className="mr-2 size-4" />
+                            Share
+                        </Button>
+                        <ShareDialog
+                            open={shareDialogOpen}
+                            onOpenChange={setShareDialogOpen}
+                            url={`${window.location.origin}/share/podcast/${id}`}
+                            type="podcast"
+                            id={id}
+                        />
+                    </>
+                )}
 
                 <Button variant="outline" className="text-destructive hover:text-destructive" onClick={() => setDeleteDialogOpen(true)}>
                     <Trash2 className="mr-2 size-4" />
