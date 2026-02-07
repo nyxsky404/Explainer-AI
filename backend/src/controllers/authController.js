@@ -4,6 +4,24 @@ import crypto from "crypto";
 import { generateTokenAndSetCookie } from "../utils/generateTokenAndSetCookie.js";
 import { deleteAudioFile } from "../services/storageService.js";
 import { sendPasswordResetEmail } from "../services/emailService.js";
+import { CREDIT_COSTS } from "../config/credits.js";
+import { z } from "zod";
+
+// Zod schemas for input validation
+const signupSchema = z.object({
+  name: z.string().min(2, "Name must be at least 2 characters"),
+  email: z.string().email("Invalid email address"),
+  password: z.string()
+    .min(8, "Password must be at least 8 characters")
+    .regex(/[A-Z]/, "Password must contain at least one uppercase letter")
+    .regex(/[0-9]/, "Password must contain at least one number")
+    .regex(/[^A-Za-z0-9]/, "Password must contain at least one special character")
+});
+
+const loginSchema = z.object({
+  email: z.string().email("Invalid email address"),
+  password: z.string().min(1, "Password is required")
+});
 
 export const githubCallback = async (req, res) => {
   try {
@@ -126,11 +144,17 @@ export const githubCallback = async (req, res) => {
 
 export const signup = async (req, res) => {
   try {
-    const { name, email, password } = req.body;
 
-    if (!name || !email || !password) {
-      return res.status(400).send("All fields are required");
+    // Validation
+    const validationResult = signupSchema.safeParse(req.body);
+    if (!validationResult.success) {
+      return res.status(400).json({
+        success: false,
+        message: validationResult.error.errors?.[0]?.message || "Invalid input"
+      });
     }
+
+    const { name, email, password } = validationResult.data;
 
     const key = String(email).toLowerCase().trim();
 
@@ -168,13 +192,16 @@ export const signup = async (req, res) => {
 
 export const login = async (req, res) => {
   try {
-    const { email, password } = req.body;
-
-    if (!email || !password) {
-      return res
-        .status(400)
-        .json({ success: false, message: "All fields are required" });
+    // Validation
+    const validationResult = loginSchema.safeParse(req.body);
+    if (!validationResult.success) {
+      return res.status(400).json({
+        success: false,
+        message: validationResult.error.errors?.[0]?.message || "Invalid input"
+      });
     }
+
+    const { email, password } = validationResult.data;
 
     const key = String(email).toLowerCase().trim();
 
@@ -449,8 +476,8 @@ export const getUsage = async (req, res) => {
     const user = await prisma.user.findUnique({
       where: { id: userId },
       select: {
-        monthlyLimit: true,
-        currentUsage: true,
+        creditLimit: true,
+        creditsUsed: true,
         usageResetDate: true,
       },
     });
@@ -469,9 +496,9 @@ export const getUsage = async (req, res) => {
     res.status(200).json({
       success: true,
       usage: {
-        current: user.currentUsage,
-        limit: user.monthlyLimit,
-        remaining: Math.max(0, user.monthlyLimit - user.currentUsage),
+        current: user.creditsUsed,
+        limit: user.creditLimit,
+        remaining: Math.max(0, user.creditLimit - user.creditsUsed),
         resetDate: user.usageResetDate,
         daysUntilReset: Math.max(0, daysUntilReset),
       },
@@ -539,4 +566,17 @@ export const deleteAccount = async (req, res) => {
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
   }
+};
+
+// Get credit pricing for all features
+export const getCreditPricing = (req, res) => {
+  res.status(200).json({
+    success: true,
+    pricing: {
+      podcast: CREDIT_COSTS.PODCAST_GENERATION,
+      youtubeSummary: CREDIT_COSTS.YOUTUBE_SUMMARY,
+      webSummary: CREDIT_COSTS.WEB_SUMMARY,
+      audioGeneration: CREDIT_COSTS.AUDIO_GENERATION,
+    },
+  });
 };

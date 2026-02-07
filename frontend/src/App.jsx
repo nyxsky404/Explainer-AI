@@ -16,6 +16,10 @@ import Library from './pages/protected/Library'
 import PodcastDetail from './pages/protected/PodcastDetail'
 import PodcastGenerate from './pages/protected/PodcastGenerate'
 import Profile from './pages/protected/Profile'
+import YouTubeSummarize from './pages/protected/YouTubeSummarize'
+import WebSummarize from './pages/protected/WebSummarize'
+import SummaryView from './pages/protected/SummaryView'
+import PublicSummaryView from './pages/public/PublicSummaryView'
 
 function App() {
   return (
@@ -36,9 +40,15 @@ function App() {
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/dashboard/podcast/generate" element={<PodcastGenerate />} />
           <Route path="/dashboard/podcast/:id" element={<PodcastDetail />} />
-          <Route path="/library" element={<Library />} />
+          <Route path="/dashboard/library" element={<Library />} />
           <Route path="/profile" element={<Profile />} />
+          <Route path="/dashboard/youtube-summarize" element={<YouTubeSummarize />} />
+          <Route path="/dashboard/web-summarize" element={<WebSummarize />} />
+          <Route path="/dashboard/summary/:id" element={<SummaryView />} />
         </Route>
+
+        {/* Public Share Routes */}
+        <Route path="/share/summary/:id" element={<PublicSummaryView />} />
 
         {/* Landing page - accessible to all */}
         <Route path="/" element={<Landing />} />

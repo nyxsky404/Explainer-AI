@@ -30,6 +30,8 @@ import {
   User,
   LogOut,
   ChevronsUpDown,
+  Youtube,
+  Globe,
 } from "lucide-react";
 import Logo from "@/assets/logo";
 import DashboardNavigation from "@/components/blocks/Dashboard/sidebar/nav-main";
@@ -74,10 +76,22 @@ const dashboardRoutes = [
     link: "/dashboard/podcast/generate",
   },
   {
+    id: "youtube-summarizer",
+    title: "YouTube Summarizer",
+    icon: <Youtube className="size-4 text-foreground" />,
+    link: "/dashboard/youtube-summarize",
+  },
+  {
+    id: "web-summarizer",
+    title: "Web Summarizer",
+    icon: <Globe className="size-4 text-foreground" />,
+    link: "/dashboard/web-summarize",
+  },
+  {
     id: "library",
     title: "Library",
     icon: <Library className="size-4 text-foreground" />,
-    link: "/library",
+    link: "/dashboard/library",
   },
 ];
 

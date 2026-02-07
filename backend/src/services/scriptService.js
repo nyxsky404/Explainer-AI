@@ -1,5 +1,5 @@
 import { GoogleGenAI } from "@google/genai";
-import { getPrompt } from './prompt.js';
+import { getPrompt } from '../prompts/prompt.js';
 
 export const generateScript = async(scrapedText) => {
     try{

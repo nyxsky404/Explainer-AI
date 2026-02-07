@@ -14,6 +14,7 @@
   "license": "ISC",
   "description": "",
   "dependencies": {
+    "@deepgram/sdk": "^4.11.3",
     "@google/genai": "^1.34.0",
     "@mendable/firecrawl-js": "^1.21.1",
     "@prisma/client": "^6.19.1",
@@ -24,11 +25,14 @@
     "cors": "^2.8.5",
     "dotenv": "^17.2.3",
     "express": "^5.2.1",
+    "ioredis": "^5.9.2",
     "jsonwebtoken": "^9.0.3",
     "music-metadata": "^11.10.5",
     "nodemailer": "^7.0.12",
+    "openai": "^6.18.0",
     "uuid": "^13.0.0",
-    "wav": "^1.0.2"
+    "wav": "^1.0.2",
+    "zod": "^4.3.6"
   },
   "devDependencies": {
     "nodemon": "^3.1.11",

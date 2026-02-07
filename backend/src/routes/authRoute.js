@@ -10,6 +10,7 @@ import {
   getUsage,
   deleteAccount,
   githubCallback,
+  getCreditPricing,
 } from "../controllers/authController.js";
 import { verifyToken } from "../middleware/verifyToken.js";
 const router = express.Router();
@@ -30,6 +31,7 @@ router.post("/reset-password", resetPassword);
 router.put("/update-profile", verifyToken, updateProfile);
 
 router.get("/usage", verifyToken, getUsage);
+router.get("/pricing", getCreditPricing);
 
 router.delete("/delete-account", verifyToken, deleteAccount);
 

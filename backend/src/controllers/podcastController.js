@@ -1,46 +1,12 @@
 import prisma from "../config/db.js";
 import { addJobs } from "../queue/producer.js";
 import { deleteAudioFile } from "../services/storageService.js";
+import { PODCAST_GENERATION_COST } from "../config/credits.js";
+import { checkCredits } from "../services/creditService.js";
 
-// Helper function to check and reset usage limits
-async function checkAndResetUsage(userId) {
-  const user = await prisma.user.findUnique({
-    where: { id: userId },
-  });
+const PODCAST_CREDIT_COST = PODCAST_GENERATION_COST;
 
-  if (!user) {
-    throw new Error("User not found");
-  }
 
-  const now = new Date();
-  const resetDate = new Date(user.usageResetDate);
-
-  // Reset usage if it's been a month since last reset
-  if (now >= resetDate) {
-    const nextResetDate = new Date(now);
-    nextResetDate.setMonth(nextResetDate.getMonth() + 1);
-
-    await prisma.user.update({
-      where: { id: userId },
-      data: {
-        currentUsage: 0,
-        usageResetDate: nextResetDate,
-      },
-    });
-
-    return {
-      currentUsage: 0,
-      monthlyLimit: user.monthlyLimit,
-      resetDate: nextResetDate,
-    };
-  }
-
-  return {
-    currentUsage: user.currentUsage,
-    monthlyLimit: user.monthlyLimit,
-    resetDate: user.usageResetDate,
-  };
-}
 
 export const podcastGenerate = async (req, res) => {
   console.log(req.body);
@@ -55,20 +21,16 @@ export const podcastGenerate = async (req, res) => {
     }
 
     // Check usage limits
-    const usage = await checkAndResetUsage(req.userID);
+    const creditCheck = await checkCredits(req.userID, PODCAST_CREDIT_COST);
 
-    if (usage.currentUsage >= usage.monthlyLimit) {
+    if (!creditCheck.allowed) {
       return res.status(403).json({
         success: false,
-        message: `Monthly limit reached. You have used ${usage.currentUsage}/${
-          usage.monthlyLimit
-        } podcasts this month. Limit resets on ${new Date(
-          usage.resetDate
-        ).toLocaleDateString()}`,
+        message: creditCheck.message,
         usage: {
-          current: usage.currentUsage,
-          limit: usage.monthlyLimit,
-          resetDate: usage.resetDate,
+          current: creditCheck.user.creditsUsed,
+          limit: creditCheck.user.creditLimit,
+          resetDate: creditCheck.user.usageResetDate,
         },
       });
     }
@@ -78,6 +40,7 @@ export const podcastGenerate = async (req, res) => {
         blogUrl,
         status: "processing",
         progress: 0,
+        creditsUsed: PODCAST_CREDIT_COST,
         user: {
           connect: {
             id: req.userID,
@@ -86,12 +49,12 @@ export const podcastGenerate = async (req, res) => {
       },
     });
 
-    // Increment usage
+    // Deduct credits for podcast (3 credits)
     await prisma.user.update({
       where: { id: req.userID },
       data: {
-        currentUsage: {
-          increment: 1,
+        creditsUsed: {
+          increment: PODCAST_CREDIT_COST,
         },
       },
     });
@@ -102,9 +65,10 @@ export const podcastGenerate = async (req, res) => {
       success: true,
       data,
       usage: {
-        current: usage.currentUsage + 1,
-        limit: usage.monthlyLimit,
-        resetDate: usage.resetDate,
+        current: creditCheck.user.creditsUsed + PODCAST_CREDIT_COST,
+        limit: creditCheck.user.creditLimit,
+        resetDate: creditCheck.user.usageResetDate,
+        creditsUsed: PODCAST_CREDIT_COST,
       },
     });
   } catch (err) {

@@ -9,6 +9,7 @@ const app = express()
 import initialRoute from "./routes/initialRoute.js"
 import podcastRoute from "./routes/podcastRoute.js"
 import authRoute from "./routes/authRoute.js"
+import summarizerRoute from "./routes/summarizerRoute.js"
 import { verifyToken } from "../src/middleware/verifyToken.js";
 import { errorHandler } from "./middleware/errorMiddleware.js";
 import "./queue/worker.js";
@@ -22,8 +23,14 @@ app.use(cors({
 app.use(express.json())
 app.use(cookieParser());
 
+// Public routes (no auth required)
+import { getSummaryPublic } from "./controllers/summarizerController.js";
+app.get("/api/summary/share/:id", getSummaryPublic);
+
+// Protected routes
 app.use("/", initialRoute)
 app.use("/api/podcast", verifyToken, podcastRoute)
+app.use("/api/summarize", verifyToken, summarizerRoute)
 app.use("/api/auth", authRoute)
 
 app.use(errorHandler)

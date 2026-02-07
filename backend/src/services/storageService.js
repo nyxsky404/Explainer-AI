@@ -70,3 +70,57 @@ export async function deleteAudioFile(podcastId) {
     return false;
   }
 }
+
+// Summary audio functions
+function getSummaryFilePath(summaryId) {
+  return `summaries/${summaryId}.wav`;
+}
+
+export async function uploadSummaryAudio(wavBuffer, summaryId) {
+  try {
+    console.error("StorageService: Uploading summary audio, buffer size:", wavBuffer.length);
+
+    const supabase = getSupabaseClient();
+    const filePath = getSummaryFilePath(summaryId);
+
+    const { data, error } = await supabase.storage
+      .from("audio")
+      .upload(filePath, wavBuffer, {
+        contentType: "audio/wav",
+        upsert: true,
+      });
+
+    if (error) {
+      console.error("Supabase upload error:", error.message);
+      throw error;
+    }
+
+    console.error("StorageService: Summary audio upload successful:", data);
+    const { data: urlData } = supabase.storage.from("audio").getPublicUrl(filePath);
+    return urlData.publicUrl;
+  } catch (err) {
+    console.error("Storage service error:", err);
+    throw new Error(`Summary audio upload failed: ${err.message}`);
+  }
+}
+
+export async function deleteSummaryAudio(summaryId) {
+  try {
+    const supabase = getSupabaseClient();
+    const filePath = getSummaryFilePath(summaryId);
+
+    const { error } = await supabase.storage.from("audio").remove([filePath]);
+
+    if (error) {
+      console.error(`Error deleting summary audio ${summaryId}:`, error.message);
+      return false;
+    }
+
+    console.log(`Summary audio deleted successfully: ${summaryId}`);
+    return true;
+  } catch (err) {
+    console.error(`Error deleting summary audio ${summaryId}:`, err.message);
+    return false;
+  }
+}
+
