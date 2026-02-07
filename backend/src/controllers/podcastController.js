@@ -3,7 +3,9 @@ import { addJobs } from "../queue/producer.js";
 import { deleteAudioFile } from "../services/storageService.js";
 import { PODCAST_GENERATION_COST } from "../config/credits.js";
 import { checkCredits } from "../services/creditService.js";
-
+import { PODCAST_GENERATION_COST } from "../config/credits.js";
+import { checkCredits } from "../services/creditService.js";
+import redis from "../config/redis.js";
 const PODCAST_CREDIT_COST = PODCAST_GENERATION_COST;
 
 
@@ -60,6 +62,12 @@ export const podcastGenerate = async (req, res) => {
     });
 
     await addJobs(data.id, blogUrl);
+
+    // Invalidate user cache (podcasts list and recent activity)
+    const keys = await redis.keys(`user:${req.userID}:*`);
+    if (keys.length > 0) {
+      await redis.del(keys);
+    }
 
     res.status(200).json({
       success: true,
@@ -217,6 +225,12 @@ export const retryPodcast = async (req, res) => {
 
     await addJobs(id, podcast.blogUrl);
 
+    // Invalidate user cache
+    const keys = await redis.keys(`user:${userId}:*`);
+    if (keys.length > 0) {
+      await redis.del(keys);
+    }
+
     res.status(200).json({
       success: true,
       message: "Podcast retry initiated",
@@ -273,6 +287,13 @@ export const getAllPodcasts = async (req, res) => {
       });
     }
 
+    const cacheKey = `user:${userId}:podcasts:${page}:${limit}`;
+    const cachedData = await redis.get(cacheKey);
+
+    if (cachedData) {
+      return res.status(200).json(JSON.parse(cachedData));
+    }
+
     // Get total count of podcasts for this user
     const totalPodcasts = await prisma.podcast.count({
       where: { userId },
@@ -293,7 +314,7 @@ export const getAllPodcasts = async (req, res) => {
     const hasNextPage = page < totalPages;
     const hasPrevPage = page > 1;
 
-    res.status(200).json({
+    const response = {
       success: true,
       data: {
         user: {
@@ -311,7 +332,12 @@ export const getAllPodcasts = async (req, res) => {
         hasNextPage: hasNextPage,
         hasPrevPage: hasPrevPage,
       },
-    });
+    };
+
+    // Cache for 1 hour
+    await redis.set(cacheKey, JSON.stringify(response), "EX", 3600);
+
+    res.status(200).json(response);
   } catch (err) {
     res.status(500).json({
       success: false,
@@ -360,6 +386,12 @@ export const deletePodcast = async (req, res) => {
     await prisma.podcast.delete({
       where: { id },
     });
+
+    // Invalidate user cache
+    const keys = await redis.keys(`user:${userId}:*`);
+    if (keys.length > 0) {
+      await redis.del(keys);
+    }
 
     res.status(200).json({
       success: true,

@@ -451,6 +451,12 @@ export const deleteSummary = async (req, res) => {
       where: { id },
     });
 
+    // Invalidate user cache (summaries list and recent activity)
+    const keys = await redis.keys(`user:${userId}:*`);
+    if (keys.length > 0) {
+      await redis.del(keys);
+    }
+
     res.status(200).json({
       success: true,
       message: "Summary deleted successfully",
