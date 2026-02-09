@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useParams, Link, useNavigate } from 'react-router';
 import ReactMarkdown from 'react-markdown';
 import api from '@/api/axios';
@@ -14,6 +14,7 @@ import { ArrowLeft, Youtube, Globe, Share2, Trash2 } from 'lucide-react';
 import SummaryDisplay from '@/components/shared/SummaryDisplay';
 import ShareDialog from '@/components/blocks/DetailsDialogs/share-dialog';
 import DeleteDialog from '@/components/blocks/DetailsDialogs/delete-dialog';
+import ChatPanel from '@/components/shared/ChatPanel';
 
 export default function SummaryView() {
     const { id } = useParams();
@@ -24,6 +25,8 @@ export default function SummaryView() {
     const [deleting, setDeleting] = useState(false);
     const [shareDialogOpen, setShareDialogOpen] = useState(false);
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+    const [explaining, setExplaining] = useState(false);
+    const chatPanelRef = useRef(null);
 
     useEffect(() => {
         fetchSummary();
@@ -199,7 +202,26 @@ export default function SummaryView() {
                 onGenerateAudio={handleGenerateAudio}
                 isGeneratingAudio={generatingAudio || summary.audioStatus === 'generating'}
                 showGenerateAudioButton={true}
+                onExplainRequest={async (selectedText) => {
+                    if (explaining) return;
+                    setExplaining(true);
+                    toast.info('Getting explanation...');
+                    try {
+                        const res = await api.post(`/chat/${id}/explain`, { selectedText });
+                        if (res.data.success) {
+                            chatPanelRef.current?.addExplainMessage(selectedText, res.data.data.explanation);
+                            toast.success('Explanation ready — see chat below');
+                        }
+                    } catch (err) {
+                        toast.error(err.response?.data?.message || 'Failed to explain');
+                    } finally {
+                        setExplaining(false);
+                    }
+                }}
             />
+
+            {/* Interactive Chat Panel */}
+            <ChatPanel ref={chatPanelRef} summaryId={id} />
         </div>
     );
 }
