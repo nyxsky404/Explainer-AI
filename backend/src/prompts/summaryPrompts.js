@@ -1,3 +1,13 @@
+import { buildSummaryPrompt } from './promptBuilder.js';
+
+/**
+ * Generate a dynamic summary prompt based on user preferences.
+ * @param {object} options - { readingLevel, tone, depth, type }
+ * @returns {string}
+ */
+export const getDynamicSummaryPrompt = (options = {}) => buildSummaryPrompt(options);
+
+// Legacy prompts — kept as fallbacks for reference
 export const YOUTUBE_SUMMARY_PROMPT = `
 You are an expert narrator and educator. Explain the following YouTube video transcript into a clear, engaging spoken-style summary designed for audio listening.
 
@@ -33,7 +43,7 @@ Simplify complex sentences without losing meaning
 Add light transitions so the story flows
 Make it understandable without seeing the screen
 
-Write it as if you’re teaching the content to a smart listener.
+Write it as if you're teaching the content to a smart listener.
 
 Target length: strictly less than or equal to 1500 characters
 `;
