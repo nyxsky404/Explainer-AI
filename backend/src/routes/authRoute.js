@@ -11,6 +11,8 @@ import {
   deleteAccount,
   githubCallback,
   getCreditPricing,
+  getPreferences,
+  updatePreferences,
 } from "../controllers/authController.js";
 import { verifyToken } from "../middleware/verifyToken.js";
 const router = express.Router();
@@ -34,5 +36,8 @@ router.get("/usage", verifyToken, getUsage);
 router.get("/pricing", getCreditPricing);
 
 router.delete("/delete-account", verifyToken, deleteAccount);
+
+router.get("/preferences", verifyToken, getPreferences);
+router.put("/preferences", verifyToken, updatePreferences);
 
 export default router;

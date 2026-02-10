@@ -580,3 +580,86 @@ export const getCreditPricing = (req, res) => {
     },
   });
 };
+
+// Get user preferences
+export const getPreferences = async (req, res) => {
+  const userId = req.userID;
+
+  try {
+    let preferences = await prisma.userPreference.findUnique({
+      where: { userId },
+    });
+
+    if (!preferences) {
+      // Return defaults without creating a record yet
+      preferences = {
+        readingLevel: 'intermediate',
+        tone: 'conversational',
+        defaultDepth: 'standard',
+        defaultLanguage: 'en',
+      };
+    }
+
+    res.status(200).json({ success: true, preferences });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+};
+
+// Update user preferences (upsert)
+export const updatePreferences = async (req, res) => {
+  const userId = req.userID;
+  const { readingLevel, tone, defaultDepth, defaultLanguage } = req.body;
+
+  try {
+    // Validate enum values
+    const validReadingLevels = ['beginner', 'intermediate', 'expert'];
+    const validTones = ['casual', 'conversational', 'professional', 'academic'];
+    const validDepths = ['quick', 'standard', 'detailed'];
+
+    if (readingLevel && !validReadingLevels.includes(readingLevel)) {
+      return res.status(400).json({
+        success: false,
+        message: `Invalid reading level. Must be one of: ${validReadingLevels.join(', ')}`,
+      });
+    }
+
+    if (tone && !validTones.includes(tone)) {
+      return res.status(400).json({
+        success: false,
+        message: `Invalid tone. Must be one of: ${validTones.join(', ')}`,
+      });
+    }
+
+    if (defaultDepth && !validDepths.includes(defaultDepth)) {
+      return res.status(400).json({
+        success: false,
+        message: `Invalid depth. Must be one of: ${validDepths.join(', ')}`,
+      });
+    }
+
+    // Build update data (only include fields that were provided)
+    const updateData = {};
+    if (readingLevel) updateData.readingLevel = readingLevel;
+    if (tone) updateData.tone = tone;
+    if (defaultDepth) updateData.defaultDepth = defaultDepth;
+    if (defaultLanguage) updateData.defaultLanguage = defaultLanguage;
+
+    const preferences = await prisma.userPreference.upsert({
+      where: { userId },
+      update: updateData,
+      create: {
+        userId,
+        readingLevel: readingLevel || 'intermediate',
+        tone: tone || 'conversational',
+        defaultDepth: defaultDepth || 'standard',
+        defaultLanguage: defaultLanguage || 'en',
+      },
+    });
+
+    res.status(200).json({ success: true, preferences });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+};
+

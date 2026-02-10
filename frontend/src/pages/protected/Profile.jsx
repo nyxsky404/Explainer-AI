@@ -10,6 +10,7 @@ import { toast } from 'sonner';
 import { Loader2, User, Key, Trash2, LogOut } from 'lucide-react';
 import LogoutDialog from '@/components/blocks/AuthDialogs/logout-dialog';
 import DeleteAccountDialog from '@/components/blocks/AuthDialogs/delete-account-dialog';
+import PreferencesCard from '@/components/blocks/Dashboard/PreferencesCard';
 
 export default function Profile() {
     const { user, updateProfile, deleteAccount, logout } = useAuth();
@@ -119,6 +120,8 @@ export default function Profile() {
                     </form>
                 </CardContent>
             </Card>
+
+            <PreferencesCard />
 
             <Card>
                 <CardHeader>
