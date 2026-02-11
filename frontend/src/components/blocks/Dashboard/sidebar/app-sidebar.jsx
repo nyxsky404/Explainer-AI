@@ -32,6 +32,9 @@ import {
   ChevronsUpDown,
   Youtube,
   Globe,
+  FileText,
+  Type,
+  Layers,
 } from "lucide-react";
 import Logo from "@/assets/logo";
 import DashboardNavigation from "@/components/blocks/Dashboard/sidebar/nav-main";
@@ -86,6 +89,24 @@ const dashboardRoutes = [
     title: "Web Summarizer",
     icon: <Globe className="size-4 text-foreground" />,
     link: "/dashboard/web-summarize",
+  },
+  {
+    id: "pdf-summarizer",
+    title: "PDF Summarizer",
+    icon: <FileText className="size-4 text-foreground" />,
+    link: "/dashboard/pdf-summarize",
+  },
+  {
+    id: "text-summarizer",
+    title: "Text Summarizer",
+    icon: <Type className="size-4 text-foreground" />,
+    link: "/dashboard/text-summarize",
+  },
+  {
+    id: "batch-summarizer",
+    title: "Batch URLs",
+    icon: <Layers className="size-4 text-foreground" />,
+    link: "/dashboard/batch-summarize",
   },
   {
     id: "library",

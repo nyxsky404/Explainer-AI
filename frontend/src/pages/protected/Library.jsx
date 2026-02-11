@@ -22,7 +22,7 @@ import {
     PaginationNext,
     PaginationPrevious,
 } from '@/components/ui/pagination';
-import { ExternalLink, Mic, Plus, Youtube, Globe, Library as LibraryIcon } from 'lucide-react';
+import { ExternalLink, Mic, Plus, Youtube, Globe, Library as LibraryIcon, FileText, Type } from 'lucide-react';
 import { truncateUrl } from '@/lib/utils';
 
 export default function Library() {
@@ -71,6 +71,8 @@ export default function Library() {
         setActiveTab(tab);
         if (tab === 'youtube') setSummaryType('youtube');
         else if (tab === 'web') setSummaryType('web');
+        else if (tab === 'pdf') setSummaryType('pdf');
+        else if (tab === 'text') setSummaryType('text');
         else setSummaryType(null);
     };
 
@@ -79,6 +81,10 @@ export default function Library() {
             return <Mic className="size-4 text-purple-500" />;
         } else if (item.type === 'youtube') {
             return <Youtube className="size-4 text-red-500" />;
+        } else if (item.type === 'pdf') {
+            return <FileText className="size-4 text-orange-500" />;
+        } else if (item.type === 'text') {
+            return <Type className="size-4 text-gray-500" />;
         } else {
             return <Globe className="size-4 text-blue-500" />;
         }
@@ -116,12 +122,19 @@ export default function Library() {
         );
     };
 
-    const getSummaryBadge = (type) => (
-        <Badge variant="outline" className="capitalize gap-1">
-            {type === 'youtube' ? <Youtube className="size-3" /> : <Globe className="size-3" />}
-            {type}
-        </Badge>
-    );
+    const getSummaryBadge = (type) => {
+        let Icon = Globe;
+        if (type === 'youtube') Icon = Youtube;
+        else if (type === 'pdf') Icon = FileText;
+        else if (type === 'text') Icon = Type;
+
+        return (
+            <Badge variant="outline" className="capitalize gap-1">
+                <Icon className="size-3" />
+                {type}
+            </Badge>
+        );
+    };
 
     const getUrl = (item) => item.blogUrl || item.sourceUrl;
     const getLink = (item) => item.activityType === 'podcast' 
@@ -199,22 +212,30 @@ export default function Library() {
             </div>
 
             <Tabs value={activeTab} onValueChange={handleTabChange}>
-                <TabsList className="grid w-full grid-cols-4">
-                    <TabsTrigger value="all" className="gap-2">
+                <TabsList className="grid w-full grid-cols-6 mb-8 h-auto p-1">
+                    <TabsTrigger value="all" className="gap-2 py-2">
                         <LibraryIcon className="size-4" />
-                        All
+                        <span className="hidden sm:inline">All</span>
                     </TabsTrigger>
-                    <TabsTrigger value="podcasts" className="gap-2">
+                    <TabsTrigger value="podcasts" className="gap-2 py-2">
                         <Mic className="size-4" />
-                        Podcasts
+                        <span className="hidden sm:inline">Podcasts</span>
                     </TabsTrigger>
-                    <TabsTrigger value="youtube" className="gap-2">
+                    <TabsTrigger value="youtube" className="gap-2 py-2">
                         <Youtube className="size-4" />
-                        YouTube
+                        <span className="hidden sm:inline">YouTube</span>
                     </TabsTrigger>
-                    <TabsTrigger value="web" className="gap-2">
+                    <TabsTrigger value="web" className="gap-2 py-2">
                         <Globe className="size-4" />
-                        Web
+                        <span className="hidden sm:inline">Web</span>
+                    </TabsTrigger>
+                    <TabsTrigger value="pdf" className="gap-2 py-2">
+                        <FileText className="size-4" />
+                        <span className="hidden sm:inline">PDF</span>
+                    </TabsTrigger>
+                    <TabsTrigger value="text" className="gap-2 py-2">
+                        <Type className="size-4" />
+                        <span className="hidden sm:inline">Text</span>
                     </TabsTrigger>
                 </TabsList>
 
@@ -436,6 +457,118 @@ export default function Library() {
                                                         {truncateUrl(summary.sourceUrl)}
                                                         <ExternalLink className="size-3" />
                                                     </a>
+                                                </TableCell>
+                                                <TableCell>{getSummaryBadge(summary.type)}</TableCell>
+                                                <TableCell className="text-muted-foreground">{formatDate(summary.createdAt)}</TableCell>
+                                                <TableCell>
+                                                    <Link to={`/dashboard/summary/${summary.id}`}>
+                                                        <Button variant="outline" size="sm">View</Button>
+                                                    </Link>
+                                                </TableCell>
+                                            </TableRow>
+                                        ))}
+                                    </TableBody>
+                                </Table>
+                            </div>
+                            {renderPagination(summaryPagination, summaryPage, setSummaryPage)}
+                        </>
+                    )}
+                </TabsContent>
+
+                {/* PDF Tab */}
+                <TabsContent value="pdf" className="space-y-4 mt-6">
+                     {loading ? (
+                        <div className="space-y-4">
+                            {[1, 2, 3, 4, 5].map((i) => (
+                                <Skeleton key={i} className="h-16 w-full" />
+                            ))}
+                        </div>
+                    ) : summaries.length === 0 ? (
+                        emptyState(
+                            <FileText className="size-12 mx-auto mb-4 text-orange-400" />,
+                            'Summarize your first PDF document',
+                            '/dashboard/pdf-summarize',
+                            'Summarize PDF'
+                        )
+                    ) : (
+                        <>
+                            <div className="border border-border rounded-lg overflow-hidden">
+                                <Table>
+                                    <TableHeader>
+                                        <TableRow>
+                                            <TableHead>Filename / URL</TableHead>
+                                            <TableHead>Type</TableHead>
+                                            <TableHead>Created</TableHead>
+                                            <TableHead className="w-24">Action</TableHead>
+                                        </TableRow>
+                                    </TableHeader>
+                                    <TableBody>
+                                        {summaries.map((summary) => (
+                                            <TableRow key={summary.id}>
+                                                <TableCell className="font-medium">
+                                                    <a
+                                                        href={summary.sourceUrl}
+                                                        target="_blank"
+                                                        rel="noopener noreferrer"
+                                                        className="hover:underline inline-flex items-center gap-2"
+                                                    >
+                                                        <FileText className="size-4 text-orange-500" />
+                                                        PDF Document
+                                                        <ExternalLink className="size-3" />
+                                                    </a>
+                                                </TableCell>
+                                                <TableCell>{getSummaryBadge(summary.type)}</TableCell>
+                                                <TableCell className="text-muted-foreground">{formatDate(summary.createdAt)}</TableCell>
+                                                <TableCell>
+                                                    <Link to={`/dashboard/summary/${summary.id}`}>
+                                                        <Button variant="outline" size="sm">View</Button>
+                                                    </Link>
+                                                </TableCell>
+                                            </TableRow>
+                                        ))}
+                                    </TableBody>
+                                </Table>
+                            </div>
+                            {renderPagination(summaryPagination, summaryPage, setSummaryPage)}
+                        </>
+                    )}
+                </TabsContent>
+
+                {/* Text Tab */}
+                <TabsContent value="text" className="space-y-4 mt-6">
+                     {loading ? (
+                        <div className="space-y-4">
+                            {[1, 2, 3, 4, 5].map((i) => (
+                                <Skeleton key={i} className="h-16 w-full" />
+                            ))}
+                        </div>
+                    ) : summaries.length === 0 ? (
+                        emptyState(
+                            <Type className="size-12 mx-auto mb-4 text-gray-400" />,
+                            'Summarize your first text snippet',
+                            '/dashboard/text-summarize',
+                            'Summarize Text'
+                        )
+                    ) : (
+                        <>
+                            <div className="border border-border rounded-lg overflow-hidden">
+                                <Table>
+                                    <TableHeader>
+                                        <TableRow>
+                                            <TableHead>Source</TableHead>
+                                            <TableHead>Type</TableHead>
+                                            <TableHead>Created</TableHead>
+                                            <TableHead className="w-24">Action</TableHead>
+                                        </TableRow>
+                                    </TableHeader>
+                                    <TableBody>
+                                        {summaries.map((summary) => (
+                                            <TableRow key={summary.id}>
+                                                <TableCell className="font-medium">
+                                                    <div className="inline-flex items-center gap-2">
+                                                        <Type className="size-4 text-gray-500" />
+                                                        Pasted Text
+                                                    </div>
                                                 </TableCell>
                                                 <TableCell>{getSummaryBadge(summary.type)}</TableCell>
                                                 <TableCell className="text-muted-foreground">{formatDate(summary.createdAt)}</TableCell>

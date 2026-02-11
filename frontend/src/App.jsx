@@ -18,6 +18,9 @@ import PodcastGenerate from './pages/protected/PodcastGenerate'
 import Profile from './pages/protected/Profile'
 import YouTubeSummarize from './pages/protected/YouTubeSummarize'
 import WebSummarize from './pages/protected/WebSummarize'
+import PdfSummarize from './pages/protected/PdfSummarize'
+import TextSummarize from './pages/protected/TextSummarize'
+import BatchSummarize from './pages/protected/BatchSummarize'
 import SummaryView from './pages/protected/SummaryView'
 import PublicSummaryView from './pages/public/PublicSummaryView'
 import PublicPodcastView from './pages/public/PublicPodcastView'
@@ -45,6 +48,12 @@ function App() {
           <Route path="/profile" element={<Profile />} />
           <Route path="/dashboard/youtube-summarize" element={<YouTubeSummarize />} />
           <Route path="/dashboard/web-summarize" element={<WebSummarize />} />
+          <Route path="/dashboard/pdf-summarize" element={<PdfSummarize />} />
+          <Route path="/dashboard/text-summarize" element={<TextSummarize />} />
+          <Route path="/dashboard/batch-summarize" element={<BatchSummarize />} />
+          <Route path="/dashboard/pdf-summarize" element={<PdfSummarize />} />
+          <Route path="/dashboard/text-summarize" element={<TextSummarize />} />
+          <Route path="/dashboard/batch-summarize" element={<BatchSummarize />} />
           <Route path="/dashboard/summary/:id" element={<SummaryView />} />
         </Route>
 

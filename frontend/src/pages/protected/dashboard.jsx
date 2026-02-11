@@ -15,7 +15,7 @@ import {
     TableHeader,
     TableRow,
 } from '@/components/ui/table';
-import { Mic, Library, ExternalLink, Youtube, Globe, Coins, Volume2 } from 'lucide-react';
+import { Mic, Library, ExternalLink, Youtube, Globe, Coins, Volume2, FileText, Type, Layers } from 'lucide-react';
 import ToolsGrid from '@/components/blocks/Dashboard/tools-grid';
 import { useCreditPricing } from '@/hooks/useCreditPricing';
 import { truncateUrl } from '@/lib/utils';
@@ -47,6 +47,33 @@ const tools = [
         icon: <Globe className="size-8 text-foreground" />,
         link: '/dashboard/web-summarize',
         buttonText: 'Summarize Page',
+    },
+    {
+        id: 'pdf-summarizer',
+        title: 'PDF Summarizer',
+        description: 'Upload and summarize any PDF document',
+        credits: 2,
+        icon: <FileText className="size-8 text-foreground" />,
+        link: '/dashboard/pdf-summarize',
+        buttonText: 'Summarize PDF',
+    },
+    {
+        id: 'text-summarizer',
+        title: 'Text Summarizer',
+        description: 'Paste any text to extract key insights',
+        credits: 2,
+        icon: <Type className="size-8 text-foreground" />,
+        link: '/dashboard/text-summarize',
+        buttonText: 'Summarize Text',
+    },
+    {
+        id: 'batch-summarizer',
+        title: 'Batch URLs',
+        description: 'Summarize up to 5 URLs at once',
+        credits: '2/URL',
+        icon: <Layers className="size-8 text-foreground" />,
+        link: '/dashboard/batch-summarize',
+        buttonText: 'Batch Process',
     },
 ];
 

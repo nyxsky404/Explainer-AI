@@ -4,12 +4,14 @@ import { toast } from 'sonner';
 import { Youtube } from 'lucide-react';
 import { getFriendlyErrorMessage } from '@/utils/errorMessages';
 import UrlInputCard from '@/components/shared/UrlInputCard';
+import DepthSelector from '@/components/shared/DepthSelector';
 
 import { useNavigate } from 'react-router';
 
 export default function YouTubeSummarize() {
     const navigate = useNavigate();
     const [url, setUrl] = useState('');
+    const [depth, setDepth] = useState('standard');
     const [isLoading, setIsLoading] = useState(false);
 
     const handleSubmit = async (e) => {
@@ -23,7 +25,7 @@ export default function YouTubeSummarize() {
         setIsLoading(true);
 
         try {
-            const res = await api.post('/summarize/youtube', { url: url.trim() });
+            const res = await api.post('/summarize/youtube', { url: url.trim(), depth });
             if (res.data.success) {
                 toast.success('Video summarized successfully! (2 credits used)');
                 navigate(`/dashboard/summary/${res.data.data.id}`);
@@ -51,7 +53,9 @@ export default function YouTubeSummarize() {
                 onChange={(e) => setUrl(e.target.value)}
                 onSubmit={handleSubmit}
                 isLoading={isLoading}
-            />
+            >
+                <DepthSelector value={depth} onChange={setDepth} />
+            </UrlInputCard>
         </div>
     );
 }

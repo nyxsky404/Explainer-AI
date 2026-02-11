@@ -2,7 +2,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Loader2 } from 'lucide-react';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { Loader2, Settings } from 'lucide-react';
 
 export default function UrlInputCard({
     pageTitle,
@@ -18,6 +19,7 @@ export default function UrlInputCard({
     onChange,
     onSubmit,
     isLoading,
+    children,
 }) {
     return (
         <div className="max-w-2xl mx-auto space-y-6">
@@ -52,6 +54,25 @@ export default function UrlInputCard({
                                 />
                             </div>
                         </div>
+
+                        {children && (
+                            <Collapsible>
+                                <CollapsibleTrigger asChild>
+                                    <Button
+                                        type="button"
+                                        variant="ghost"
+                                        size="sm"
+                                        className="gap-2 text-muted-foreground hover:text-foreground px-0"
+                                    >
+                                        <Settings className="size-4" />
+                                        Options
+                                    </Button>
+                                </CollapsibleTrigger>
+                                <CollapsibleContent className="pt-3">
+                                    {children}
+                                </CollapsibleContent>
+                            </Collapsible>
+                        )}
 
                         <Button type="submit" className="w-full" disabled={isLoading}>
                             {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
