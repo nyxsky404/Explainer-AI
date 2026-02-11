@@ -10,7 +10,7 @@ const PODCAST_CREDIT_COST = PODCAST_GENERATION_COST;
 
 export const podcastGenerate = async (req, res) => {
   console.log(req.body);
-  const { blogUrl } = req.body;
+  const { blogUrl, depth } = req.body;
 
   try {
     if (!req.body || !blogUrl) {
@@ -59,7 +59,17 @@ export const podcastGenerate = async (req, res) => {
       },
     });
 
-    await addJobs(data.id, blogUrl);
+    // Fetch user preferences and merge with per-request depth
+    const preferences = await prisma.userPreference.findUnique({
+      where: { userId: req.userID },
+    });
+    const options = {
+      readingLevel: preferences?.readingLevel || 'intermediate',
+      tone: preferences?.tone || 'conversational',
+      depth: depth || preferences?.defaultDepth || 'standard',
+    };
+
+    await addJobs(data.id, blogUrl, options);
 
     // Invalidate user cache (podcasts list and recent activity)
     const keys = await redis.keys(`user:${req.userID}:*`);

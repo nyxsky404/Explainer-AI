@@ -1,5 +1,6 @@
 import { summarizeYouTube } from "../services/youtubeService.js";
 import { summarizeWebPage } from "../services/webSummaryService.js";
+import { extractConcepts } from "../services/conceptService.js";
 import { textToSpeech } from "../services/deepgramService.js";
 import { uploadSummaryAudio, deleteSummaryAudio } from "../services/storageService.js";
 import prisma from "../config/db.js";
@@ -8,7 +9,7 @@ import { SUMMARY_CREDIT_COST, AUDIO_GENERATION_COST, CREDIT_COSTS } from "../con
 import { checkCredits, refundCredits } from "../services/creditService.js";
 
 export const summarizeYouTubeController = async (req, res) => {
-  const { url } = req.body;
+  const { url, depth } = req.body;
   const userId = req.userID;
 
   try {
@@ -37,7 +38,21 @@ export const summarizeYouTubeController = async (req, res) => {
       });
     }
 
-    const summaryContent = await summarizeYouTube(url);
+    // Fetch user preferences and merge with per-request depth
+    const preferences = await prisma.userPreference.findUnique({
+      where: { userId },
+    });
+    const options = {
+      readingLevel: preferences?.readingLevel || 'intermediate',
+      tone: preferences?.tone || 'conversational',
+      depth: depth || preferences?.defaultDepth || 'standard',
+    };
+
+    const result = await summarizeYouTube(url, options);
+    const { summary: summaryContent, rawContent } = result;
+
+    // Extract concepts from the content (non-blocking on failure)
+    const concepts = await extractConcepts(rawContent || summaryContent);
 
     // Store summary and deduct credits
     const [summary] = await prisma.$transaction([
@@ -47,6 +62,8 @@ export const summarizeYouTubeController = async (req, res) => {
           sourceUrl: url,
           type: "youtube",
           content: summaryContent,
+          rawContent: rawContent || null,
+          concepts: concepts.length > 0 ? concepts : undefined,
           creditsUsed: SUMMARY_CREDIT_COST,
         },
       }),
@@ -82,7 +99,7 @@ export const summarizeYouTubeController = async (req, res) => {
 };
 
 export const summarizeWebController = async (req, res) => {
-  const { url } = req.body;
+  const { url, depth } = req.body;
   const userId = req.userID;
 
   try {
@@ -112,7 +129,21 @@ export const summarizeWebController = async (req, res) => {
       });
     }
 
-    const summaryContent = await summarizeWebPage(url);
+    // Fetch user preferences and merge with per-request depth
+    const preferences = await prisma.userPreference.findUnique({
+      where: { userId },
+    });
+    const options = {
+      readingLevel: preferences?.readingLevel || 'intermediate',
+      tone: preferences?.tone || 'conversational',
+      depth: depth || preferences?.defaultDepth || 'standard',
+    };
+
+    const result = await summarizeWebPage(url, options);
+    const { summary: summaryContent, rawContent } = result;
+
+    // Extract concepts from the raw content (non-blocking on failure)
+    const concepts = await extractConcepts(rawContent || summaryContent);
 
     // Store summary and deduct credits
     const [summary] = await prisma.$transaction([
@@ -122,6 +153,8 @@ export const summarizeWebController = async (req, res) => {
           sourceUrl: url,
           type: "web",
           content: summaryContent,
+          rawContent: rawContent || null,
+          concepts: concepts.length > 0 ? concepts : undefined,
           creditsUsed: SUMMARY_CREDIT_COST,
         },
       }),

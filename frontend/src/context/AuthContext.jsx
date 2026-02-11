@@ -6,6 +6,7 @@ const AuthContext = createContext(null);
 export function AuthProvider({ children }) {
     const [user, setUser] = useState(null);
     const [loading, setLoading] = useState(true);
+    const [preferences, setPreferences] = useState(null);
 
     // Check authentication on mount
     useEffect(() => {
@@ -17,12 +18,33 @@ export function AuthProvider({ children }) {
             const res = await api.get('/auth/profile');
             if (res.data.success) {
                 setUser(res.data.user);
+                // Fetch preferences once user is authenticated
+                fetchPreferences();
             }
         } catch (error) {
             setUser(null);
         } finally {
             setLoading(false);
         }
+    };
+
+    const fetchPreferences = async () => {
+        try {
+            const res = await api.get('/auth/preferences');
+            if (res.data.success) {
+                setPreferences(res.data.preferences);
+            }
+        } catch (error) {
+            console.error('Failed to fetch preferences:', error);
+        }
+    };
+
+    const updatePreferences = async (data) => {
+        const res = await api.put('/auth/preferences', data);
+        if (res.data.success) {
+            setPreferences(res.data.preferences);
+        }
+        return res.data;
     };
 
     const login = async (email, password) => {
@@ -44,6 +66,7 @@ export function AuthProvider({ children }) {
     const logout = async () => {
         await api.post('/auth/logout');
         setUser(null);
+        setPreferences(null);
     };
 
     const updateProfile = async (data) => {
@@ -91,10 +114,12 @@ export function AuthProvider({ children }) {
         user,
         loading,
         isAuthenticated: !!user,
+        preferences,
         login,
         signup,
         logout,
         updateProfile,
+        updatePreferences,
         deleteAccount,
         forgotPassword,
         resetPassword,

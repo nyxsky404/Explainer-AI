@@ -12,7 +12,7 @@ const connection = new IORedis(process.env.REDIS_URL, {
 const worker = new Worker(
   "podcast-generate",
   async (job) => {
-    const { podcastId, blogUrl } = job.data;
+    const { podcastId, blogUrl, options = {} } = job.data;
 
     let podcast = await prisma.podcast.findUnique({
       where: { id: podcastId },
@@ -65,7 +65,7 @@ const worker = new Worker(
           data: { progress: 40, status: "generating_script" },
         });
 
-        script = await generateScript(scrapedText);
+        script = await generateScript(scrapedText, options);
 
         await job.updateProgress(66);
         await prisma.podcast.update({

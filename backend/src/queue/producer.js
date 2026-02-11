@@ -9,10 +9,10 @@ const myQueue = new Queue("podcast-generate", {
   connection,
 });
 
-export async function addJobs(podcastId, blogUrl) {
+export async function addJobs(podcastId, blogUrl, options = {}) {
   const job = await myQueue.add(
     "podcastJob",
-    { podcastId, blogUrl },
+    { podcastId, blogUrl, options },
     {
       attempts: 2,
       backoff: {

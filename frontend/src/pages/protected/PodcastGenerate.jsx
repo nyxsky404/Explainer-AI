@@ -5,9 +5,11 @@ import { toast } from 'sonner';
 import { Link2 } from 'lucide-react';
 import { getFriendlyErrorMessage } from '@/utils/errorMessages';
 import UrlInputCard from '@/components/shared/UrlInputCard';
+import DepthSelector from '@/components/shared/DepthSelector';
 
 export default function PodcastGenerate() {
     const [url, setUrl] = useState('');
+    const [depth, setDepth] = useState('standard');
     const [isLoading, setIsLoading] = useState(false);
     const navigate = useNavigate();
 
@@ -22,7 +24,7 @@ export default function PodcastGenerate() {
         setIsLoading(true);
 
         try {
-            const res = await api.post('/podcast/generate', { blogUrl: url.trim() });
+            const res = await api.post('/podcast/generate', { blogUrl: url.trim(), depth });
             if (res.data.success) {
                 toast.success('Podcast generation started!');
                 navigate(`/dashboard/podcast/${res.data.data.id}`);
@@ -49,6 +51,8 @@ export default function PodcastGenerate() {
             onChange={(e) => setUrl(e.target.value)}
             onSubmit={handleSubmit}
             isLoading={isLoading}
-        />
+        >
+            <DepthSelector value={depth} onChange={setDepth} />
+        </UrlInputCard>
     );
 }

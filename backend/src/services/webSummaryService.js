@@ -1,8 +1,8 @@
 import OpenAI from 'openai';
 import { scrapeUrl } from './scrapeService.js';
-import { WEB_SUMMARY_PROMPT } from '../prompts/summaryPrompts.js';
+import { getDynamicSummaryPrompt } from '../prompts/summaryPrompts.js';
 
-export const summarizeWebPage = async (url) => {
+export const summarizeWebPage = async (url, options = {}) => {
   try {
     // Initialize inside function to ensure env vars are loaded
     const openai = new OpenAI({
@@ -23,14 +23,17 @@ export const summarizeWebPage = async (url) => {
     }
     console.log("Scraped content length:", content.length);
 
-    // Step 2: Summarize using OpenRouter
+    // Step 2: Build dynamic prompt based on user preferences
+    const systemPrompt = getDynamicSummaryPrompt({ ...options, type: 'web' });
+
+    // Step 3: Summarize using OpenRouter
     console.log("Calling OpenRouter API...");
     const completion = await openai.chat.completions.create({
       model: 'openai/gpt-oss-20b:free',
       messages: [
         {
           role: 'system',
-          content: WEB_SUMMARY_PROMPT,
+          content: systemPrompt,
         },
         {
           role: 'user',
@@ -43,11 +46,9 @@ export const summarizeWebPage = async (url) => {
     console.log("Summary received, length:", summary?.length);
     console.log("Summary preview:", summary?.substring(0, 200));
     
-    return summary;
+    return { summary, rawContent: content };
   } catch (err) {
     console.error("Web page summarization error:", err);
     throw new Error(`Failed to summarize web page: ${err.message}`);
   }
 };
-
-
