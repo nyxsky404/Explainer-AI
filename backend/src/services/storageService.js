@@ -124,3 +124,29 @@ export async function deleteSummaryAudio(summaryId) {
   }
 }
 
+// Document upload (for PDFs)
+export async function uploadDocument(buffer, fileName, contentType) {
+  try {
+    const supabase = getSupabaseClient();
+    const sanitized = fileName.replace(/[^a-zA-Z0-9._-]/g, '_');
+    const filePath = `documents/${crypto.randomUUID()}_${sanitized}`;
+
+    const { data, error } = await supabase.storage
+      .from("audio")
+      .upload(filePath, buffer, {
+        contentType,
+        upsert: false,
+      });
+
+    if (error) {
+      console.error("Document upload error:", error.message);
+      throw error;
+    }
+
+    const { data: urlData } = supabase.storage.from("audio").getPublicUrl(filePath);
+    return urlData.publicUrl;
+  } catch (err) {
+    console.error("Document upload failed:", err);
+    throw new Error(`Document upload failed: ${err.message}`);
+  }
+}

@@ -9,12 +9,18 @@ import {
   deleteSummary,
   getSummaryPublic,
 } from "../controllers/summarizerController.js";
+import { summarizePdfController, uploadPdfMiddleware } from "../controllers/pdfController.js";
+import { summarizeTextController } from "../controllers/textController.js";
+import { summarizeBatchController } from "../controllers/batchController.js";
 
 const router = Router();
 
 // Summary generation
 router.post("/youtube", summarizeYouTubeController);
 router.post("/web", summarizeWebController);
+router.post("/pdf", uploadPdfMiddleware, summarizePdfController);
+router.post("/text", summarizeTextController);
+router.post("/batch", summarizeBatchController);
 
 // Summary retrieval
 router.get("/list", getSummaries);

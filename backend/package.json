@@ -27,9 +27,11 @@
     "express": "^5.2.1",
     "ioredis": "^5.9.2",
     "jsonwebtoken": "^9.0.3",
+    "multer": "^2.0.2",
     "music-metadata": "^11.10.5",
     "nodemailer": "^7.0.12",
     "openai": "^6.18.0",
+    "pdf-parse": "^2.4.5",
     "uuid": "^13.0.0",
     "wav": "^1.0.2",
     "zod": "^4.3.6"
