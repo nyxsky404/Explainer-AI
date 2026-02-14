@@ -22,6 +22,8 @@ import PdfSummarize from './pages/protected/PdfSummarize'
 import TextSummarize from './pages/protected/TextSummarize'
 import BatchSummarize from './pages/protected/BatchSummarize'
 import SummaryView from './pages/protected/SummaryView'
+import DeepExplain from './pages/protected/DeepExplain'
+import DeepExplainView from './pages/protected/DeepExplainView'
 import PublicSummaryView from './pages/public/PublicSummaryView'
 import PublicPodcastView from './pages/public/PublicPodcastView'
 
@@ -42,6 +44,8 @@ function App() {
         {/* Protected routes - redirect to login if not authenticated */}
         <Route element={<ProtectedLayout />}>
           <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/dashboard/deep-explain" element={<DeepExplain />} />
+          <Route path="/dashboard/deep-explain/:id" element={<DeepExplainView />} />
           <Route path="/dashboard/podcast/generate" element={<PodcastGenerate />} />
           <Route path="/dashboard/podcast/:id" element={<PodcastDetail />} />
           <Route path="/dashboard/library" element={<Library />} />

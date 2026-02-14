@@ -1,4 +1,5 @@
 export const CREDIT_COSTS = {
+  // Existing features
   PODCAST_GENERATION: 3,
   YOUTUBE_SUMMARY: 2,
   WEB_SUMMARY: 2,
@@ -6,9 +7,21 @@ export const CREDIT_COSTS = {
   TEXT_SUMMARY: 2,
   AUDIO_GENERATION: 2,
   CHAT_MESSAGE: 1,
+  
+  // New features (Phase 1 & 2)
+  DEEP_EXPLAIN: 2,
+  DEEP_EXPLAIN_FOLLOWUP: 1,
+  QUIZ_GENERATE: 2,
+  QUIZ_FROM_SUMMARY: 1,
+  MINDMAP_GENERATE: 2,
+  MINDMAP_FROM_SUMMARY: 1,
+  NOTES_GENERATE: 2,
+  NOTES_FROM_SUMMARY: 1,
+  VISUALIZER_MERMAID: 1,
+  VISUALIZER_IMAGE: 3,
 };
 
-// Individual exports for convenience
+// Individual exports for convenience (existing)
 export const PODCAST_GENERATION_COST = CREDIT_COSTS.PODCAST_GENERATION;
 export const YOUTUBE_SUMMARY_COST = CREDIT_COSTS.YOUTUBE_SUMMARY;
 export const WEB_SUMMARY_COST = CREDIT_COSTS.WEB_SUMMARY;

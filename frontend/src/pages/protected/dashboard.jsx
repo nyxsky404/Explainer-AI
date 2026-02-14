@@ -15,7 +15,7 @@ import {
     TableHeader,
     TableRow,
 } from '@/components/ui/table';
-import { Mic, Library, ExternalLink, Youtube, Globe, Coins, Volume2, FileText, Type, Layers } from 'lucide-react';
+import { Mic, Library, ExternalLink, Youtube, Globe, Coins, Volume2, FileText, Type, Layers, BookOpen } from 'lucide-react';
 import ToolsGrid from '@/components/blocks/Dashboard/tools-grid';
 import { useCreditPricing } from '@/hooks/useCreditPricing';
 import { truncateUrl } from '@/lib/utils';
@@ -29,6 +29,15 @@ const tools = [
         icon: <Mic className="size-8 text-foreground" />,
         link: '/dashboard/podcast/generate',
         buttonText: 'Create Podcast',
+    },
+    {
+        id: 'deep-explain',
+        title: 'AI Deep Explain',
+        description: 'Get expert explanations for any topic or concept',
+        credits: 2,
+        icon: <BookOpen className="size-8 text-foreground" />,
+        link: '/dashboard/deep-explain',
+        buttonText: 'Explain Topic',
     },
     {
         id: 'youtube-summarizer',

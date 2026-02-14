@@ -10,26 +10,27 @@ datasource db {
 }
 
 model User {
-  id                String          @id @default(uuid())
-  name              String
-  email             String          @unique
-  password          String?
-  githubId          String?         @unique
-  provider          String?         @default("email")
-  avatarUrl         String?
-  resetToken        String?
-  resetTokenExpiry  DateTime?
-  creditLimit       Int             @default(10)
-  creditsUsed       Int             @default(0)
-  usageResetDate    DateTime        @default(now())
-  lastLogin         DateTime        @default(now())
-  createdAt         DateTime        @default(now())
-  updatedAt         DateTime        @updatedAt
-  isVerified        Boolean         @default(false)
-  verificationToken String?
-  podcasts          Podcast[]
-  summaries         Summary[]
-  preferences       UserPreference?
+  id                 String             @id @default(uuid())
+  name               String
+  email              String             @unique
+  password           String?
+  githubId           String?            @unique
+  provider           String?            @default("email")
+  avatarUrl          String?
+  resetToken         String?
+  resetTokenExpiry   DateTime?
+  creditLimit        Int                @default(10)
+  creditsUsed        Int                @default(0)
+  usageResetDate     DateTime           @default(now())
+  lastLogin          DateTime           @default(now())
+  createdAt          DateTime           @default(now())
+  updatedAt          DateTime           @updatedAt
+  isVerified         Boolean            @default(false)
+  verificationToken  String?
+  podcasts           Podcast[]
+  summaries          Summary[]
+  preferences        UserPreference?
+  deepExplanations   DeepExplanation[]
 }
 
 model UserPreference {
@@ -89,6 +90,20 @@ model ChatMessage {
   @@index([summaryId])
 }
 
+model DeepExplanation {
+  id            String      @id @default(uuid())
+  userId        String
+  topic         String
+  mode          ExplainMode
+  content       String      @db.Text
+  sourceContent String?     @db.Text
+  followUps     Json?
+  creditsUsed   Int         @default(0)
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+  user          User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
 enum PodcastStatus {
   processing
   scraping
@@ -118,6 +133,12 @@ enum ReadingLevel {
   beginner
   intermediate
   expert
+}
+
+enum ExplainMode {
+  EASY
+  INTUITIVE
+  DEEP
 }
 
 enum Tone {
