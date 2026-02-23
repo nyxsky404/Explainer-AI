@@ -8,6 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import { toast } from 'sonner';
 import { Loader2, User, Key, Trash2, LogOut } from 'lucide-react';
+import { getFriendlyErrorMessage } from '@/utils/errorMessages';
 import LogoutDialog from '@/components/blocks/AuthDialogs/logout-dialog';
 import DeleteAccountDialog from '@/components/blocks/AuthDialogs/delete-account-dialog';
 import PreferencesCard from '@/components/blocks/Dashboard/PreferencesCard';
@@ -37,7 +38,7 @@ export default function Profile() {
             const result = await updateProfile({ name, email });
             if (result.success) toast.success('Profile updated successfully');
         } catch (error) {
-            toast.error(error.response?.data?.message || 'Failed to update profile');
+            toast.error(getFriendlyErrorMessage(error));
         } finally {
             setIsUpdating(false);
         }
@@ -58,7 +59,7 @@ export default function Profile() {
                 setNewPassword('');
             }
         } catch (error) {
-            toast.error(error.response?.data?.message || 'Failed to change password');
+            toast.error(getFriendlyErrorMessage(error));
         } finally {
             setIsChangingPassword(false);
         }
@@ -77,7 +78,7 @@ export default function Profile() {
                 navigate('/');
             }
         } catch (error) {
-            toast.error(error.response?.data?.message || 'Failed to delete account');
+            toast.error(getFriendlyErrorMessage(error));
         } finally {
             setIsDeleting(false);
         }

@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { toast } from 'sonner';
+import { getFriendlyErrorMessage } from '@/utils/errorMessages';
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -30,7 +31,7 @@ const ForgotPasswordForm = () => {
         toast.error(result.message || 'Failed to send reset link');
       }
     } catch (error) {
-      toast.error(error.response?.data?.message || 'An error occurred');
+      toast.error(getFriendlyErrorMessage(error));
     } finally {
       setIsLoading(false);
     }

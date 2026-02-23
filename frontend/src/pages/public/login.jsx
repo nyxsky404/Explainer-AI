@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link, useNavigate } from 'react-router';
 import { useAuth } from '@/context/AuthContext';
 import { toast } from 'sonner';
+import { getFriendlyErrorMessage } from '@/utils/errorMessages';
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -48,7 +49,7 @@ export default function Login() {
         toast.error(result.message || 'Login failed');
       }
     } catch (error) {
-      toast.error(error.response?.data?.message || 'An error occurred during login');
+      toast.error(getFriendlyErrorMessage(error));
     } finally {
       setIsLoading(false);
     }

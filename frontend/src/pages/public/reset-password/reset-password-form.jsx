@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router';
 import { useAuth } from '@/context/AuthContext';
 import { toast } from 'sonner';
+import { getFriendlyErrorMessage } from '@/utils/errorMessages';
 
 import { EyeIcon, EyeOffIcon } from 'lucide-react';
 
@@ -54,7 +55,7 @@ const ResetPasswordForm = () => {
         toast.error(result.message || 'Failed to reset password');
       }
     } catch (error) {
-      toast.error(error.response?.data?.message || 'An error occurred');
+      toast.error(getFriendlyErrorMessage(error));
     } finally {
       setIsLoading(false);
     }

@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link, useNavigate } from 'react-router';
 import { useAuth } from '@/context/AuthContext';
 import { toast } from 'sonner';
+import { getFriendlyErrorMessage } from '@/utils/errorMessages';
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -63,7 +64,7 @@ export default function Signup() {
         toast.error(result.message || 'Signup failed');
       }
     } catch (error) {
-      toast.error(error.response?.data?.message || 'An error occurred during signup');
+      toast.error(getFriendlyErrorMessage(error));
     } finally {
       setIsLoading(false);
     }

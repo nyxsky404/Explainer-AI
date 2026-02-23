@@ -11,6 +11,7 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { ArrowLeft, Youtube, Globe, Share2, Trash2 } from 'lucide-react';
+import { getFriendlyErrorMessage } from '@/utils/errorMessages';
 import SummaryDisplay from '@/components/shared/SummaryDisplay';
 import ShareDialog from '@/components/blocks/DetailsDialogs/share-dialog';
 import DeleteDialog from '@/components/blocks/DetailsDialogs/delete-dialog';
@@ -88,7 +89,7 @@ export default function SummaryView() {
             }
         } catch (error) {
             console.error('Failed to generate audio:', error);
-            toast.error(error.response?.data?.message || 'Failed to generate audio');
+            toast.error(getFriendlyErrorMessage(error));
         } finally {
             setGeneratingAudio(false);
         }
@@ -213,7 +214,7 @@ export default function SummaryView() {
                             toast.success('Explanation ready — see chat below');
                         }
                     } catch (err) {
-                        toast.error(err.response?.data?.message || 'Failed to explain');
+                        toast.error(getFriendlyErrorMessage(err));
                     } finally {
                         setExplaining(false);
                     }

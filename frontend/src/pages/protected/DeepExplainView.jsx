@@ -8,6 +8,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Input } from '@/components/ui/input';
 import { ArrowLeft, Trash2, Loader2, Send, Lightbulb, Brain, GraduationCap } from 'lucide-react';
 import { toast } from 'sonner';
+import { getFriendlyErrorMessage } from '@/utils/errorMessages';
 import MarkdownRenderer from '@/components/shared/MarkdownRenderer';
 import DeleteDialog from '@/components/blocks/DetailsDialogs/delete-dialog';
 
@@ -86,7 +87,7 @@ export default function DeepExplainView() {
             }
         } catch (error) {
             console.error('Failed to ask follow-up:', error);
-            toast.error(error.response?.data?.message || 'Failed to ask follow-up');
+            toast.error(getFriendlyErrorMessage(error));
         } finally {
             setAskingFollowUp(false);
         }

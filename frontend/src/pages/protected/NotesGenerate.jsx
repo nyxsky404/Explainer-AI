@@ -90,8 +90,8 @@ export default function NotesGenerate() {
       navigate(`/dashboard/notes/${response.data.data.id}`);
     } catch (error) {
       console.error('Error generating note:', error);
-      const message = error.response?.data?.message || getFriendlyErrorMessage(error.message);
-      toast.error(message);
+      toast.error(getFriendlyErrorMessage(error));
+
     } finally {
       setLoading(false);
     }
