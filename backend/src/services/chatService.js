@@ -47,7 +47,7 @@ export async function chatWithContent(rawContent, summaryContent, chatHistory, u
     { role: 'user', content: userMessage },
   ];
   const completion = await client.chat.completions.create({
-    model: 'openai/gpt-4o-mini',
+    model: process.env.MODEL,
     messages,
   });
   return completion.choices[0]?.message?.content ?? '';
@@ -74,7 +74,7 @@ ${summaryContent}
 - Do NOT repeat the highlighted text back — jump straight into the explanation.`;
 
   const completion = await client.chat.completions.create({
-    model: 'openai/gpt-4o-mini',
+    model: process.env.MODEL,
     messages: [
       { role: 'system', content: systemPrompt },
       { role: 'user', content: `Please explain this passage:\n\n"${selectedText}"` },

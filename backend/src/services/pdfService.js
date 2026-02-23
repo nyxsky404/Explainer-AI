@@ -49,7 +49,7 @@ export const summarizePdf = async (fileBuffer, originalName, options = {}) => {
     const systemPrompt = getDynamicSummaryPrompt({ ...options, type: 'pdf' });
 
     const completion = await openai.chat.completions.create({
-      model: 'openai/gpt-4o-mini',
+      model: process.env.MODEL,
       messages: [
         { role: 'system', content: systemPrompt },
         { role: 'user', content: rawContent },

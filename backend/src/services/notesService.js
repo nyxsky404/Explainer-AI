@@ -84,7 +84,7 @@ export const generateNote = async (userId, sourceContent, options = {}) => {
     });
 
     const response = await client.chat.completions.create({
-      model: 'openai/gpt-4o-mini',
+      model: process.env.MODEL,
       messages: [{ role: 'user', content: prompt }],
       temperature: 0.7,
       max_tokens: 4000,
@@ -155,7 +155,7 @@ export const generateNoteFromSummary = async (userId, summaryId, options = {}) =
     });
 
     const response = await client.chat.completions.create({
-      model: 'openai/gpt-4o-mini',
+      model: process.env.MODEL,
       messages: [{ role: 'user', content: prompt }],
       temperature: 0.7,
       max_tokens: 4000,

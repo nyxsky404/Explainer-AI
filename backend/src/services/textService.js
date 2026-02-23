@@ -31,7 +31,7 @@ export const summarizeText = async (text, options = {}) => {
     const systemPrompt = getDynamicSummaryPrompt({ ...options, type: 'text' });
 
     const completion = await openai.chat.completions.create({
-      model: 'openai/gpt-4o-mini',
+      model: process.env.MODEL,
       messages: [
         { role: 'system', content: systemPrompt },
         { role: 'user', content: rawContent },

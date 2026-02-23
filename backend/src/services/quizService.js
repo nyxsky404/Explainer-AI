@@ -88,7 +88,7 @@ export const generateQuiz = async (userId, sourceContent, options = {}) => {
     // Call OpenRouter
     const client = getClient();
     const completion = await client.chat.completions.create({
-      model: 'openai/gpt-4o-mini',
+      model: process.env.MODEL,
       messages: [{ role: 'user', content: prompt }],
       temperature: 0.7,
     });
@@ -342,7 +342,7 @@ export const regenerateQuestion = async (quizId, userId, questionId) => {
 
     const client = getClient();
     const completion = await client.chat.completions.create({
-      model: 'openai/gpt-4o-mini',
+      model: process.env.MODEL,
       messages: [{ role: 'user', content: prompt }],
       temperature: 0.8,
     });

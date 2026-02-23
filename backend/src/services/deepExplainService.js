@@ -33,7 +33,7 @@ export const generateDeepExplanation = async (userId, topic, mode = 'easy', sour
 
     const client = getClient();
     const completion = await client.chat.completions.create({
-      model: 'openai/gpt-4o-mini',
+      model: process.env.MODEL,
       messages: [{ role: 'user', content: prompt }],
     });
 
@@ -156,7 +156,7 @@ export const addFollowUp = async (explanationId, userId, question) => {
     // Call OpenRouter with GPT
     const client = getClient();
     const completion = await client.chat.completions.create({
-      model: 'openai/gpt-4o-mini',
+      model: process.env.MODEL,
       messages: [
         { role: 'user', content: prompt }
       ],

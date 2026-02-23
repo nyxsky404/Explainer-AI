@@ -25,7 +25,7 @@ export const summarizeWebPage = async (url, options = {}) => {
 
     // Step 3: Summarize using OpenRouter
     const completion = await openai.chat.completions.create({
-      model: 'openai/gpt-4o-mini',
+      model: process.env.MODEL,
       messages: [
         { role: 'system', content: systemPrompt },
         { role: 'user', content: content },

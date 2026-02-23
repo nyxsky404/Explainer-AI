@@ -19,7 +19,7 @@ export async function extractConcepts(content) {
     });
 
     const completion = await client.chat.completions.create({
-      model: 'openai/gpt-4o-mini',
+      model: process.env.MODEL,
       messages: [
         {
           role: 'system',

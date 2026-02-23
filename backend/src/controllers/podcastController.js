@@ -80,8 +80,8 @@ export const podcastGenerate = async (req, res) => {
 
     await addJobs(data.id, blogUrl, options);
 
-        // Invalidate user cache (SCAN-based)
-    await invalidateUserCache(userId);
+    // Invalidate user cache (SCAN-based)
+    await invalidateUserCache(req.userID);
 
     res.status(200).json({
       success: true,

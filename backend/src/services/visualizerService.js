@@ -61,7 +61,7 @@ const generateMermaid = async (topic) => {
   const prompt = getMermaidPrompt(topic);
 
   const response = await client.chat.completions.create({
-    model: 'openai/gpt-4o-mini',
+    model: process.env.MODEL,
     messages: [{ role: 'user', content: prompt }],
     temperature: 0.2,
   });

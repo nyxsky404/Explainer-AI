@@ -169,11 +169,13 @@ export default function QuizGenerate() {
                     const Icon = type.icon;
                     const isSelected = selectedTypes.includes(type.id);
                     return (
-                      <button
+                      <div
                         key={type.id}
-                        type="button"
+                        role="button"
+                        tabIndex={0}
                         onClick={() => toggleType(type.id)}
-                        className={`flex items-start gap-3 p-3 rounded-lg border transition-colors text-left ${
+                        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggleType(type.id); } }}
+                        className={`flex items-start gap-3 p-3 rounded-lg border transition-colors cursor-pointer text-left ${
                           isSelected
                             ? 'border-primary bg-primary/5'
                             : 'border-border hover:border-primary/30'
@@ -187,7 +189,7 @@ export default function QuizGenerate() {
                           <p className="text-sm font-medium">{type.label}</p>
                           <p className="text-xs text-muted-foreground">{type.description}</p>
                         </div>
-                      </button>
+                      </div>
                     );
                   })}
                 </div>
