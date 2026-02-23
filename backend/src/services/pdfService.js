@@ -1,7 +1,12 @@
 import OpenAI from 'openai';
-import pdf from 'pdf-parse';
+import { createRequire } from 'module';
 import { uploadDocument } from './storageService.js';
 import { getDynamicSummaryPrompt } from '../prompts/summaryPrompts.js';
+
+// pdf-parse is a CommonJS module — must use createRequire in an ESM project
+const require = createRequire(import.meta.url);
+const pdf = require('pdf-parse');
+
 
 /**
  * Parse PDF buffer, extract text, upload to Supabase, and summarize.

@@ -7,8 +7,6 @@ import rateLimit from "express-rate-limit"
 import dotenv from "dotenv";
 dotenv.config();
 
-const app = express()
-
 import initialRoute from "./routes/initialRoute.js"
 import podcastRoute from "./routes/podcastRoute.js"
 import authRoute from "./routes/authRoute.js"
@@ -18,10 +16,14 @@ import deepExplainRoute from "./routes/deepExplainRoute.js"
 import quizRoute from "./routes/quizRoute.js"
 import notesRoute from "./routes/notesRoute.js"
 import visualizerRoute from "./routes/visualizerRoute.js"
-import { verifyToken } from "../src/middleware/verifyToken.js";
+import { verifyToken } from "./middleware/verifyToken.js";
 import { errorHandler } from "./middleware/errorMiddleware.js";
+import { getSummaryPublic } from "./controllers/summarizerController.js";
+import { getPodcastPublic } from "./controllers/podcastController.js";
+import { githubCallback } from "./controllers/authController.js";
 import "./queue/worker.js";
 
+const app = express()
 
 // Security headers
 app.use(helmet({
@@ -56,15 +58,19 @@ app.use(cors({
 app.use(express.json())
 app.use(cookieParser());
 
-// Public routes (no auth required)
-import { getSummaryPublic } from "./controllers/summarizerController.js";
-import { getPodcastPublic } from "./controllers/podcastController.js";
+// Public share routes (no auth required)
 app.get("/api/summary/share/:id", getSummaryPublic);
 app.get("/api/podcast/share/:id", getPodcastPublic);
 
-// Protected routes
+// GitHub OAuth callback — uses apiLimiter (not authLimiter) since it's
+// an automated redirect from GitHub, not a brute-force target
+app.get("/api/auth/github/callback", apiLimiter, githubCallback);
+
+// Auth routes — sensitive endpoints have per-route strict limits inside authRoute.js
+app.use("/api/auth", apiLimiter, authRoute)
+
+// Protected API routes
 app.use("/", initialRoute)
-app.use("/api/auth", authLimiter, authRoute)
 app.use("/api/podcast", apiLimiter, verifyToken, podcastRoute)
 app.use("/api/summarize", apiLimiter, verifyToken, summarizerRoute)
 app.use("/api/chat", apiLimiter, verifyToken, chatRoute)

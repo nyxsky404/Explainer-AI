@@ -71,29 +71,19 @@ export default function Login() {
               Sign up
             </Link>
           </p>
-          {/* <div
-            className="mt-8 flex flex-col items-center space-y-2 sm:flex-row sm:space-x-4 sm:space-y-0">
+          <div className="mt-8 flex flex-col items-center space-y-2">
             <Button
               variant="outline"
-              className="flex-1 items-center justify-center space-x-2 py-2"
+              className="w-full flex items-center justify-center space-x-2 py-2"
               asChild>
-              <a href="#">
+              <a href={`https://github.com/login/oauth/authorize?client_id=${import.meta.env.VITE_GITHUB_CLIENT_ID}&scope=user:email`}>
                 <GitHubIcon className="size-5" aria-hidden={true} />
-                <span className="text-sm font-medium">Login with GitHub</span>
+                <span className="text-sm font-medium">Continue with GitHub</span>
               </a>
             </Button>
-            <Button
-              variant="outline"
-              className="mt-2 flex-1 items-center justify-center space-x-2 py-2 sm:mt-0"
-              asChild>
-              <a href="#">
-                <GoogleIcon className="size-4" aria-hidden={true} />
-                <span className="text-sm font-medium">Login with Google</span>
-              </a>
-            </Button>
-          </div> */}
+          </div>
 
-          {/* <div className="relative my-6">
+          <div className="relative my-6">
             <div className="absolute inset-0 flex items-center">
               <Separator className="w-full" />
             </div>
@@ -102,9 +92,9 @@ export default function Login() {
                 or
               </span>
             </div>
-          </div> */}
+          </div>
 
-          <form onSubmit={handleSubmit} className="mt-6 space-y-4">
+          <form onSubmit={handleSubmit} className="space-y-4">
             <div>
               <Label
                 htmlFor="email"
@@ -141,18 +131,18 @@ export default function Login() {
                 disabled={isLoading}
               />
             </div>
-            <Button type="submit" className="mt-4 w-full py-2 font-medium" disabled={isLoading}>
+            <div className="flex justify-end">
+              <Link
+                to="/forgot-password"
+                className="text-sm font-medium text-primary hover:text-primary/90">
+                Forgot password?
+              </Link>
+            </div>
+            <Button type="submit" className="w-full py-2 font-medium" disabled={isLoading}>
               {isLoading ? 'Signing in...' : 'Sign in'}
             </Button>
           </form>
-          {/* <p className="mt-6 text-sm text-muted-foreground dark:text-muted-foreground">
-            Forgot your password?{' '}
-            <Link
-              to="/forgot-password"
-              className="font-medium text-primary hover:text-primary/90 dark:text-primary hover:dark:text-primary/90">
-              Reset password
-            </Link>
-          </p> */}
+
         </div>
       </div>
     </div>
