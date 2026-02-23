@@ -7,6 +7,24 @@ import {
   deleteNote,
 } from '../services/notesService.js';
 import prisma from '../config/db.js';
+import redis from '../config/redis.js';
+
+// Cache helpers
+const NOTES_CACHE_TTL = 3600; // 1 hour
+
+function notesCacheKey(userId, page, limit) {
+  return `user:${userId}:notes:${page}:${limit}`;
+}
+
+async function invalidateNotesCache(userId) {
+  // Use SCAN instead of KEYS to avoid blocking Redis
+  let cursor = '0';
+  do {
+    const [nextCursor, keys] = await redis.scan(cursor, 'MATCH', `user:${userId}:notes:*`, 'COUNT', 100);
+    cursor = nextCursor;
+    if (keys.length > 0) await redis.del(keys);
+  } while (cursor !== '0');
+}
 
 /**
  * Generate a new note from content
@@ -17,56 +35,33 @@ export const generateNoteController = async (req, res) => {
     const userId = req.userID;
     const { sourceType, sourceContent, style, pages } = req.body;
 
-    // Validation
     if (!sourceContent || !sourceContent.trim()) {
-      return res.status(400).json({
-        success: false,
-        message: 'Source content is required',
-      });
+      return res.status(400).json({ success: false, message: 'Source content is required' });
     }
 
     if (!['TEXT', 'URL', 'PDF'].includes(sourceType?.toUpperCase())) {
-      return res.status(400).json({
-        success: false,
-        message: 'Invalid source type. Must be TEXT, URL, or PDF',
-      });
+      return res.status(400).json({ success: false, message: 'Invalid source type. Must be TEXT, URL, or PDF' });
     }
 
     if (!['CORNELL', 'OUTLINE', 'FLOW', 'BULLET'].includes(style?.toUpperCase())) {
-      return res.status(400).json({
-        success: false,
-        message: 'Invalid style. Must be CORNELL, OUTLINE, FLOW, or BULLET',
-      });
+      return res.status(400).json({ success: false, message: 'Invalid style. Must be CORNELL, OUTLINE, FLOW, or BULLET' });
     }
 
     const pageCount = parseInt(pages) || 2;
     if (pageCount < 1 || pageCount > 5) {
-      return res.status(400).json({
-        success: false,
-        message: 'Pages must be between 1 and 5',
-      });
+      return res.status(400).json({ success: false, message: 'Pages must be between 1 and 5' });
     }
 
-    const note = await generateNote(userId, sourceContent, {
-      sourceType,
-      style,
-      pages: pageCount,
-    });
+    const note = await generateNote(userId, sourceContent, { sourceType, style, pages: pageCount });
 
-    res.status(201).json({
-      success: true,
-      message: 'Note generated successfully',
-      data: note,
-    });
+    // Invalidate notes list cache
+    await invalidateNotesCache(userId);
+
+    res.status(201).json({ success: true, message: 'Note generated successfully', data: note });
   } catch (error) {
     console.error('Error in generateNoteController:', error);
-    
     const statusCode = error.message === 'Insufficient credits' ? 403 : 500;
-    
-    res.status(statusCode).json({
-      success: false,
-      message: error.message || "Failed to process request",
-    });
+    res.status(statusCode).json({ success: false, message: error.message || 'Failed to process request' });
   }
 };
 
@@ -81,48 +76,30 @@ export const generateNoteFromSummaryController = async (req, res) => {
     const { style, pages } = req.body;
 
     if (!summaryId) {
-      return res.status(400).json({
-        success: false,
-        message: 'Summary ID is required',
-      });
+      return res.status(400).json({ success: false, message: 'Summary ID is required' });
     }
 
     if (style && !['CORNELL', 'OUTLINE', 'FLOW', 'BULLET'].includes(style?.toUpperCase())) {
-      return res.status(400).json({
-        success: false,
-        message: 'Invalid style. Must be CORNELL, OUTLINE, FLOW, or BULLET',
-      });
+      return res.status(400).json({ success: false, message: 'Invalid style. Must be CORNELL, OUTLINE, FLOW, or BULLET' });
     }
 
     const pageCount = parseInt(pages) || 2;
     if (pageCount < 1 || pageCount > 5) {
-      return res.status(400).json({
-        success: false,
-        message: 'Pages must be between 1 and 5',
-      });
+      return res.status(400).json({ success: false, message: 'Pages must be between 1 and 5' });
     }
 
-    const note = await generateNoteFromSummary(userId, summaryId, {
-      style,
-      pages: pageCount,
-    });
+    const note = await generateNoteFromSummary(userId, summaryId, { style, pages: pageCount });
 
-    res.status(201).json({
-      success: true,
-      message: 'Note generated from summary successfully',
-      data: note,
-    });
+    // Invalidate notes list cache
+    await invalidateNotesCache(userId);
+
+    res.status(201).json({ success: true, message: 'Note generated from summary successfully', data: note });
   } catch (error) {
     console.error('Error in generateNoteFromSummaryController:', error);
-    
     let statusCode = 500;
     if (error.message === 'Insufficient credits') statusCode = 403;
     if (error.message === 'Summary not found') statusCode = 404;
-    
-    res.status(statusCode).json({
-      success: false,
-      message: error.message || "Failed to process request",
-    });
+    res.status(statusCode).json({ success: false, message: error.message || 'Failed to process request' });
   }
 };
 
@@ -134,27 +111,17 @@ export const getNote = async (req, res) => {
   try {
     const userId = req.userID;
     const { id } = req.params;
-
     const note = await getNoteById(id, userId);
-
-    res.status(200).json({
-      success: true,
-      data: note,
-    });
+    res.status(200).json({ success: true, data: note });
   } catch (error) {
     console.error('Error in getNote:', error);
-    
     const statusCode = error.message === 'Note not found' ? 404 : 500;
-    
-    res.status(statusCode).json({
-      success: false,
-      message: error.message || "Failed to process request",
-    });
+    res.status(statusCode).json({ success: false, message: error.message || 'Failed to process request' });
   }
 };
 
 /**
- * Get all notes for current user
+ * Get all notes for current user (cached)
  * GET /api/notes/list
  */
 export const listNotes = async (req, res) => {
@@ -163,20 +130,21 @@ export const listNotes = async (req, res) => {
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 10;
 
+    const cacheKey = notesCacheKey(userId, page, limit);
+    const cached = await redis.get(cacheKey);
+    if (cached) {
+      return res.status(200).json(JSON.parse(cached));
+    }
+
     const result = await getUserNotes(userId, page, limit);
 
-    res.status(200).json({
-      success: true,
-      data: result.notes,
-      pagination: result.pagination,
-    });
+    const response = { success: true, data: result.notes, pagination: result.pagination };
+    await redis.set(cacheKey, JSON.stringify(response), 'EX', NOTES_CACHE_TTL);
+
+    res.status(200).json(response);
   } catch (error) {
     console.error('Error in listNotes:', error);
-    
-    res.status(500).json({
-      success: false,
-      message: error.message || 'Failed to retrieve notes',
-    });
+    res.status(500).json({ success: false, message: error.message || 'Failed to retrieve notes' });
   }
 };
 
@@ -191,10 +159,7 @@ export const updateNoteController = async (req, res) => {
     const { title, sections, quickReview, formulas } = req.body;
 
     if (!title && !sections && !quickReview && !formulas) {
-      return res.status(400).json({
-        success: false,
-        message: 'At least one field to update is required',
-      });
+      return res.status(400).json({ success: false, message: 'At least one field to update is required' });
     }
 
     const updates = {};
@@ -205,20 +170,14 @@ export const updateNoteController = async (req, res) => {
 
     const note = await updateNote(id, userId, updates);
 
-    res.status(200).json({
-      success: true,
-      message: 'Note updated successfully',
-      data: note,
-    });
+    // Invalidate notes list cache (title may have changed)
+    await invalidateNotesCache(userId);
+
+    res.status(200).json({ success: true, message: 'Note updated successfully', data: note });
   } catch (error) {
     console.error('Error in updateNoteController:', error);
-    
     const statusCode = error.message === 'Note not found' ? 404 : 500;
-    
-    res.status(statusCode).json({
-      success: false,
-      message: error.message || "Failed to process request",
-    });
+    res.status(statusCode).json({ success: false, message: error.message || 'Failed to process request' });
   }
 };
 
@@ -233,19 +192,14 @@ export const deleteNoteController = async (req, res) => {
 
     const result = await deleteNote(id, userId);
 
-    res.status(200).json({
-      success: true,
-      message: result.message,
-    });
+    // Invalidate notes list cache
+    await invalidateNotesCache(userId);
+
+    res.status(200).json({ success: true, message: result.message });
   } catch (error) {
     console.error('Error in deleteNoteController:', error);
-    
     const statusCode = error.message === 'Note not found' ? 404 : 500;
-    
-    res.status(statusCode).json({
-      success: false,
-      message: error.message || "Failed to process request",
-    });
+    res.status(statusCode).json({ success: false, message: error.message || 'Failed to process request' });
   }
 };
 
@@ -267,31 +221,17 @@ export const getNotePublic = async (req, res) => {
         quickReview: true,
         formulas: true,
         createdAt: true,
-        user: {
-          select: {
-            name: true,
-          },
-        },
+        user: { select: { name: true } },
       },
     });
 
     if (!note) {
-      return res.status(404).json({
-        success: false,
-        message: 'Note not found',
-      });
+      return res.status(404).json({ success: false, message: 'Note not found' });
     }
 
-    res.status(200).json({
-      success: true,
-      data: note,
-    });
+    res.status(200).json({ success: true, data: note });
   } catch (error) {
     console.error('Error in getNotePublic:', error);
-    
-    res.status(500).json({
-      success: false,
-      message: 'Failed to fetch note',
-    });
+    res.status(500).json({ success: false, message: 'Failed to fetch note' });
   }
 };

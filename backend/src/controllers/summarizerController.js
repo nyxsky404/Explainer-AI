@@ -5,6 +5,16 @@ import { textToSpeech } from "../services/deepgramService.js";
 import { uploadSummaryAudio, deleteSummaryAudio } from "../services/storageService.js";
 import prisma from "../config/db.js";
 import redis from "../config/redis.js";
+// Safe SCAN-based cache invalidation — redis.keys() blocks the server under load
+async function invalidateUserCache(userId) {
+  let cursor = '0';
+  do {
+    const [nextCursor, keys] = await redis.scan(cursor, 'MATCH', `user:${userId}:*`, 'COUNT', 100);
+    cursor = nextCursor;
+    if (keys.length > 0) await redis.del(keys);
+  } while (cursor !== '0');
+}
+
 import { SUMMARY_CREDIT_COST, AUDIO_GENERATION_COST, CREDIT_COSTS } from "../config/credits.js";
 import { checkCredits, refundCredits } from "../services/creditService.js";
 
@@ -73,11 +83,8 @@ export const summarizeYouTubeController = async (req, res) => {
       }),
     ]);
 
-    // Invalidate user cache
-    const keys = await redis.keys(`user:${userId}:*`);
-    if (keys.length > 0) {
-      await redis.del(keys);
-    }
+        // Invalidate user cache (SCAN-based)
+    await invalidateUserCache(userId);
 
     res.status(200).json({
       success: true,
@@ -183,11 +190,8 @@ export const summarizeWebController = async (req, res) => {
       }),
     ]);
 
-    // Invalidate user cache
-    const keys = await redis.keys(`user:${userId}:*`);
-    if (keys.length > 0) {
-      await redis.del(keys);
-    }
+        // Invalidate user cache (SCAN-based)
+    await invalidateUserCache(userId);
 
     res.status(200).json({
       success: true,
@@ -491,11 +495,8 @@ export const deleteSummary = async (req, res) => {
       where: { id },
     });
 
-    // Invalidate user cache (summaries list and recent activity)
-    const keys = await redis.keys(`user:${userId}:*`);
-    if (keys.length > 0) {
-      await redis.del(keys);
-    }
+        // Invalidate user cache (SCAN-based)
+    await invalidateUserCache(userId);
 
     res.status(200).json({
       success: true,

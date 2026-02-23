@@ -4,6 +4,16 @@ import { deleteAudioFile } from "../services/storageService.js";
 import { PODCAST_GENERATION_COST } from "../config/credits.js";
 import { checkCredits } from "../services/creditService.js";
 import redis from "../config/redis.js";
+// Safe SCAN-based cache invalidation — redis.keys() blocks the server under load
+async function invalidateUserCache(userId) {
+  let cursor = '0';
+  do {
+    const [nextCursor, keys] = await redis.scan(cursor, 'MATCH', `user:${userId}:*`, 'COUNT', 100);
+    cursor = nextCursor;
+    if (keys.length > 0) await redis.del(keys);
+  } while (cursor !== '0');
+}
+
 const PODCAST_CREDIT_COST = PODCAST_GENERATION_COST;
 
 
@@ -70,11 +80,8 @@ export const podcastGenerate = async (req, res) => {
 
     await addJobs(data.id, blogUrl, options);
 
-    // Invalidate user cache (podcasts list and recent activity)
-    const keys = await redis.keys(`user:${req.userID}:*`);
-    if (keys.length > 0) {
-      await redis.del(keys);
-    }
+        // Invalidate user cache (SCAN-based)
+    await invalidateUserCache(userId);
 
     res.status(200).json({
       success: true,
@@ -240,11 +247,8 @@ export const retryPodcast = async (req, res) => {
 
     await addJobs(id, podcast.blogUrl);
 
-    // Invalidate user cache
-    const keys = await redis.keys(`user:${userId}:*`);
-    if (keys.length > 0) {
-      await redis.del(keys);
-    }
+        // Invalidate user cache (SCAN-based)
+    await invalidateUserCache(userId);
 
     res.status(200).json({
       success: true,
@@ -402,11 +406,8 @@ export const deletePodcast = async (req, res) => {
       where: { id },
     });
 
-    // Invalidate user cache
-    const keys = await redis.keys(`user:${userId}:*`);
-    if (keys.length > 0) {
-      await redis.del(keys);
-    }
+        // Invalidate user cache (SCAN-based)
+    await invalidateUserCache(userId);
 
     res.status(200).json({
       success: true,

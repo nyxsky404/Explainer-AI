@@ -1,5 +1,4 @@
 import prisma from '../config/db.js';
-import redis from '../config/redis.js';
 import { chatWithContent, explainSelection } from '../services/chatService.js';
 import { CHAT_MESSAGE_COST } from '../config/credits.js';
 import { checkCredits } from '../services/creditService.js';
@@ -62,10 +61,6 @@ export const sendMessage = async (req, res) => {
         data: { creditsUsed: { increment: CHAT_MESSAGE_COST } },
       }),
     ]);
-
-    // Invalidate user cache
-    const keys = await redis.keys(`user:${userId}:*`);
-    if (keys.length > 0) await redis.del(keys);
 
     res.status(200).json({
       success: true,
@@ -131,10 +126,6 @@ export const explainText = async (req, res) => {
         data: { creditsUsed: { increment: CHAT_MESSAGE_COST } },
       }),
     ]);
-
-    // Invalidate user cache
-    const keys = await redis.keys(`user:${userId}:*`);
-    if (keys.length > 0) await redis.del(keys);
 
     res.status(200).json({
       success: true,
