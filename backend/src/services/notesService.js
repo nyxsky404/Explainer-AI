@@ -69,57 +69,53 @@ export const generateNote = async (userId, sourceContent, options = {}) => {
     sourceType = 'TEXT',
   } = options;
 
-  // Check credits
-  const hasCredits = await checkCredits(userId, CREDIT_COSTS.NOTES_GENERATE);
-  if (!hasCredits) {
-    throw new Error('Insufficient credits');
+  // Check credits before doing any AI work
+  const creditCheck = await checkCredits(userId, CREDIT_COSTS.NOTES_GENERATE);
+  if (!creditCheck.allowed) {
+    throw new Error(creditCheck.message || 'Insufficient credits');
   }
 
   try {
     const client = getClient();
-    
-    // Build prompt
+
     const prompt = getNotesPrompt(sourceContent, {
       style: style.toLowerCase(),
       pages,
     });
 
-    // Call LLM
     const response = await client.chat.completions.create({
-      model: 'openai/gpt-oss-120b:free',
-      messages: [
-        {
-          role: 'user',
-          content: prompt,
-        },
-      ],
+      model: 'openai/gpt-4o-mini',
+      messages: [{ role: 'user', content: prompt }],
       temperature: 0.7,
       max_tokens: 4000,
     });
 
-    const rawResponse = response.choices[0].message.content;
-    
-    // Parse and validate response
+    const rawResponse = response.choices[0]?.message?.content;
+    if (!rawResponse) throw new Error('AI model returned an empty response');
+
     const noteData = parseJsonResponse(rawResponse);
     validateNoteResponse(noteData);
 
-    // Create note in database
-    const note = await prisma.note.create({
-      data: {
-        userId,
-        title: noteData.title,
-        style: style.toUpperCase(),
-        sourceType: sourceType.toUpperCase(),
-        sourceContent,
-        sections: noteData.sections,
-        quickReview: noteData.quickReview || [],
-        formulas: noteData.formulas || [],
-        creditsUsed: CREDIT_COSTS.NOTES_GENERATE,
-      },
-    });
-
-    // Deduct credits
-    await deductCredits(userId, CREDIT_COSTS.NOTES_GENERATE);
+    // Atomically create note + deduct credits in one transaction
+    const [note] = await prisma.$transaction([
+      prisma.note.create({
+        data: {
+          userId,
+          title: noteData.title,
+          style: style.toUpperCase(),
+          sourceType: sourceType.toUpperCase(),
+          sourceContent,
+          sections: noteData.sections,
+          quickReview: noteData.quickReview || [],
+          formulas: noteData.formulas || [],
+          creditsUsed: CREDIT_COSTS.NOTES_GENERATE,
+        },
+      }),
+      prisma.user.update({
+        where: { id: userId },
+        data: { creditsUsed: { increment: CREDIT_COSTS.NOTES_GENERATE } },
+      }),
+    ]);
 
     return note;
   } catch (error) {
@@ -132,75 +128,66 @@ export const generateNote = async (userId, sourceContent, options = {}) => {
  * Generate a note from an existing summary
  */
 export const generateNoteFromSummary = async (userId, summaryId, options = {}) => {
-  // Fetch summary
   const summary = await prisma.summary.findFirst({
-    where: {
-      id: summaryId,
-      userId,
-    },
+    where: { id: summaryId, userId },
   });
 
   if (!summary) {
     throw new Error('Summary not found');
   }
 
-  // Use summary content as source
   const sourceContent = summary.rawContent || summary.content;
 
-  // Check credits (cheaper for summary-based generation)
-  const hasCredits = await checkCredits(userId, CREDIT_COSTS.NOTES_FROM_SUMMARY);
-  if (!hasCredits) {
-    throw new Error('Insufficient credits');
+  // Check credits before doing any AI work
+  const creditCheck = await checkCredits(userId, CREDIT_COSTS.NOTES_FROM_SUMMARY);
+  if (!creditCheck.allowed) {
+    throw new Error(creditCheck.message || 'Insufficient credits');
   }
 
   try {
     const client = getClient();
     const style = options.style || 'OUTLINE';
     const pages = options.pages || 2;
-    
-    // Build prompt
+
     const prompt = getNotesPrompt(sourceContent, {
       style: style.toLowerCase(),
       pages,
     });
 
-    // Call LLM
     const response = await client.chat.completions.create({
-      model: 'openai/gpt-oss-120b:free',
-      messages: [
-        {
-          role: 'user',
-          content: prompt,
-        },
-      ],
+      model: 'openai/gpt-4o-mini',
+      messages: [{ role: 'user', content: prompt }],
       temperature: 0.7,
       max_tokens: 4000,
     });
 
-    const rawResponse = response.choices[0].message.content;
-    
-    // Parse and validate response
+    const rawResponse = response.choices[0]?.message?.content;
+    if (!rawResponse) throw new Error('AI model returned an empty response');
+
     const noteData = parseJsonResponse(rawResponse);
     validateNoteResponse(noteData);
 
-    // Create note in database with summary reference
-    const note = await prisma.note.create({
-      data: {
-        userId,
-        summaryId,
-        title: noteData.title,
-        style: style.toUpperCase(),
-        sourceType: 'SUMMARY',
-        sourceContent,
-        sections: noteData.sections,
-        quickReview: noteData.quickReview || [],
-        formulas: noteData.formulas || [],
-        creditsUsed: CREDIT_COSTS.NOTES_FROM_SUMMARY,
-      },
-    });
-
-    // Deduct credits
-    await deductCredits(userId, CREDIT_COSTS.NOTES_FROM_SUMMARY);
+    // Atomically create note + deduct credits in one transaction
+    const [note] = await prisma.$transaction([
+      prisma.note.create({
+        data: {
+          userId,
+          summaryId,
+          title: noteData.title,
+          style: style.toUpperCase(),
+          sourceType: 'SUMMARY',
+          sourceContent,
+          sections: noteData.sections,
+          quickReview: noteData.quickReview || [],
+          formulas: noteData.formulas || [],
+          creditsUsed: CREDIT_COSTS.NOTES_FROM_SUMMARY,
+        },
+      }),
+      prisma.user.update({
+        where: { id: userId },
+        data: { creditsUsed: { increment: CREDIT_COSTS.NOTES_FROM_SUMMARY } },
+      }),
+    ]);
 
     return note;
   } catch (error) {

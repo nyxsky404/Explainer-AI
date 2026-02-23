@@ -53,7 +53,6 @@ export const listVisualizations = async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Failed to fetch visualizations',
-      error: error.message,
     });
   }
 };
@@ -102,7 +101,6 @@ export const deleteVisualizationController = async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Failed to delete visualization',
-      error: error.message,
     });
   }
 };

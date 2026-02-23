@@ -61,9 +61,9 @@ const generateMermaid = async (topic) => {
   const prompt = getMermaidPrompt(topic);
 
   const response = await client.chat.completions.create({
-    model: 'openai/gpt-oss-120b:free', // Free and capable
+    model: 'openai/gpt-4o-mini',
     messages: [{ role: 'user', content: prompt }],
-    temperature: 0.2, // Low temp for code
+    temperature: 0.2,
   });
 
   let content = response.choices[0].message.content;
@@ -92,7 +92,7 @@ const generateImage = async (topic) => {
     }
   });
 
-  console.log('Flux Response:', JSON.stringify(response, null, 2));
+  console.log('Flux response received, extracting image URL');
 
   // Check for OpenRouter specific image response format
   // @ts-ignore
@@ -121,7 +121,10 @@ export const generateVisualization = async (userId, topic, forceMode = null) => 
   const cost = mode === 'IMAGE' ? CREDIT_COSTS.VISUALIZER_IMAGE : CREDIT_COSTS.VISUALIZER_MERMAID;
 
   // Check credits
-  await checkCredits(userId, cost);
+  const creditCheck = await checkCredits(userId, cost);
+  if (!creditCheck.allowed) {
+    throw new Error(creditCheck.message || 'Insufficient credits');
+  }
 
   try {
     let content;

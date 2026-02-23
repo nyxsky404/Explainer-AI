@@ -240,7 +240,7 @@ export const login = async (req, res) => {
       user: { ...findUser, password: undefined },
     });
   } catch (err) {
-    throw new Error(err);
+    res.status(500).json({ success: false, message: 'Login failed. Please try again.' });
   }
 };
 
@@ -297,12 +297,13 @@ export const forgotPassword = async (req, res) => {
     }
 
     const resetToken = crypto.randomBytes(32).toString("hex");
+    const hashedResetToken = crypto.createHash('sha256').update(resetToken).digest('hex');
     const resetTokenExpiry = new Date(Date.now() + 3600000);
 
     await prisma.user.update({
       where: { email: key },
       data: {
-        resetToken,
+        resetToken: hashedResetToken,
         resetTokenExpiry,
       },
     });
@@ -350,9 +351,21 @@ export const resetPassword = async (req, res) => {
       });
     }
 
+    // Validate new password strength (same rules as signup)
+    const passwordValidation = signupSchema.shape.password.safeParse(newPassword);
+    if (!passwordValidation.success) {
+      return res.status(400).json({
+        success: false,
+        message: passwordValidation.error.errors?.[0]?.message || "Password does not meet requirements",
+      });
+    }
+
+    // Hash the incoming token to compare against stored hash
+    const hashedToken = crypto.createHash('sha256').update(token).digest('hex');
+
     const user = await prisma.user.findFirst({
       where: {
-        resetToken: token,
+        resetToken: hashedToken,
         resetTokenExpiry: {
           gt: new Date(),
         },
@@ -557,7 +570,11 @@ export const deleteAccount = async (req, res) => {
       where: { id: userId },
     });
 
-    res.clearCookie("token");
+    res.clearCookie("token", {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+    });
 
     res.status(200).json({
       success: true,
@@ -576,7 +593,18 @@ export const getCreditPricing = (req, res) => {
       podcast: CREDIT_COSTS.PODCAST_GENERATION,
       youtubeSummary: CREDIT_COSTS.YOUTUBE_SUMMARY,
       webSummary: CREDIT_COSTS.WEB_SUMMARY,
+      pdfSummary: CREDIT_COSTS.PDF_SUMMARY,
+      textSummary: CREDIT_COSTS.TEXT_SUMMARY,
       audioGeneration: CREDIT_COSTS.AUDIO_GENERATION,
+      chatMessage: CREDIT_COSTS.CHAT_MESSAGE,
+      deepExplain: CREDIT_COSTS.DEEP_EXPLAIN,
+      deepExplainFollowup: CREDIT_COSTS.DEEP_EXPLAIN_FOLLOWUP,
+      quizGenerate: CREDIT_COSTS.QUIZ_GENERATE,
+      quizFromSummary: CREDIT_COSTS.QUIZ_FROM_SUMMARY,
+      notesGenerate: CREDIT_COSTS.NOTES_GENERATE,
+      notesFromSummary: CREDIT_COSTS.NOTES_FROM_SUMMARY,
+      visualizerMermaid: CREDIT_COSTS.VISUALIZER_MERMAID,
+      visualizerImage: CREDIT_COSTS.VISUALIZER_IMAGE,
     },
   });
 };

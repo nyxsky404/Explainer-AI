@@ -10,29 +10,31 @@ datasource db {
 }
 
 model User {
-  id                 String             @id @default(uuid())
-  name               String
-  email              String             @unique
-  password           String?
-  githubId           String?            @unique
-  provider           String?            @default("email")
-  avatarUrl          String?
-  resetToken         String?
-  resetTokenExpiry   DateTime?
-  creditLimit        Int                @default(10)
-  creditsUsed        Int                @default(0)
-  usageResetDate     DateTime           @default(now())
-  lastLogin          DateTime           @default(now())
-  createdAt          DateTime           @default(now())
-  updatedAt          DateTime           @updatedAt
-  isVerified         Boolean            @default(false)
-  verificationToken  String?
-  podcasts           Podcast[]
-  summaries          Summary[]
-  preferences        UserPreference?
-  deepExplanations   DeepExplanation[]
-  quizzes            Quiz[]
-  quizAttempts       QuizAttempt[]
+  id                String            @id @default(uuid())
+  name              String
+  email             String            @unique
+  password          String?
+  githubId          String?           @unique
+  provider          String?           @default("email")
+  avatarUrl         String?
+  resetToken        String?
+  resetTokenExpiry  DateTime?
+  creditLimit       Int               @default(10)
+  creditsUsed       Int               @default(0)
+  usageResetDate    DateTime          @default(now())
+  lastLogin         DateTime          @default(now())
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
+  isVerified        Boolean           @default(false)
+  verificationToken String?
+  podcasts          Podcast[]
+  summaries         Summary[]
+  preferences       UserPreference?
+  deepExplanations  DeepExplanation[]
+  quizzes           Quiz[]
+  quizAttempts      QuizAttempt[]
+  notes             Note[]
+  visualizations    Visualization[]
 }
 
 model UserPreference {
@@ -77,9 +79,11 @@ model Summary {
   audioStatus  AudioStatus?
   creditsUsed  Int           @default(0)
   createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @default(now()) @updatedAt
   user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
   chatMessages ChatMessage[]
   quizzes      Quiz[]
+  notes        Note[]
 }
 
 model ChatMessage {
@@ -201,4 +205,58 @@ enum QuizDifficulty {
   EASY
   MEDIUM
   HARD
+}
+
+// ============== NOTES ==============
+
+model Note {
+  id            String         @id @default(uuid())
+  userId        String
+  summaryId     String?
+  title         String
+  style         NoteStyle
+  sourceType    NoteSourceType
+  sections      Json
+  sourceContent String?        @db.Text
+  quickReview   Json?
+  formulas      Json?
+  creditsUsed   Int            @default(0)
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  user          User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  summary       Summary?       @relation(fields: [summaryId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+}
+
+// ============== VISUALIZER ==============
+
+model Visualization {
+  id          String   @id @default(uuid())
+  userId      String
+  topic       String
+  mode        String?
+  type        String?
+  content     String   @db.Text
+  imageUrl    String?
+  creditsUsed Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @default(now()) @updatedAt
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+enum NoteStyle {
+  CORNELL
+  OUTLINE
+  FLOW
+  BULLET
+}
+
+enum NoteSourceType {
+  TEXT
+  URL
+  PDF
+  SUMMARY
 }

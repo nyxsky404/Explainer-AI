@@ -24,18 +24,17 @@ function getClient() {
 export const generateDeepExplanation = async (userId, topic, mode = 'easy', sourceContent = null) => {
   try {
     // Check credits
-    await checkCredits(userId, CREDIT_COSTS.DEEP_EXPLAIN);
+    const creditCheck = await checkCredits(userId, CREDIT_COSTS.DEEP_EXPLAIN);
+    if (!creditCheck.allowed) {
+      throw new Error(creditCheck.message || 'Insufficient credits');
+    }
 
-    // Build prompt
     const prompt = getDeepExplainPrompt(topic, mode, sourceContent);
 
-    // Call OpenRouter with GPT
     const client = getClient();
     const completion = await client.chat.completions.create({
-      model: 'openai/gpt-oss-20b:free',
-      messages: [
-        { role: 'user', content: prompt }
-      ],
+      model: 'openai/gpt-4o-mini',
+      messages: [{ role: 'user', content: prompt }],
     });
 
     if (!completion?.choices?.length || !completion.choices[0]?.message) {
@@ -129,7 +128,10 @@ export const getUserExplanations = async (userId, page = 1, limit = 10) => {
 export const addFollowUp = async (explanationId, userId, question) => {
   try {
     // Check credits
-    await checkCredits(userId, CREDIT_COSTS.DEEP_EXPLAIN_FOLLOWUP);
+    const creditCheck = await checkCredits(userId, CREDIT_COSTS.DEEP_EXPLAIN_FOLLOWUP);
+    if (!creditCheck.allowed) {
+      throw new Error(creditCheck.message || 'Insufficient credits');
+    }
 
     // Get original explanation
     const explanation = await getExplanationById(explanationId, userId);

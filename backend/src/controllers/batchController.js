@@ -15,17 +15,16 @@ export const summarizeBatchController = async (req, res) => {
     const totalCost = urls.length * CREDIT_COSTS.WEB_SUMMARY;
 
     // Check credits
-    const hasCredits = await checkCredits(userId, totalCost);
-    if (!hasCredits) {
+    const creditCheck = await checkCredits(userId, totalCost);
+    if (!creditCheck.allowed) {
       return res.status(403).json({
         success: false,
-        message: `Insufficient credits. Need ${totalCost} credits.`,
+        message: creditCheck.message || `Insufficient credits. Need ${totalCost} credits.`,
         code: 'INSUFFICIENT_CREDITS',
       });
     }
 
     // Process Batch
-    console.log(`Processing batch of ${urls.length} URLs for user ${userId}`);
     const result = await summarizeBatch(userId, urls, {
       depth,
       tone,

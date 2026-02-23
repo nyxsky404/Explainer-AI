@@ -46,17 +46,18 @@ export const summarizePdfController = async (req, res) => {
 
   try {
     // Check credits
-    const hasCredits = await checkCredits(userId, CREDIT_COSTS.PDF_SUMMARY);
-    if (!hasCredits) {
+    const creditCheck = await checkCredits(userId, CREDIT_COSTS.PDF_SUMMARY);
+    if (!creditCheck.allowed) {
       return res.status(403).json({
         success: false,
-        message: 'Insufficient credits',
+        message: creditCheck.message || 'Insufficient credits',
         code: 'INSUFFICIENT_CREDITS',
       });
     }
 
     // Process PDF
-    console.log(`Processing PDF upload for user ${userId}: ${file.originalname}`);
+
+
     const result = await summarizePdf(file.buffer, file.originalname, {
       depth,
       tone,

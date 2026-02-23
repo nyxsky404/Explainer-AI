@@ -66,7 +66,6 @@ export const generateNoteController = async (req, res) => {
     res.status(statusCode).json({
       success: false,
       message: error.message || "Failed to process request",
-      error: error.message,
     });
   }
 };
@@ -123,7 +122,6 @@ export const generateNoteFromSummaryController = async (req, res) => {
     res.status(statusCode).json({
       success: false,
       message: error.message || "Failed to process request",
-      error: error.message,
     });
   }
 };
@@ -151,7 +149,6 @@ export const getNote = async (req, res) => {
     res.status(statusCode).json({
       success: false,
       message: error.message || "Failed to process request",
-      error: error.message,
     });
   }
 };
@@ -179,7 +176,6 @@ export const listNotes = async (req, res) => {
     res.status(500).json({
       success: false,
       message: error.message || 'Failed to retrieve notes',
-      error: error.message,
     });
   }
 };
@@ -222,7 +218,6 @@ export const updateNoteController = async (req, res) => {
     res.status(statusCode).json({
       success: false,
       message: error.message || "Failed to process request",
-      error: error.message,
     });
   }
 };
@@ -250,7 +245,6 @@ export const deleteNoteController = async (req, res) => {
     res.status(statusCode).json({
       success: false,
       message: error.message || "Failed to process request",
-      error: error.message,
     });
   }
 };
@@ -298,7 +292,6 @@ export const getNotePublic = async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Failed to fetch note',
-      error: error.message,
     });
   }
 };

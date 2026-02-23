@@ -1,5 +1,5 @@
 import prisma from '../config/db.js';
-import { checkCredits, deductCredits } from './creditService.js';
+import { checkCredits, deductCredits, refundCredits } from './creditService.js';
 import { CREDIT_COSTS } from '../config/credits.js';
 import OpenAI from 'openai';
 import { getQuizPrompt, getRegenerateQuestionPrompt } from '../prompts/quizPrompts.js';

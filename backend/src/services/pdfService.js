@@ -1,5 +1,5 @@
 import OpenAI from 'openai';
-import { PDFParse } from 'pdf-parse';
+import pdf from 'pdf-parse';
 import { uploadDocument } from './storageService.js';
 import { getDynamicSummaryPrompt } from '../prompts/summaryPrompts.js';
 
@@ -12,12 +12,8 @@ import { getDynamicSummaryPrompt } from '../prompts/summaryPrompts.js';
  */
 export const summarizePdf = async (fileBuffer, originalName, options = {}) => {
   try {
-    // Step 1: Extract text from PDF
-    console.log('Parsing PDF:', originalName);
-    
-    // Create parser instance and get text
-    const parser = new PDFParse({ data: fileBuffer });
-    const pdfData = await parser.getText();
+    // Step 1: Extract text using pdf-parse (default export, returns a promise directly)
+    const pdfData = await pdf(fileBuffer);
     const rawContent = pdfData.text?.trim();
 
     if (!rawContent || rawContent.length < 100) {
@@ -28,11 +24,8 @@ export const summarizePdf = async (fileBuffer, originalName, options = {}) => {
       throw new Error('PDF content is too large (maximum 100,000 characters)');
     }
 
-    console.log('PDF parsed, text length:', rawContent.length, 'pages:', pdfData.total);
-
-    // Step 2: Upload original PDF to Supabase
+    // Step 2: Upload original PDF to Supabase storage
     const pdfUrl = await uploadDocument(fileBuffer, originalName, 'application/pdf');
-    console.log('PDF uploaded to storage:', pdfUrl);
 
     // Step 3: Summarize using OpenRouter
     if (!process.env.OPENROUTER_API_KEY) {
@@ -43,28 +36,27 @@ export const summarizePdf = async (fileBuffer, originalName, options = {}) => {
       baseURL: 'https://openrouter.ai/api/v1',
       apiKey: process.env.OPENROUTER_API_KEY,
       defaultHeaders: {
-        'HTTP-Referer': 'https://explainer-ai-two.vercel.app/',
+        'HTTP-Referer': process.env.FRONTEND_URL || 'https://explainer-ai-two.vercel.app/',
         'X-Title': 'Explainer AI',
       },
     });
 
     const systemPrompt = getDynamicSummaryPrompt({ ...options, type: 'pdf' });
 
-    console.log('Calling OpenRouter for PDF summary...');
     const completion = await openai.chat.completions.create({
-      model: 'openai/gpt-oss-20b:free',
+      model: 'openai/gpt-4o-mini',
       messages: [
         { role: 'system', content: systemPrompt },
         { role: 'user', content: rawContent },
       ],
     });
 
-    const summary = completion.choices[0].message.content;
-    console.log('PDF summary received, length:', summary?.length);
+    const summary = completion.choices[0]?.message?.content;
+    if (!summary) throw new Error('AI model returned an empty response');
 
     return { summary, rawContent, pdfUrl };
   } catch (err) {
-    console.error('PDF summarization error:', err);
+    console.error('PDF summarization error:', err.message);
     throw new Error(`Failed to summarize PDF: ${err.message}`);
   }
 };

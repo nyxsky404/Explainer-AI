@@ -22,5 +22,5 @@ export async function addJobs(podcastId, blogUrl, options = {}) {
     }
   );
 
-  console.log("job added with id", job.id);
+  return job;
 }

@@ -15,7 +15,7 @@ import {
     TableHeader,
     TableRow,
 } from '@/components/ui/table';
-import { Mic, Library, ExternalLink, Youtube, Globe, Coins, Volume2, FileText, Type, Layers, BookOpen, ClipboardList } from 'lucide-react';
+import { Mic, Library, ExternalLink, Youtube, Globe, Coins, Volume2, FileText, Type, Layers, BookOpen, ClipboardList, NotebookPen, BarChart2 } from 'lucide-react';
 import ToolsGrid from '@/components/blocks/Dashboard/tools-grid';
 import { useCreditPricing } from '@/hooks/useCreditPricing';
 import { truncateUrl } from '@/lib/utils';
@@ -92,6 +92,24 @@ const tools = [
         icon: <Layers className="size-8 text-foreground" />,
         link: '/dashboard/batch-summarize',
         buttonText: 'Batch Process',
+    },
+    {
+        id: 'notes-generator',
+        title: 'AI Notes Generator',
+        description: 'Generate structured handwritten-style notes from any content',
+        credits: 2,
+        icon: <NotebookPen className="size-8 text-foreground" />,
+        link: '/dashboard/notes/generate',
+        buttonText: 'Generate Notes',
+    },
+    {
+        id: 'topic-visualizer',
+        title: 'Topic Visualizer',
+        description: 'Turn any concept into diagrams or AI illustrations',
+        credits: '1–5',
+        icon: <BarChart2 className="size-8 text-foreground" />,
+        link: '/dashboard/visualizer/generate',
+        buttonText: 'Visualize Topic',
     },
 ];
 

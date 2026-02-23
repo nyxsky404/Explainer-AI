@@ -13,13 +13,13 @@ export async function extractConcepts(content) {
       baseURL: 'https://openrouter.ai/api/v1',
       apiKey: process.env.OPENROUTER_API_KEY,
       defaultHeaders: {
-        'HTTP-Referer': 'https://explainer-ai-two.vercel.app/',
+        'HTTP-Referer': process.env.FRONTEND_URL || 'https://explainer-ai-two.vercel.app/',
         'X-Title': 'Explainer AI',
       },
     });
 
     const completion = await client.chat.completions.create({
-      model: 'openai/gpt-oss-20b:free',
+      model: 'openai/gpt-4o-mini',
       messages: [
         {
           role: 'system',

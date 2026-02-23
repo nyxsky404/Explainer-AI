@@ -14,17 +14,16 @@ export const summarizeTextController = async (req, res) => {
 
   try {
     // Check credits
-    const hasCredits = await checkCredits(userId, CREDIT_COSTS.TEXT_SUMMARY);
-    if (!hasCredits) {
+    const creditCheck = await checkCredits(userId, CREDIT_COSTS.TEXT_SUMMARY);
+    if (!creditCheck.allowed) {
       return res.status(403).json({
         success: false,
-        message: 'Insufficient credits',
+        message: creditCheck.message || 'Insufficient credits',
         code: 'INSUFFICIENT_CREDITS',
       });
     }
 
     // Process Text
-    console.log(`Processing text summary for user ${userId}`);
     const result = await summarizeText(text, {
       depth,
       tone,

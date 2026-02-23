@@ -29,6 +29,12 @@ import QuizAttempt from './pages/protected/QuizAttempt'
 import QuizLibrary from './pages/protected/QuizLibrary'
 import PublicSummaryView from './pages/public/PublicSummaryView'
 import PublicPodcastView from './pages/public/PublicPodcastView'
+import NotesGenerate from './pages/protected/NotesGenerate'
+import NotesLibrary from './pages/protected/NotesLibrary'
+import NotesView from './pages/protected/NotesView'
+import VisualizerGenerate from './pages/protected/VisualizerGenerate'
+import VisualizerLibrary from './pages/protected/VisualizerLibrary'
+import VisualizerView from './pages/protected/VisualizerView'
 
 function App() {
   return (
@@ -61,10 +67,13 @@ function App() {
           <Route path="/dashboard/pdf-summarize" element={<PdfSummarize />} />
           <Route path="/dashboard/text-summarize" element={<TextSummarize />} />
           <Route path="/dashboard/batch-summarize" element={<BatchSummarize />} />
-          <Route path="/dashboard/pdf-summarize" element={<PdfSummarize />} />
-          <Route path="/dashboard/text-summarize" element={<TextSummarize />} />
-          <Route path="/dashboard/batch-summarize" element={<BatchSummarize />} />
           <Route path="/dashboard/summary/:id" element={<SummaryView />} />
+          <Route path="/dashboard/notes" element={<NotesLibrary />} />
+          <Route path="/dashboard/notes/generate" element={<NotesGenerate />} />
+          <Route path="/dashboard/notes/:id" element={<NotesView />} />
+          <Route path="/dashboard/visualizer" element={<VisualizerLibrary />} />
+          <Route path="/dashboard/visualizer/generate" element={<VisualizerGenerate />} />
+          <Route path="/dashboard/visualizer/:id" element={<VisualizerView />} />
         </Route>
 
         {/* Public Share Routes */}

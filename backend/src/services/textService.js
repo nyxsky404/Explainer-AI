@@ -19,34 +19,31 @@ export const summarizeText = async (text, options = {}) => {
       throw new Error('Text is too long (maximum 50,000 characters)');
     }
 
-    console.log('Summarizing text, length:', rawContent.length);
-
     const openai = new OpenAI({
       baseURL: 'https://openrouter.ai/api/v1',
       apiKey: process.env.OPENROUTER_API_KEY,
       defaultHeaders: {
-        'HTTP-Referer': 'https://explainer-ai-two.vercel.app/',
+        'HTTP-Referer': process.env.FRONTEND_URL || 'https://explainer-ai-two.vercel.app/',
         'X-Title': 'Explainer AI',
       },
     });
 
     const systemPrompt = getDynamicSummaryPrompt({ ...options, type: 'text' });
 
-    console.log('Calling OpenRouter for text summary...');
     const completion = await openai.chat.completions.create({
-      model: 'openai/gpt-oss-20b:free',
+      model: 'openai/gpt-4o-mini',
       messages: [
         { role: 'system', content: systemPrompt },
         { role: 'user', content: rawContent },
       ],
     });
 
-    const summary = completion.choices[0].message.content;
-    console.log('Text summary received, length:', summary?.length);
+    const summary = completion.choices[0]?.message?.content;
+    if (!summary) throw new Error('AI model returned an empty response');
 
     return { summary, rawContent };
   } catch (err) {
-    console.error('Text summarization error:', err);
+    console.error('Text summarization error:', err.message);
     throw new Error(`Failed to summarize text: ${err.message}`);
   }
 };

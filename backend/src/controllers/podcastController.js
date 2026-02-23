@@ -9,7 +9,6 @@ const PODCAST_CREDIT_COST = PODCAST_GENERATION_COST;
 
 
 export const podcastGenerate = async (req, res) => {
-  console.log(req.body);
   const { blogUrl, depth } = req.body;
 
   try {
@@ -90,7 +89,7 @@ export const podcastGenerate = async (req, res) => {
   } catch (err) {
     res.status(500).json({
       success: false,
-      message: err.message,
+      message: 'An unexpected error occurred',
     });
   }
 };
@@ -113,20 +112,28 @@ export const getPodcastById = async (req, res) => {
     if (!data) {
       return res.status(404).json({
         success: false,
-        message: "No data found",
+        message: "Podcast not found",
+      });
+    }
+
+    // Authorization: ensure the podcast belongs to the requesting user
+    if (data.userId !== req.userID) {
+      return res.status(403).json({
+        success: false,
+        message: "You don't have permission to view this podcast",
       });
     }
 
     res.status(200).json({
       success: true,
-      message: "podcast found 🎉",
+      message: "Podcast found",
       data,
     });
   } catch (err) {
-    console.log(err);
+    console.error('getPodcastById error:', err);
     res.status(500).json({
       success: false,
-      message: err.message,
+      message: "Failed to retrieve podcast",
     });
   }
 };
@@ -177,7 +184,7 @@ export const getPodcastProgress = async (req, res) => {
   } catch (err) {
     res.status(500).json({
       success: false,
-      message: err.message,
+      message: 'An unexpected error occurred',
     });
   }
 };
@@ -251,7 +258,7 @@ export const retryPodcast = async (req, res) => {
   } catch (err) {
     res.status(500).json({
       success: false,
-      message: err.message,
+      message: 'An unexpected error occurred',
     });
   }
 };
@@ -349,7 +356,7 @@ export const getAllPodcasts = async (req, res) => {
   } catch (err) {
     res.status(500).json({
       success: false,
-      message: err.message,
+      message: 'An unexpected error occurred',
     });
   }
 };
@@ -408,7 +415,7 @@ export const deletePodcast = async (req, res) => {
   } catch (err) {
     res.status(500).json({
       success: false,
-      message: err.message,
+      message: 'An unexpected error occurred',
     });
   }
 };

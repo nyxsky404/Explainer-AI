@@ -111,14 +111,33 @@ export const summarizeWebController = async (req, res) => {
     }
 
     // Basic URL validation
+    let parsedUrl;
     try {
-      new URL(url);
+      parsedUrl = new URL(url);
     } catch {
       return res.status(400).json({
         success: false,
         message: "Please provide a valid URL",
       });
     }
+
+    // SSRF protection: block private/internal networks
+    const ssrfBlockedHosts = /^(localhost|127\.|10\.|172\.(1[6-9]|2\d|3[01])\.|192\.168\.|0\.0\.0\.0|::1|fd[0-9a-f]{2}:)/i;
+    if (ssrfBlockedHosts.test(parsedUrl.hostname)) {
+      return res.status(400).json({
+        success: false,
+        message: "URL points to a private or restricted network address",
+      });
+    }
+
+    // Only allow http and https
+    if (!["http:", "https:"].includes(parsedUrl.protocol)) {
+      return res.status(400).json({
+        success: false,
+        message: "Only HTTP and HTTPS URLs are allowed",
+      });
+    }
+
 
     // Check credit limit
     const creditCheck = await checkCredits(userId, SUMMARY_CREDIT_COST);
@@ -264,25 +283,27 @@ export const getSummary = async (req, res) => {
   }
 };
 
-// Get recent activity (combined podcasts + summaries)
 export const getRecentActivity = async (req, res) => {
   const userId = req.userID;
   const { limit = 5, page = 1 } = req.query;
 
   try {
-    const cacheKey = `user:${userId}:activity:${page}:${limit}`;
-    const cachedData = await redis.get(cacheKey);
+    const parsedPage = parseInt(page);
+    const parsedLimit = parseInt(limit);
+    const skip = (parsedPage - 1) * parsedLimit;
 
+    const cacheKey = `user:${userId}:activity:${parsedPage}:${parsedLimit}`;
+    const cachedData = await redis.get(cacheKey);
     if (cachedData) {
       return res.status(200).json(JSON.parse(cachedData));
     }
 
-    const skip = (parseInt(page) - 1) * parseInt(limit);
-    
     const [podcasts, summaries, totalPodcasts, totalSummaries] = await Promise.all([
       prisma.podcast.findMany({
         where: { userId },
         orderBy: { createdAt: "desc" },
+        take: parsedLimit,
+        skip,
         select: {
           id: true,
           blogUrl: true,
@@ -293,6 +314,8 @@ export const getRecentActivity = async (req, res) => {
       prisma.summary.findMany({
         where: { userId },
         orderBy: { createdAt: "desc" },
+        take: parsedLimit,
+        skip,
         select: {
           id: true,
           sourceUrl: true,
@@ -305,31 +328,27 @@ export const getRecentActivity = async (req, res) => {
       prisma.summary.count({ where: { userId } }),
     ]);
 
-    // Combine, add credits info, and sort by date
     const allActivity = [
       ...podcasts.map((p) => ({ ...p, activityType: "podcast", credits: CREDIT_COSTS.PODCAST_GENERATION })),
       ...summaries.map((s) => ({ ...s, activityType: "summary", credits: CREDIT_COSTS.YOUTUBE_SUMMARY })),
     ].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
 
     const total = totalPodcasts + totalSummaries;
-    const activity = allActivity.slice(skip, skip + parseInt(limit));
 
     const response = {
       success: true,
-      data: { activity },
+      data: { activity: allActivity },
       pagination: {
-        page: parseInt(page),
-        limit: parseInt(limit),
+        page: parsedPage,
+        limit: parsedLimit,
         total,
-        totalPages: Math.ceil(total / parseInt(limit)),
-        hasPrevPage: parseInt(page) > 1,
-        hasNextPage: skip + activity.length < total,
+        totalPages: Math.ceil(total / parsedLimit),
+        hasPrevPage: parsedPage > 1,
+        hasNextPage: skip + allActivity.length < total,
       },
     };
 
-    // Cache for 1 hour
     await redis.set(cacheKey, JSON.stringify(response), "EX", 3600);
-
     res.status(200).json(response);
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
@@ -410,17 +429,9 @@ export const generateSummaryAudio = async (req, res) => {
 // Background audio processing function
 async function processAudioGeneration(summaryId, userId, content) {
   try {
-    console.log("Starting background audio generation for summary:", summaryId);
-
-    // Generate audio using Deepgram
     const audioBuffer = await textToSpeech(content);
-    console.log("Deepgram TTS complete, buffer size:", audioBuffer?.length);
-
-    // Upload to Supabase storage
     const audioUrl = await uploadSummaryAudio(audioBuffer, summaryId);
-    console.log("Supabase upload complete, URL:", audioUrl);
 
-    // Update summary with audio URL and deduct credits
     await prisma.$transaction([
       prisma.summary.update({
         where: { id: summaryId },
@@ -430,29 +441,25 @@ async function processAudioGeneration(summaryId, userId, content) {
         where: { id: userId },
         data: { creditsUsed: { increment: AUDIO_GENERATION_COST } },
       }),
-      // Update the summary's creditsUsed to reflect the audio generation cost
       prisma.summary.update({
         where: { id: summaryId },
         data: { creditsUsed: { increment: AUDIO_GENERATION_COST } }
       })
     ]);
 
-    console.log("Audio generation completed successfully for summary:", summaryId);
   } catch (err) {
     console.error("Background audio generation failed:", err);
-    // Update status to failed and refund credits if they were deducted (though here they weren't yet)
-    // In this flow, credits are deducted ONLY on success (lines 370-373),
-    // so we don't need to refund here. But to be safe for future changes,
-    // we ensure the user wasn't charged.
-    // Refund credits since generation failed
-    await refundCredits(userId, AUDIO_GENERATION_COST);
-    
-    // Update status to failed
-    await prisma.summary.update({
-      where: { id: summaryId },
-      data: { audioStatus: "failed" },
-    });
-
+    // Credits are only deducted on SUCCESS (in the transaction above),
+    // so if generation fails before deduction there's nothing to refund.
+    // Just update the status to failed.
+    try {
+      await prisma.summary.update({
+        where: { id: summaryId },
+        data: { audioStatus: "failed" },
+      });
+    } catch (updateErr) {
+      console.error("Failed to update audio status to failed:", updateErr);
+    }
   }
 }
 

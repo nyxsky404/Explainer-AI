@@ -1,78 +1,91 @@
 import nodemailer from "nodemailer";
 
-// Create a transporter using Ethereal test credentials
-// For production, replace with your actual SMTP server details
-const transporter = nodemailer.createTransport({
-  host: "smtp.ethereal.email",
-  port: 587,
-  secure: false, // Use true for port 465, false for port 587
-  auth: {
-    user: "darryl.kling65@ethereal.email",
-    pass: "mTErqYn352At9xFZfT",
-  },
-});
+/**
+ * Creates the proper mail transporter based on environment.
+ * Production: uses real SMTP credentials from env vars.
+ * Development: creates an Ethereal test account on-the-fly.
+ */
+async function createTransporter() {
+  if (process.env.NODE_ENV === "production") {
+    if (!process.env.SMTP_HOST || !process.env.SMTP_USER || !process.env.SMTP_PASS) {
+      throw new Error("SMTP_HOST, SMTP_USER, and SMTP_PASS environment variables are required in production.");
+    }
+    return nodemailer.createTransport({
+      host: process.env.SMTP_HOST,
+      port: parseInt(process.env.SMTP_PORT || "587"),
+      secure: process.env.SMTP_SECURE === "true",
+      auth: {
+        user: process.env.SMTP_USER,
+        pass: process.env.SMTP_PASS,
+      },
+    });
+  }
+
+  // Development: auto-create a free Ethereal test account
+  const testAccount = await nodemailer.createTestAccount();
+  return nodemailer.createTransport({
+    host: "smtp.ethereal.email",
+    port: 587,
+    secure: false,
+    auth: {
+      user: testAccount.user,
+      pass: testAccount.pass,
+    },
+  });
+}
 
 /**
  * Send password reset email
- * @param {string} email - Recipient email address
- * @param {string} resetToken - Password reset token
- * @param {string} userName - User's name (optional)
- * @returns {Promise<Object>} Email send result
  */
-export async function sendPasswordResetEmail(
-  email,
-  resetToken,
-  userName = "User"
-) {
-  try {
-    // Construct reset URL (adjust FRONTEND_URL based on your frontend setup)
-    const frontendUrl = process.env.FRONTEND_URL || "http://localhost:3000";
-    const resetUrl = `${frontendUrl}/reset-password?token=${resetToken}`;
+export async function sendPasswordResetEmail(email, resetToken, userName = "User") {
+  const transporter = await createTransporter();
 
-    const mailOptions = {
-      from: '"Explainer AI" <darryl.kling65@ethereal.email>',
-      to: email,
-      subject: "Password Reset Request",
-      text: `Hello ${userName},\n\nYou requested a password reset. Please click the following link to reset your password:\n\n${resetUrl}\n\nThis link will expire in 1 hour.\n\nIf you didn't request this, please ignore this email.\n\nBest regards,\nPodcast App Team`,
-      html: `
-        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-          <h2 style="color: #333;">Password Reset Request</h2>
-          <p>Hello ${userName},</p>
-          <p>You requested a password reset. Please click the button below to reset your password:</p>
-          <div style="text-align: center; margin: 30px 0;">
-            <a href="${resetUrl}" style="background-color: #007bff; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; display: inline-block;">Reset Password</a>
-          </div>
-          <p>Or copy and paste this link into your browser:</p>
-          <p style="word-break: break-all; color: #007bff;">${resetUrl}</p>
-          <p style="color: #666; font-size: 12px;">This link will expire in 1 hour.</p>
-          <p style="color: #666; font-size: 12px;">If you didn't request this, please ignore this email.</p>
-          <hr style="border: none; border-top: 1px solid #eee; margin: 20px 0;">
-          <p style="color: #999; font-size: 12px;">Best regards,<br>Podcast App Team</p>
+  const frontendUrl = process.env.FRONTEND_URL || "http://localhost:5173";
+  const resetUrl = `${frontendUrl}/reset-password?token=${resetToken}`;
+
+  const mailOptions = {
+    from: `"Explainer AI" <${process.env.SMTP_FROM || process.env.SMTP_USER || "noreply@explainer-ai.app"}>`,
+    to: email,
+    subject: "Password Reset Request — Explainer AI",
+    text: `Hello ${userName},\n\nYou requested a password reset. Click the link below to reset your password:\n\n${resetUrl}\n\nThis link expires in 1 hour. If you didn't request this, you can safely ignore this email.\n\nBest regards,\nExplainer AI Team`,
+    html: `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+        <h2 style="color: #333;">Password Reset Request</h2>
+        <p>Hello ${userName},</p>
+        <p>You requested a password reset. Click the button below to reset your password:</p>
+        <div style="text-align: center; margin: 30px 0;">
+          <a href="${resetUrl}" style="background-color: #6366f1; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block; font-weight: bold;">Reset Password</a>
         </div>
-      `,
-    };
+        <p>Or copy and paste this link into your browser:</p>
+        <p style="word-break: break-all; color: #6366f1;">${resetUrl}</p>
+        <p style="color: #666; font-size: 12px;">This link will expire in 1 hour.</p>
+        <p style="color: #666; font-size: 12px;">If you didn't request this, please ignore this email.</p>
+        <hr style="border: none; border-top: 1px solid #eee; margin: 20px 0;">
+        <p style="color: #999; font-size: 12px;">Best regards,<br>Explainer AI Team</p>
+      </div>
+    `,
+  };
 
-    const info = await transporter.sendMail(mailOptions);
-    console.log("Password reset email sent:", info.messageId);
-    console.log("Preview URL:", nodemailer.getTestMessageUrl(info));
+  const info = await transporter.sendMail(mailOptions);
 
-    return {
-      success: true,
-      messageId: info.messageId,
-      previewUrl: nodemailer.getTestMessageUrl(info), // Ethereal provides preview URL
-    };
-  } catch (error) {
-    console.error("Error sending password reset email:", error);
-    throw new Error(`Failed to send email: ${error.message}`);
+  const previewUrl = nodemailer.getTestMessageUrl(info);
+  if (previewUrl) {
+    console.log("Email preview URL:", previewUrl);
   }
+
+  return {
+    success: true,
+    messageId: info.messageId,
+    previewUrl: previewUrl || undefined,
+  };
 }
 
 /**
  * Verify email transporter connection
- * @returns {Promise<boolean>} True if connection is successful
  */
 export async function verifyEmailConnection() {
   try {
+    const transporter = await createTransporter();
     await transporter.verify();
     console.log("Email server is ready to send messages");
     return true;
@@ -81,3 +94,6 @@ export async function verifyEmailConnection() {
     return false;
   }
 }
+
+
+

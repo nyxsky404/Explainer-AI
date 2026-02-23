@@ -37,6 +37,8 @@ import {
   Layers,
   BookOpen,
   ClipboardList,
+  NotebookPen,
+  BarChart2,
 } from "lucide-react";
 import Logo from "@/assets/logo";
 import DashboardNavigation from "@/components/blocks/Dashboard/sidebar/nav-main";
@@ -121,6 +123,18 @@ const dashboardRoutes = [
     title: "Batch URLs",
     icon: <Layers className="size-4 text-foreground" />,
     link: "/dashboard/batch-summarize",
+  },
+  {
+    id: "notes-generator",
+    title: "AI Notes",
+    icon: <NotebookPen className="size-4 text-foreground" />,
+    link: "/dashboard/notes",
+  },
+  {
+    id: "topic-visualizer",
+    title: "Topic Visualizer",
+    icon: <BarChart2 className="size-4 text-foreground" />,
+    link: "/dashboard/visualizer",
   },
   {
     id: "library",
