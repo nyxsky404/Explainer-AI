@@ -13,7 +13,7 @@ function getSupabaseClient() {
  * @param {string} id - The ID to validate
  * @param {string} context - Context for error message (e.g., 'gossipId', 'podcastId')
  * @returns {string} - The normalized ID
- * @throws {Error} - If ID is invalid
+ * @throws {Error} - If ID is invalid or contains path traversal characters
  */
 function validateAndNormalizeId(id, context = 'id') {
   if (id == null) {
@@ -24,6 +24,16 @@ function validateAndNormalizeId(id, context = 'id') {
   
   if (normalizedId === '') {
     throw new Error(`${context} cannot be empty or whitespace`);
+  }
+  
+  // Reject path traversal characters
+  if (normalizedId.includes('/') || normalizedId.includes('\\')) {
+    throw new Error(`${context} contains invalid path characters`);
+  }
+  
+  // Reject path traversal sequences
+  if (normalizedId.includes('..')) {
+    throw new Error(`${context} contains invalid path traversal sequence`);
   }
   
   return normalizedId;

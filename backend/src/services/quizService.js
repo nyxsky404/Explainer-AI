@@ -226,10 +226,12 @@ export const getUserQuizzes = async (userId, page = 1, limit = 10) => {
   return {
     quizzes,
     pagination: {
-      currentPage: safePage,
+      page: safePage,
+      limit: safeLimit,
+      total: total,
       totalPages: Math.ceil(total / safeLimit),
-      totalItems: total,
-      itemsPerPage: safeLimit,
+      hasPrevPage: safePage > 1,
+      hasNextPage: safePage < Math.ceil(total / safeLimit),
     },
   };
 };

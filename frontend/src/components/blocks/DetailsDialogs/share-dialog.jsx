@@ -19,12 +19,32 @@ import { useRef, useState } from "react";
 
 export default function ShareDialog({ open, onOpenChange, url, type = 'podcast' }) {
    const [copied, setCopied] = useState(false);
+   const [copyError, setCopyError] = useState(false);
    const inputRef = useRef(null);
  
-   const handleCopy = () => {
-     navigator.clipboard.writeText(url);
-     setCopied(true);
-     setTimeout(() => setCopied(false), 1500);
+   const handleCopy = async () => {
+     try {
+       await navigator.clipboard.writeText(url);
+       setCopied(true);
+       setCopyError(false);
+       setTimeout(() => setCopied(false), 1500);
+     } catch (err) {
+       console.error('Failed to copy:', err);
+       // Fallback: try execCommand
+       try {
+         if (inputRef.current) {
+           inputRef.current.select();
+           document.execCommand('copy');
+           setCopied(true);
+           setCopyError(false);
+           setTimeout(() => setCopied(false), 1500);
+         }
+       } catch (fallbackErr) {
+         console.error('Fallback copy also failed:', fallbackErr);
+         setCopyError(true);
+         setCopied(false);
+       }
+     }
    };
  
    // Guard against null/undefined type and ensure it's a string

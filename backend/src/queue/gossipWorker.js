@@ -6,7 +6,7 @@ import { generateGossipScript } from "../services/gossipScriptService.js";
 import { generateGossipAudio } from "../services/gossipAudioService.js";
 
 const connection = new IORedis(process.env.REDIS_URL, {
-  maxRetriesPerRequest: null,
+  maxRetriesPerRequest: null, // Required for BullMQ workers (blocking operations)
 });
 
 // Attach error listener to prevent unhandled exceptions
@@ -111,15 +111,20 @@ const gossipWorker = new Worker(
         });
       }
     } catch (error) {
-      // Update gossip with error information
-      await prisma.gossip.update({
-        where: { id: gossipId },
-        data: {
-          status: "failed",
-          errorMessage: error.message,
-          failedAt: new Date(),
-        },
-      });
+      // Update gossip with error information - wrap in try/catch
+      try {
+        await prisma.gossip.update({
+          where: { id: gossipId },
+          data: {
+            status: "failed",
+            errorMessage: error.message,
+            failedAt: new Date(),
+          },
+        });
+      } catch (updateError) {
+        console.error('gossipWorker::Failed to update gossip status:', updateError.message);
+        // Do not mask the original error - still re-throw it
+      }
 
       // Re-throw to let BullMQ handle retries
       throw error;
@@ -142,11 +147,17 @@ gossipWorker.on("completed", (job) => {
 
 // The "failed" event fires on every failed attempt, not only on permanent failure
 gossipWorker.on("failed", async (job, err) => {
+  // Guard against undefined job
+  if (!job) {
+    console.error('gossipWorker::Job failed but job is undefined:', err.message);
+    return;
+  }
+  
   console.log(`Gossip worker job ${job.id} has failed with ${err.message}`);
 
-  // Only update to permanent failure status if all retries are exhausted
-  const maxAttempts = job?.opts?.attempts || 2;
-  const attemptsMade = job?.attemptsMade || 0;
+  // Use nullish coalescing for attempts
+  const maxAttempts = job?.opts?.attempts ?? 2;
+  const attemptsMade = job?.attemptsMade ?? 0;
   const isPermanentFailure = attemptsMade >= maxAttempts;
 
   if (job && job.data && job.data.gossipId && isPermanentFailure) {

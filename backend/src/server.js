@@ -87,6 +87,25 @@ app.use("/api/visualizer", apiLimiter, verifyToken, visualizerRoute)
 app.use(errorHandler)
 
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
+const server = app.listen(PORT, () => {
     console.log(`app listening on port ${PORT}`)
-})
+});
+
+// Graceful shutdown handler
+const gracefulShutdown = async (signal) => {
+    console.log(`Received ${signal}, shutting down gracefully...`);
+    
+    // Close HTTP server first
+    server.close(() => {
+        console.log('HTTP server closed');
+    });
+    
+    // Force exit after 3 seconds if graceful shutdown fails
+    setTimeout(() => {
+        console.log('Forcing exit');
+        process.exit(0);
+    }, 3000);
+};
+
+process.once('SIGTERM', () => gracefulShutdown('SIGTERM'));
+process.once('SIGINT', () => gracefulShutdown('SIGINT'));

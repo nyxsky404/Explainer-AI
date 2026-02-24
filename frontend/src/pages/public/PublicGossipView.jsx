@@ -101,12 +101,33 @@ export default function PublicGossipView() {
         }
     };
 
+    const handleDownload = async () => {
+        try {
+            const url = gossip.audioUrl;
+            const filename = `gossip-${id}${getFileExtension(url)}`;
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            a.click();
+        } catch (error) {
+            console.error('Failed to download:', error);
+            toast.error('Failed to download audio');
+        }
+    };
+
     const formatDate = (dateString) => {
-        return new Date(dateString).toLocaleDateString('en-US', {
-            month: 'long',
-            day: 'numeric',
-            year: 'numeric',
-        });
+        if (!dateString) return '';
+        try {
+            const date = new Date(dateString);
+            if (isNaN(date.getTime())) return '';
+            return date.toLocaleDateString('en-US', {
+                month: 'long',
+                day: 'numeric',
+                year: 'numeric',
+            });
+        } catch {
+            return '';
+        }
     };
 
     if (loading) {
@@ -138,11 +159,11 @@ export default function PublicGossipView() {
                 </div>
                 {user ? (
                     <Button asChild variant="outline" size="sm">
-                        <a href="/dashboard">Dashboard</a>
+                        <Link to="/dashboard">Dashboard</Link>
                     </Button>
                 ) : (
                     <Button asChild size="sm">
-                        <a href="/login">Get Started</a>
+                        <Link to="/login">Get Started</Link>
                     </Button>
                 )}
             </div>
@@ -185,16 +206,14 @@ export default function PublicGossipView() {
             </div>
 
             {/* Audio Player - Guard audioUrl */}
-            {gossip.audioUrl ? (
+            {gossip.audioUrl && isValidUrl(gossip.audioUrl) ? (
                 <div className="bg-card border rounded-xl p-6 shadow-sm">
                     <AudioPlayer src={gossip.audioUrl} title="Gossip Preview" />
                 
                     <div className="mt-6 flex justify-end">
-                         <Button variant="outline" asChild>
-                            <a href={gossip.audioUrl} download={`gossip-${id}${getFileExtension(gossip.audioUrl)}`}>
-                                <Download className="mr-2 size-4" />
-                                Download Audio
-                            </a>
+                         <Button variant="outline" onClick={handleDownload}>
+                            <Download className="mr-2 size-4" />
+                            Download Audio
                         </Button>
                     </div>
                 </div>

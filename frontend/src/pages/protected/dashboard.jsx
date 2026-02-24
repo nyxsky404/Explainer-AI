@@ -15,7 +15,7 @@ import {
     TableHeader,
     TableRow,
 } from '@/components/ui/table';
-import { Mic, Library, ExternalLink, Youtube, Globe, Coins, Volume2, FileText, Type, Layers, BookOpen, ClipboardList, NotebookPen, BarChart2, Sparkles, FileQuestion, StickyNote, Brain } from 'lucide-react';
+import { Mic, Library, ExternalLink, Youtube, Globe, Coins, Volume2, FileText, Type, Layers, BookOpen, ClipboardList, NotebookPen, ChartBar, Sparkles, FileQuestion, StickyNote, Brain } from 'lucide-react';
 import ToolsGrid from '@/components/blocks/Dashboard/tools-grid';
 import { useCreditPricing } from '@/hooks/useCreditPricing';
 import { truncateUrl } from '@/lib/utils';
@@ -40,69 +40,6 @@ const tools = [
         buttonText: 'Spill the Tea',
     },
     {
-        id: 'deep-explain',
-        title: 'AI Deep Explain',
-        description: 'Get expert explanations for any topic or concept',
-        credits: 2,
-        icon: <BookOpen className="size-8 text-foreground" />,
-        link: '/dashboard/deep-explain',
-        buttonText: 'Explain Topic',
-    },
-    {
-        id: 'quiz-generator',
-        title: 'AI Quiz Generator',
-        description: 'Generate quizzes from any content to test your knowledge',
-        credits: 2,
-        icon: <ClipboardList className="size-8 text-foreground" />,
-        link: '/dashboard/quiz/generate',
-        buttonText: 'Generate Quiz',
-    },
-    {
-        id: 'youtube-summarizer',
-        title: 'YouTube Summarizer',
-        description: 'Get key points from any YouTube video',
-        credits: 2,
-        icon: <Youtube className="size-8 text-foreground" />,
-        link: '/dashboard/youtube-summarize',
-        buttonText: 'Summarize Video',
-    },
-    {
-        id: 'web-summarizer',
-        title: 'Web Page Summarizer',
-        description: 'Extract and summarize content from any webpage',
-        credits: 2,
-        icon: <Globe className="size-8 text-foreground" />,
-        link: '/dashboard/web-summarize',
-        buttonText: 'Summarize Page',
-    },
-    {
-        id: 'pdf-summarizer',
-        title: 'PDF Summarizer',
-        description: 'Upload and summarize any PDF document',
-        credits: 2,
-        icon: <FileText className="size-8 text-foreground" />,
-        link: '/dashboard/pdf-summarize',
-        buttonText: 'Summarize PDF',
-    },
-    {
-        id: 'text-summarizer',
-        title: 'Text Summarizer',
-        description: 'Paste any text to extract key insights',
-        credits: 2,
-        icon: <Type className="size-8 text-foreground" />,
-        link: '/dashboard/text-summarize',
-        buttonText: 'Summarize Text',
-    },
-    {
-        id: 'batch-summarizer',
-        title: 'Batch URLs',
-        description: 'Summarize up to 5 URLs at once',
-        credits: '2/URL',
-        icon: <Layers className="size-8 text-foreground" />,
-        link: '/dashboard/batch-summarize',
-        buttonText: 'Batch Process',
-    },
-    {
         id: 'notes-generator',
         title: 'AI Notes Generator',
         description: 'Generate structured handwritten-style notes from any content',
@@ -110,15 +47,6 @@ const tools = [
         icon: <NotebookPen className="size-8 text-foreground" />,
         link: '/dashboard/notes/generate',
         buttonText: 'Generate Notes',
-    },
-    {
-        id: 'topic-visualizer',
-        title: 'Topic Visualizer',
-        description: 'Turn any concept into diagrams or AI illustrations',
-        credits: '1–5',
-        icon: <BarChart2 className="size-8 text-foreground" />,
-        link: '/dashboard/visualizer/generate',
-        buttonText: 'Visualize Topic',
     },
 ];
 
@@ -161,7 +89,7 @@ export default function Dashboard() {
             case 'note':
                 return <StickyNote className="size-4 text-amber-500" />;
             case 'visualization':
-                return <BarChart2 className="size-4 text-cyan-500" />;
+                return <ChartBar className="size-4 text-cyan-500" />;
             case 'deepExplain':
                 return <Brain className="size-4 text-emerald-500" />;
             case 'summary':
@@ -180,19 +108,25 @@ export default function Dashboard() {
     const getActivityBadge = (item) => {
         switch (item.activityType) {
             case 'podcast':
-            case 'gossip':
                 if (item.status === 'failed') {
                     return <Badge variant="destructive" className="gap-1"><Mic className="size-3" />Failed</Badge>;
                 } else if (item.status === 'completed') {
                     return <Badge className="bg-green-500 hover:bg-green-600 gap-1"><Mic className="size-3" />Completed</Badge>;
                 }
                 return <Badge variant="secondary" className="capitalize gap-1"><Mic className="size-3" />{item.status?.replace(/_/g, ' ')}</Badge>;
+            case 'gossip':
+                if (item.status === 'failed') {
+                    return <Badge variant="destructive" className="gap-1"><Sparkles className="size-3" />Failed</Badge>;
+                } else if (item.status === 'completed') {
+                    return <Badge className="bg-green-500 hover:bg-green-600 gap-1"><Sparkles className="size-3" />Completed</Badge>;
+                }
+                return <Badge variant="secondary" className="capitalize gap-1"><Sparkles className="size-3" />{item.status?.replace(/_/g, ' ')}</Badge>;
             case 'quiz':
                 return <Badge className="bg-indigo-500 hover:bg-indigo-600 gap-1"><FileQuestion className="size-3" />Quiz</Badge>;
             case 'note':
                 return <Badge className="bg-amber-500 hover:bg-amber-600 gap-1"><StickyNote className="size-3" />Notes</Badge>;
             case 'visualization':
-                return <Badge className="bg-cyan-500 hover:bg-cyan-600 gap-1"><BarChart2 className="size-3" />Visual</Badge>;
+                return <Badge className="bg-cyan-500 hover:bg-cyan-600 gap-1"><ChartBar className="size-3" />Visual</Badge>;
             case 'deepExplain':
                 return <Badge className="bg-emerald-500 hover:bg-emerald-600 gap-1"><Brain className="size-3" />Explain</Badge>;
             case 'summary':
@@ -346,9 +280,9 @@ export default function Dashboard() {
                                         <TableCell>
                                             <span className="inline-flex items-center gap-1 text-amber-600">
                                                 <Coins className="size-3" />
-                                                {item.credits || (item.activityType === 'summary' 
+                                                {item.credits ?? (item.activityType === 'summary' 
                                                     ? (pricing.youtubeSummary + (item.audioStatus === 'completed' ? pricing.audioGeneration : 0))
-                                                    : 2)
+                                                    : (item.activityType === 'podcast' || item.activityType === 'gossip' ? 3 : 2))
                                                 }
                                             </span>
                                         </TableCell>

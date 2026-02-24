@@ -1,8 +1,18 @@
 import prisma from '../config/db.js';
+import redis from '../config/redis.js';
 import { checkCredits, deductCredits } from './creditService.js';
 import { CREDIT_COSTS } from '../config/credits.js';
 import OpenAI from 'openai';
 import { getNotesPrompt } from '../prompts/notesPrompts.js';
+
+// Invalidate credit cache - non-throwing
+async function invalidateCreditCache(userId) {
+  try {
+    await redis.del(`user:${userId}:credits`);
+  } catch (err) {
+    console.error('notesService::invalidateCreditCache error for userId:', userId, err.message);
+  }
+}
 
 /**
  * Create an OpenRouter client instance
@@ -117,6 +127,9 @@ export const generateNote = async (userId, sourceContent, options = {}) => {
       }),
     ]);
 
+    // Invalidate credit cache
+    await invalidateCreditCache(userId);
+
     return note;
   } catch (error) {
     console.error('Error generating note:', error);
@@ -188,6 +201,9 @@ export const generateNoteFromSummary = async (userId, summaryId, options = {}) =
         data: { creditsUsed: { increment: CREDIT_COSTS.NOTES_FROM_SUMMARY } },
       }),
     ]);
+
+    // Invalidate credit cache
+    await invalidateCreditCache(userId);
 
     return note;
   } catch (error) {

@@ -118,12 +118,8 @@ export default function GossipDetail() {
             if (['completed', 'failed'].includes(res.data.data.status)) {
                 clearInterval(pollIntervalRef.current);
                 if (res.data.data.status === 'completed') {
-                    try {
-                        setLoading(true);
-                        await fetchGossip();
-                    } catch (error) {
-                        toast.error('Failed to fetch completed gossip details');
-                    }
+                    // Simply refresh data without triggering loading state
+                    await fetchGossip();
                 }
             }
         } catch (error) {
@@ -166,6 +162,24 @@ export default function GossipDetail() {
         }
     };
 
+    const handleDownload = async () => {
+        try {
+            const response = await fetch(gossip.audioUrl);
+            const blob = await response.blob();
+            const objectUrl = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = objectUrl;
+            link.download = `gossip-${id}${getFileExtension(gossip.audioUrl)}`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(objectUrl);
+        } catch (error) {
+            console.error('Download failed:', error);
+            toast.error('Failed to download audio. Try opening in a new tab.');
+        }
+    };
+
     if (loading) {
         return (
             <div className="max-w-2xl mx-auto space-y-6">
@@ -188,15 +202,17 @@ export default function GossipDetail() {
                         <Sparkles className="size-5 text-pink-500" />
                         <h1 className="text-2xl font-bold">Gossip Details</h1>
                     </div>
-                    <a
-                        href={gossip?.blogUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-sm text-muted-foreground hover:text-foreground inline-flex items-center gap-1"
-                    >
-                        {truncateUrl(gossip?.blogUrl)}
-                        <ExternalLink className="size-3" />
-                    </a>
+                    {gossip?.blogUrl ? (
+                        <a
+                            href={gossip.blogUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-sm text-muted-foreground hover:text-foreground inline-flex items-center gap-1"
+                        >
+                            {truncateUrl(gossip.blogUrl)}
+                            <ExternalLink className="size-3" />
+                        </a>
+                    ) : null}
                 </div>
             </div>
 
@@ -237,11 +253,9 @@ export default function GossipDetail() {
 
             <div className="flex gap-4">
                 {gossip?.status === 'completed' && gossip?.audioUrl && (
-                    <Button variant="outline" className="flex-1" asChild>
-                        <a href={gossip.audioUrl} download={`gossip-${id}${getFileExtension(gossip.audioUrl)}`}>
-                            <Download className="mr-2 size-4" />
-                            Download
-                        </a>
+                    <Button variant="outline" className="flex-1" onClick={handleDownload}>
+                        <Download className="mr-2 size-4" />
+                        Download
                     </Button>
                 )}
                 {gossip?.status === 'completed' && (

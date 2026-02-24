@@ -5,14 +5,28 @@ import { GOSSIP_GENERATION_COST } from "../config/credits.js";
 import { checkCredits } from "../services/creditService.js";
 import redis from "../config/redis.js";
 
-// Safe SCAN-based cache invalidation
+// Safe SCAN-based cache invalidation - non-throwing
 async function invalidateUserCache(userId) {
-  let cursor = '0';
-  do {
-    const [nextCursor, keys] = await redis.scan(cursor, 'MATCH', `user:${userId}:*`, 'COUNT', 100);
-    cursor = nextCursor;
-    if (keys.length > 0) await redis.del(keys);
-  } while (cursor !== '0');
+  try {
+    let cursor = '0';
+    do {
+      const [nextCursor, keys] = await redis.scan(cursor, 'MATCH', `user:${userId}:*`, 'COUNT', 100);
+      cursor = nextCursor;
+      if (keys.length > 0) await redis.del(keys);
+    } while (cursor !== '0');
+  } catch (err) {
+    console.error('gossipController::invalidateUserCache error for userId:', userId, err.message);
+    // Non-fatal: continue without rethrowing
+  }
+}
+
+// Invalidate credit cache specifically (called after direct credit updates)
+async function invalidateCreditCache(userId) {
+  try {
+    await redis.del(`user:${userId}:credits`);
+  } catch (err) {
+    console.error('gossipController::invalidateCreditCache error for userId:', userId, err.message);
+  }
 }
 
 const GOSSIP_CREDIT_COST = GOSSIP_GENERATION_COST;
@@ -21,10 +35,18 @@ const GOSSIP_CREDIT_COST = GOSSIP_GENERATION_COST;
  * Create a new gossip generation job.
  */
 export const gossipGenerate = async (req, res) => {
+  // Validate req.body before destructuring
+  if (!req.body) {
+    return res.status(400).json({
+      success: false,
+      message: "Request body is required",
+    });
+  }
+  
   const { blogUrl, depth } = req.body;
 
   try {
-    if (!req.body || !blogUrl) {
+    if (!blogUrl) {
       return res.status(400).json({
         success: false,
         message: "Url not Provided",
@@ -92,29 +114,43 @@ export const gossipGenerate = async (req, res) => {
     } catch (queueError) {
       console.error('gossipController::gossipGenerate queue error:', queueError);
       // Rollback: delete gossip record and refund credits
-      await prisma.$transaction(async (tx) => {
-        await tx.gossip.delete({
-          where: { id: gossip.id },
-        });
-        await tx.user.update({
-          where: { id: req.userID },
-          data: {
-            creditsUsed: {
-              decrement: GOSSIP_CREDIT_COST,
+      try {
+        await prisma.$transaction(async (tx) => {
+          await tx.gossip.delete({
+            where: { id: gossip.id },
+          });
+          await tx.user.update({
+            where: { id: req.userID },
+            data: {
+              creditsUsed: {
+                decrement: GOSSIP_CREDIT_COST,
+              },
             },
-          },
+          });
         });
-      });
+      } catch (rollbackError) {
+        console.error('gossipController::gossipGenerate rollback failed for gossip:', gossip.id, rollbackError);
+        // Attempt to mark gossip as failed so it's recoverable
+        try {
+          await prisma.gossip.update({
+            where: { id: gossip.id },
+            data: { status: 'failed', errorMessage: 'Queue enqueue failed, rollback also failed' },
+          });
+        } catch (updateError) {
+          console.error('gossipController::gossipGenerate failed to mark gossip as failed:', updateError);
+        }
+      }
       return res.status(500).json({
         success: false,
         message: 'Failed to queue gossip generation job',
       });
     }
 
-    // Invalidate user cache (SCAN-based) - only after successful queuing
+    // Invalidate caches - only after successful queuing
     await invalidateUserCache(req.userID);
+    await invalidateCreditCache(req.userID);
 
-    res.status(200).json({
+    res.status(201).json({
       success: true,
       data: gossip,
       usage: {
@@ -307,7 +343,29 @@ export const retryGossip = async (req, res) => {
       depth: preferences?.defaultDepth || 'standard',
     };
 
-    await addGossipJob(id, gossip.blogUrl, options);
+    // Wrap addGossipJob in try/catch to rollback on failure
+    try {
+      await addGossipJob(id, gossip.blogUrl, options);
+    } catch (queueError) {
+      console.error('gossipController::retryGossip queue error:', queueError);
+      // Restore gossip to failed status
+      try {
+        await prisma.gossip.update({
+          where: { id },
+          data: {
+            status: 'failed',
+            errorMessage: 'Failed to re-queue gossip',
+            failedAt: new Date(),
+          },
+        });
+      } catch (updateError) {
+        console.error('gossipController::retryGossip failed to restore gossip status:', updateError);
+      }
+      return res.status(500).json({
+        success: false,
+        message: 'Failed to re-queue gossip generation job',
+      });
+    }
 
     // Invalidate user cache
     await invalidateUserCache(userId);
@@ -409,9 +467,9 @@ export const getAllGossips = async (req, res) => {
         gossips: gossips,
       },
       pagination: {
-        currentPage: page,
+        page: page,
         limit: limit,
-        totalItems: totalGossips,
+        total: totalGossips,
         totalPages: totalPages,
         hasNextPage: hasNextPage,
         hasPrevPage: hasPrevPage,
@@ -465,6 +523,14 @@ export const deleteGossip = async (req, res) => {
       });
     }
 
+    // Prevent deletion of gossip currently being processed
+    if (gossip.status === 'processing') {
+      return res.status(409).json({
+        success: false,
+        message: "Cannot delete a gossip that is currently being processed. Please wait for it to complete or fail.",
+      });
+    }
+
     // Delete audio file from storage if it exists
     if (gossip.audioUrl) {
       await deleteGossipAudio(id);
@@ -514,7 +580,7 @@ export const getGossipPublic = async (req, res) => {
     }
 
     if (gossip.status !== "completed") {
-      return res.status(400).json({
+      return res.status(403).json({
         success: false,
         message: "Gossip is not ready for public viewing",
       });

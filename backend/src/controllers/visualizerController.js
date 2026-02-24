@@ -7,23 +7,34 @@ function vizCacheKey(userId, page, limit) {
   return `user:${userId}:visualizations:${page}:${limit}`;
 }
 
+// Invalidate visualization list cache - non-throwing
 async function invalidateVizCache(userId) {
-  let cursor = '0';
-  do {
-    const [nextCursor, keys] = await redis.scan(cursor, 'MATCH', `user:${userId}:visualizations:*`, 'COUNT', 100);
-    cursor = nextCursor;
-    if (keys.length > 0) await redis.del(keys);
-  } while (cursor !== '0');
+  try {
+    let cursor = '0';
+    do {
+      const [nextCursor, keys] = await redis.scan(cursor, 'MATCH', `user:${userId}:visualizations:*`, 'COUNT', 100);
+      cursor = nextCursor;
+      if (keys.length > 0) await redis.del(keys);
+    } while (cursor !== '0');
+  } catch (err) {
+    console.error('visualizerController::invalidateVizCache error for userId:', userId, err.message);
+    // Non-fatal: continue without rethrowing
+  }
 }
 
-// Invalidate activity cache so new visualization appears in recent activity
+// Invalidate activity cache so new visualization appears in recent activity - non-throwing
 async function invalidateActivityCache(userId) {
-  let cursor = '0';
-  do {
-    const [nextCursor, keys] = await redis.scan(cursor, 'MATCH', `user:${userId}:activity:*`, 'COUNT', 100);
-    cursor = nextCursor;
-    if (keys.length > 0) await redis.del(keys);
-  } while (cursor !== '0');
+  try {
+    let cursor = '0';
+    do {
+      const [nextCursor, keys] = await redis.scan(cursor, 'MATCH', `user:${userId}:activity:*`, 'COUNT', 100);
+      cursor = nextCursor;
+      if (keys.length > 0) await redis.del(keys);
+    } while (cursor !== '0');
+  } catch (err) {
+    console.error('visualizerController::invalidateActivityCache error for userId:', userId, err.message);
+    // Non-fatal: continue without rethrowing
+  }
 }
 
 /**
@@ -111,8 +122,9 @@ export const deleteVisualizationController = async (req, res) => {
 
     await deleteVisualization(id, userId);
 
-    // Invalidate visualization list cache
+    // Invalidate visualization list cache and activity cache
     await invalidateVizCache(userId);
+    await invalidateActivityCache(userId);
 
     res.status(200).json({ success: true, message: 'Visualization deleted successfully' });
   } catch (error) {

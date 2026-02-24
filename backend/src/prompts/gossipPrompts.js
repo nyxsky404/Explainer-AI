@@ -117,6 +117,38 @@ const MAX_CONTENT_LENGTH = 50000;
  * @param {string} content - The content to sanitize
  * @returns {string}
  */
+/**
+ * Safe truncate that respects UTF-16 surrogate pairs
+ * @param {string} str - The string to truncate
+ * @param {number} maxLength - Maximum length
+ * @returns {string}
+ */
+function safeTruncate(str, maxLength) {
+  if (str.length <= maxLength) return str;
+  
+  // Check if we're about to cut a surrogate pair
+  const charAtLimit = str.charCodeAt(maxLength - 1);
+  const charAfterLimit = str.charCodeAt(maxLength);
+  
+  // High surrogate range: 0xD800-0xDBFF
+  // Low surrogate range: 0xDC00-0xDFFF
+  if (charAtLimit >= 0xD800 && charAtLimit <= 0xDBFF) {
+    // We're cutting a high surrogate, back up one
+    return str.substring(0, maxLength - 1);
+  }
+  if (charAfterLimit >= 0xDC00 && charAfterLimit <= 0xDFFF) {
+    // We're about to leave a lone high surrogate
+    return str.substring(0, maxLength - 1);
+  }
+  
+  return str.substring(0, maxLength);
+}
+
+/**
+ * Sanitize content for use in prompts.
+ * @param {string} content - The content to sanitize
+ * @returns {string}
+ */
 function sanitizeContent(content) {
   // Ensure content is a non-null string
   if (content == null) {
@@ -126,9 +158,13 @@ function sanitizeContent(content) {
   // Convert to string and trim
   let sanitized = String(content).trim();
   
-  // Apply length limit
+  // Neutralize closing XML/HTML fence tags to prevent prompt injection
+  // Replace </tag> patterns with escaped version
+  sanitized = sanitized.replace(/<\/([a-zA-Z0-9:_-]+)>/gi, '&lt;/$1&gt;');
+  
+  // Apply safe length limit (respects UTF-16 surrogate pairs)
   if (sanitized.length > MAX_CONTENT_LENGTH) {
-    sanitized = sanitized.substring(0, MAX_CONTENT_LENGTH);
+    sanitized = safeTruncate(sanitized, MAX_CONTENT_LENGTH);
   }
   
   return sanitized;

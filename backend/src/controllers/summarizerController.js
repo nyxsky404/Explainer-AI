@@ -6,13 +6,28 @@ import { uploadSummaryAudio, deleteSummaryAudio } from "../services/storageServi
 import prisma from "../config/db.js";
 import redis from "../config/redis.js";
 // Safe SCAN-based cache invalidation — redis.keys() blocks the server under load
+// Non-throwing to prevent cache failures from affecting HTTP responses
 async function invalidateUserCache(userId) {
-  let cursor = '0';
-  do {
-    const [nextCursor, keys] = await redis.scan(cursor, 'MATCH', `user:${userId}:*`, 'COUNT', 100);
-    cursor = nextCursor;
-    if (keys.length > 0) await redis.del(keys);
-  } while (cursor !== '0');
+  try {
+    let cursor = '0';
+    do {
+      const [nextCursor, keys] = await redis.scan(cursor, 'MATCH', `user:${userId}:*`, 'COUNT', 100);
+      cursor = nextCursor;
+      if (keys.length > 0) await redis.del(keys);
+    } while (cursor !== '0');
+  } catch (err) {
+    console.error('summarizerController::invalidateUserCache error for userId:', userId, err.message);
+    // Non-fatal: continue without rethrowing
+  }
+}
+
+// Invalidate credit cache specifically (called after direct credit updates)
+async function invalidateCreditCache(userId) {
+  try {
+    await redis.del(`user:${userId}:credits`);
+  } catch (err) {
+    console.error('summarizerController::invalidateCreditCache error for userId:', userId, err.message);
+  }
 }
 
 import { SUMMARY_CREDIT_COST, AUDIO_GENERATION_COST, CREDIT_COSTS } from "../config/credits.js";
@@ -83,8 +98,9 @@ export const summarizeYouTubeController = async (req, res) => {
       }),
     ]);
 
-        // Invalidate user cache (SCAN-based)
+        // Invalidate caches
     await invalidateUserCache(userId);
+    await invalidateCreditCache(userId);
 
     res.status(200).json({
       success: true,
@@ -190,8 +206,9 @@ export const summarizeWebController = async (req, res) => {
       }),
     ]);
 
-        // Invalidate user cache (SCAN-based)
+        // Invalidate caches
     await invalidateUserCache(userId);
+    await invalidateCreditCache(userId);
 
     res.status(200).json({
       success: true,
@@ -302,93 +319,8 @@ export const getRecentActivity = async (req, res) => {
       return res.status(200).json(JSON.parse(cachedData));
     }
 
-    const [podcasts, summaries, quizzes, notes, visualizations, gossips, deepExplanations, totalPodcasts, totalSummaries, totalQuizzes, totalNotes, totalVisualizations, totalGossips, totalDeepExplanations] = await Promise.all([
-      prisma.podcast.findMany({
-        where: { userId },
-        orderBy: { createdAt: "desc" },
-        take: parsedLimit,
-        skip,
-        select: {
-          id: true,
-          blogUrl: true,
-          status: true,
-          createdAt: true,
-        },
-      }),
-      prisma.summary.findMany({
-        where: { userId },
-        orderBy: { createdAt: "desc" },
-        take: parsedLimit,
-        skip,
-        select: {
-          id: true,
-          sourceUrl: true,
-          type: true,
-          audioStatus: true,
-          createdAt: true,
-        },
-      }),
-      prisma.quiz.findMany({
-        where: { userId },
-        orderBy: { createdAt: "desc" },
-        take: parsedLimit,
-        skip,
-        select: {
-          id: true,
-          title: true,
-          sourceType: true,
-          createdAt: true,
-        },
-      }),
-      prisma.note.findMany({
-        where: { userId },
-        orderBy: { createdAt: "desc" },
-        take: parsedLimit,
-        skip,
-        select: {
-          id: true,
-          title: true,
-          style: true,
-          sourceType: true,
-          createdAt: true,
-        },
-      }),
-      prisma.visualization.findMany({
-        where: { userId },
-        orderBy: { createdAt: "desc" },
-        take: parsedLimit,
-        skip,
-        select: {
-          id: true,
-          topic: true,
-          type: true,
-          createdAt: true,
-        },
-      }),
-      prisma.gossip.findMany({
-        where: { userId },
-        orderBy: { createdAt: "desc" },
-        take: parsedLimit,
-        skip,
-        select: {
-          id: true,
-          blogUrl: true,
-          status: true,
-          createdAt: true,
-        },
-      }),
-      prisma.deepExplanation.findMany({
-        where: { userId },
-        orderBy: { createdAt: "desc" },
-        take: parsedLimit,
-        skip,
-        select: {
-          id: true,
-          topic: true,
-          mode: true,
-          createdAt: true,
-        },
-      }),
+    // Fetch counts for pagination
+    const [totalPodcasts, totalSummaries, totalQuizzes, totalNotes, totalVisualizations, totalGossips, totalDeepExplanations] = await Promise.all([
       prisma.podcast.count({ where: { userId } }),
       prisma.summary.count({ where: { userId } }),
       prisma.quiz.count({ where: { userId } }),
@@ -398,17 +330,111 @@ export const getRecentActivity = async (req, res) => {
       prisma.deepExplanation.count({ where: { userId } }),
     ]);
 
-    const allActivity = [
-      ...podcasts.map((p) => ({ ...p, activityType: "podcast", credits: CREDIT_COSTS.PODCAST_GENERATION })),
-      ...summaries.map((s) => ({ ...s, activityType: "summary", credits: CREDIT_COSTS.YOUTUBE_SUMMARY })),
-      ...quizzes.map((q) => ({ ...q, activityType: "quiz", credits: CREDIT_COSTS.QUIZ_GENERATE })),
-      ...notes.map((n) => ({ ...n, activityType: "note", credits: CREDIT_COSTS.NOTES_GENERATE })),
-      ...visualizations.map((v) => ({ ...v, activityType: "visualization", credits: CREDIT_COSTS.VISUALIZER_MERMAID })),
-      ...gossips.map((g) => ({ ...g, activityType: "gossip", credits: CREDIT_COSTS.GOSSIP_GENERATION })),
-      ...deepExplanations.map((d) => ({ ...d, activityType: "deepExplain", credits: CREDIT_COSTS.DEEP_EXPLAIN })),
-    ].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-
     const total = totalPodcasts + totalSummaries + totalQuizzes + totalNotes + totalVisualizations + totalGossips + totalDeepExplanations;
+
+    // Fetch enough items from each type to cover pagination window
+    // We need to fetch more than parsedLimit to account for sorting
+    const fetchLimit = skip + parsedLimit;
+    
+    const [podcasts, summaries, quizzes, notes, visualizations, gossips, deepExplanations] = await Promise.all([
+      prisma.podcast.findMany({
+        where: { userId },
+        orderBy: { createdAt: "desc" },
+        take: fetchLimit,
+        select: {
+          id: true,
+          blogUrl: true,
+          status: true,
+          creditsUsed: true,
+          createdAt: true,
+        },
+      }),
+      prisma.summary.findMany({
+        where: { userId },
+        orderBy: { createdAt: "desc" },
+        take: fetchLimit,
+        select: {
+          id: true,
+          sourceUrl: true,
+          type: true,
+          audioStatus: true,
+          creditsUsed: true,
+          createdAt: true,
+        },
+      }),
+      prisma.quiz.findMany({
+        where: { userId },
+        orderBy: { createdAt: "desc" },
+        take: fetchLimit,
+        select: {
+          id: true,
+          title: true,
+          sourceType: true,
+          creditsUsed: true,
+          createdAt: true,
+        },
+      }),
+      prisma.note.findMany({
+        where: { userId },
+        orderBy: { createdAt: "desc" },
+        take: fetchLimit,
+        select: {
+          id: true,
+          title: true,
+          style: true,
+          sourceType: true,
+          creditsUsed: true,
+          createdAt: true,
+        },
+      }),
+      prisma.visualization.findMany({
+        where: { userId },
+        orderBy: { createdAt: "desc" },
+        take: fetchLimit,
+        select: {
+          id: true,
+          topic: true,
+          mode: true,
+          creditsUsed: true,
+          createdAt: true,
+        },
+      }),
+      prisma.gossip.findMany({
+        where: { userId },
+        orderBy: { createdAt: "desc" },
+        take: fetchLimit,
+        select: {
+          id: true,
+          blogUrl: true,
+          status: true,
+          creditsUsed: true,
+          createdAt: true,
+        },
+      }),
+      prisma.deepExplanation.findMany({
+        where: { userId },
+        orderBy: { createdAt: "desc" },
+        take: fetchLimit,
+        select: {
+          id: true,
+          topic: true,
+          mode: true,
+          creditsUsed: true,
+          createdAt: true,
+        },
+      }),
+    ]);
+
+    const allActivity = [
+      ...podcasts.map((p) => ({ ...p, activityType: "podcast", credits: p.creditsUsed || CREDIT_COSTS.PODCAST_GENERATION })),
+      ...summaries.map((s) => ({ ...s, activityType: "summary", credits: s.creditsUsed || CREDIT_COSTS.YOUTUBE_SUMMARY })),
+      ...quizzes.map((q) => ({ ...q, activityType: "quiz", credits: q.creditsUsed || CREDIT_COSTS.QUIZ_GENERATE })),
+      ...notes.map((n) => ({ ...n, activityType: "note", credits: n.creditsUsed || CREDIT_COSTS.NOTES_GENERATE })),
+      ...visualizations.map((v) => ({ ...v, activityType: "visualization", credits: v.creditsUsed || CREDIT_COSTS.VISUALIZER_MERMAID })),
+      ...gossips.map((g) => ({ ...g, activityType: "gossip", credits: g.creditsUsed || CREDIT_COSTS.GOSSIP_GENERATION })),
+      ...deepExplanations.map((d) => ({ ...d, activityType: "deepExplain", credits: d.creditsUsed || CREDIT_COSTS.DEEP_EXPLAIN })),
+    ].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+     .slice(skip, skip + parsedLimit);
 
     const response = {
       success: true,
@@ -521,6 +547,9 @@ async function processAudioGeneration(summaryId, userId, content) {
         data: { creditsUsed: { increment: AUDIO_GENERATION_COST } }
       })
     ]);
+
+    // Invalidate credit cache
+    await invalidateCreditCache(userId);
 
   } catch (err) {
     console.error("Background audio generation failed:", err);

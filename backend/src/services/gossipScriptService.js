@@ -17,6 +17,11 @@ const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
  * @returns {Promise<string>} - The generated gossip script
  */
 export const generateGossipScript = async (scrapedText, options = {}) => {
+    // Validate scrapedText upfront
+    if (!scrapedText || typeof scrapedText !== 'string' || scrapedText.trim() === '') {
+        throw new Error('scrapedText is required and must be a non-empty string');
+    }
+    
     try {
         const Gemini_Response = await ai.models.generateContent({
             model: "gemini-2.5-flash",

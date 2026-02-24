@@ -114,10 +114,12 @@ export const getUserExplanations = async (userId, page = 1, limit = 10) => {
   return {
     explanations,
     pagination: {
-      currentPage: page,
+      page: page,
+      limit: limit,
+      total: total,
       totalPages: Math.ceil(total / limit),
-      totalItems: total,
-      itemsPerPage: limit,
+      hasPrevPage: page > 1,
+      hasNextPage: page < Math.ceil(total / limit),
     },
   };
 };

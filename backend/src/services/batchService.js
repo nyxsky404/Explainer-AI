@@ -2,8 +2,18 @@ import { summarizeWebPage } from './webSummaryService.js';
 import { summarizeYouTube } from './youtubeService.js';
 import { extractConcepts } from './conceptService.js';
 import prisma from '../config/db.js';
+import redis from '../config/redis.js';
 import { CREDIT_COSTS } from '../config/credits.js';
 import { checkCredits } from './creditService.js';
+
+// Invalidate credit cache - non-throwing
+async function invalidateCreditCache(userId) {
+  try {
+    await redis.del(`user:${userId}:credits`);
+  } catch (err) {
+    console.error('batchService::invalidateCreditCache error for userId:', userId, err.message);
+  }
+}
 
 const YOUTUBE_REGEX = /^(https?:\/\/)?(www\.)?(youtube\.com|youtu\.be)\//;
 const SSRF_BLOCKED = /^(localhost|127\.|10\.|172\.(1[6-9]|2\d|3[01])\.|192\.168\.|0\.0\.0\.0|::1)/i;
@@ -113,6 +123,11 @@ export const summarizeBatch = async (userId, urls, options = {}) => {
       results.push({ url, type, status: 'failed', error: err.message });
       failCount++;
     }
+  }
+
+  // Invalidate credit cache after batch completes
+  if (successCount > 0) {
+    await invalidateCreditCache(userId);
   }
 
   return {

@@ -1,8 +1,18 @@
 import { summarizeText } from '../services/textService.js';
 import { extractConcepts } from '../services/conceptService.js';
 import prisma from '../config/db.js';
+import redis from '../config/redis.js';
 import { CREDIT_COSTS } from '../config/credits.js';
 import { checkCredits } from '../services/creditService.js';
+
+// Invalidate credit cache - non-throwing
+async function invalidateCreditCache(userId) {
+  try {
+    await redis.del(`user:${userId}:credits`);
+  } catch (err) {
+    console.error('textController::invalidateCreditCache error for userId:', userId, err.message);
+  }
+}
 
 export const summarizeTextController = async (req, res) => {
   const userId = req.userID;
@@ -53,6 +63,9 @@ export const summarizeTextController = async (req, res) => {
         data: { creditsUsed: { increment: CREDIT_COSTS.TEXT_SUMMARY } },
       }),
     ]);
+
+    // Invalidate credit cache
+    await invalidateCreditCache(userId);
 
     res.status(200).json({
       success: true,

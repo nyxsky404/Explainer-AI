@@ -109,7 +109,7 @@ export default function QuizLibrary() {
                 Previous
               </Button>
               <span className="text-sm text-muted-foreground px-4">
-                Page {pagination.currentPage} of {pagination.totalPages}
+                Page {pagination.page} of {pagination.totalPages}
               </span>
               <Button
                 variant="outline"

@@ -5,13 +5,28 @@ import { PODCAST_GENERATION_COST } from "../config/credits.js";
 import { checkCredits } from "../services/creditService.js";
 import redis from "../config/redis.js";
 // Safe SCAN-based cache invalidation — redis.keys() blocks the server under load
+// Non-throwing to prevent cache failures from affecting HTTP responses
 async function invalidateUserCache(userId) {
-  let cursor = '0';
-  do {
-    const [nextCursor, keys] = await redis.scan(cursor, 'MATCH', `user:${userId}:*`, 'COUNT', 100);
-    cursor = nextCursor;
-    if (keys.length > 0) await redis.del(keys);
-  } while (cursor !== '0');
+  try {
+    let cursor = '0';
+    do {
+      const [nextCursor, keys] = await redis.scan(cursor, 'MATCH', `user:${userId}:*`, 'COUNT', 100);
+      cursor = nextCursor;
+      if (keys.length > 0) await redis.del(keys);
+    } while (cursor !== '0');
+  } catch (err) {
+    console.error('podcastController::invalidateUserCache error for userId:', userId, err.message);
+    // Non-fatal: continue without rethrowing
+  }
+}
+
+// Invalidate credit cache specifically (called after direct credit updates)
+async function invalidateCreditCache(userId) {
+  try {
+    await redis.del(`user:${userId}:credits`);
+  } catch (err) {
+    console.error('podcastController::invalidateCreditCache error for userId:', userId, err.message);
+  }
 }
 
 const PODCAST_CREDIT_COST = PODCAST_GENERATION_COST;
@@ -80,8 +95,9 @@ export const podcastGenerate = async (req, res) => {
 
     await addJobs(data.id, blogUrl, options);
 
-    // Invalidate user cache (SCAN-based)
+    // Invalidate caches
     await invalidateUserCache(req.userID);
+    await invalidateCreditCache(req.userID);
 
     res.status(200).json({
       success: true,
@@ -344,9 +360,9 @@ export const getAllPodcasts = async (req, res) => {
         podcasts: podcasts,
       },
       pagination: {
-        currentPage: page,
+        page: page,
         limit: limit,
-        totalItems: totalPodcasts,
+        total: totalPodcasts,
         totalPages: totalPages,
         hasNextPage: hasNextPage,
         hasPrevPage: hasPrevPage,
