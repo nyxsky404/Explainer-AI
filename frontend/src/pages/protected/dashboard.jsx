@@ -15,7 +15,7 @@ import {
     TableHeader,
     TableRow,
 } from '@/components/ui/table';
-import { Mic, Library, ExternalLink, Youtube, Globe, Coins, Volume2, FileText, Type, Layers, BookOpen, ClipboardList, NotebookPen, BarChart2 } from 'lucide-react';
+import { Mic, Library, ExternalLink, Youtube, Globe, Coins, Volume2, FileText, Type, Layers, BookOpen, ClipboardList, NotebookPen, BarChart2, Sparkles } from 'lucide-react';
 import ToolsGrid from '@/components/blocks/Dashboard/tools-grid';
 import { useCreditPricing } from '@/hooks/useCreditPricing';
 import { truncateUrl } from '@/lib/utils';
@@ -29,6 +29,15 @@ const tools = [
         icon: <Mic className="size-8 text-foreground" />,
         link: '/dashboard/podcast/generate',
         buttonText: 'Create Podcast',
+    },
+    {
+        id: 'gossip-generator',
+        title: 'Gossip Generator',
+        description: 'Turn articles into Gen Z-style audio convos with Maya & Jay',
+        credits: 3,
+        icon: <Sparkles className="size-8 text-foreground" />,
+        link: '/dashboard/gossip/generate',
+        buttonText: 'Spill the Tea',
     },
     {
         id: 'deep-explain',

@@ -114,3 +114,48 @@ export async function uploadDocument(buffer, fileName, contentType) {
   const { data: urlData } = supabase.storage.from("audio").getPublicUrl(filePath);
   return urlData.publicUrl;
 }
+
+// ============== GOSSIP AUDIO STORAGE ==============
+
+function getGossipFilePath(gossipId) {
+  return `gossips/${gossipId}.wav`;
+}
+
+export async function uploadGossipAudioBuffer(wavBuffer, gossipId) {
+  const supabase = getSupabaseClient();
+  const filePath = getGossipFilePath(gossipId);
+
+  const { error } = await supabase.storage
+    .from("audio")
+    .upload(filePath, wavBuffer, {
+      contentType: "audio/wav",
+      upsert: true,
+    });
+
+  if (error) {
+    console.error("Supabase gossip audio upload error:", error.message);
+    throw new Error(`Gossip audio upload failed: ${error.message}`);
+  }
+
+  const { data: urlData } = supabase.storage.from("audio").getPublicUrl(filePath);
+  return urlData.publicUrl;
+}
+
+export async function deleteGossipAudio(gossipId) {
+  try {
+    const supabase = getSupabaseClient();
+    const filePath = getGossipFilePath(gossipId);
+
+    const { error } = await supabase.storage.from("audio").remove([filePath]);
+
+    if (error) {
+      console.error(`Error deleting gossip audio for ${gossipId}:`, error.message);
+      return false;
+    }
+
+    return true;
+  } catch (err) {
+    console.error(`Error deleting gossip audio for ${gossipId}:`, err.message);
+    return false;
+  }
+}

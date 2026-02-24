@@ -17,7 +17,7 @@ import { cn } from "@/lib/utils";
 import { CheckIcon, CopyIcon, ExternalLink, Link } from "lucide-react";
 import { useRef, useState } from "react";
 
-export default function ShareDialog({ open, onOpenChange, url }) {
+export default function ShareDialog({ open, onOpenChange, url, type = 'podcast' }) {
   const [copied, setCopied] = useState(false);
   const inputRef = useRef(null);
 
@@ -27,13 +27,15 @@ export default function ShareDialog({ open, onOpenChange, url }) {
     setTimeout(() => setCopied(false), 1500);
   };
 
+  const typeName = type.charAt(0).toUpperCase() + type.slice(1);
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Share Podcast</DialogTitle>
+          <DialogTitle>Share {typeName}</DialogTitle>
           <p className="text-sm text-muted-foreground">
-            Copy the link below to share this podcast
+            Copy the link below to share this {type}
           </p>
         </DialogHeader>
         <div className="space-y-4 py-4">

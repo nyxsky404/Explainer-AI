@@ -39,6 +39,7 @@ import {
   ClipboardList,
   NotebookPen,
   BarChart2,
+  Sparkles,
 } from "lucide-react";
 import Logo from "@/assets/logo";
 import DashboardNavigation from "@/components/blocks/Dashboard/sidebar/nav-main";
@@ -81,6 +82,12 @@ const dashboardRoutes = [
     title: "Generate Podcast",
     icon: <Mic className="size-4 text-foreground" />,
     link: "/dashboard/podcast/generate",
+  },
+  {
+    id: "gossip-generator",
+    title: "Gossip Generator",
+    icon: <Sparkles className="size-4 text-foreground" />,
+    link: "/dashboard/gossip/generate",
   },
   {
     id: "deep-explain",

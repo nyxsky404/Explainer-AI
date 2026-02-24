@@ -19,6 +19,13 @@ export const DEFAULTS = {
       detailed: 6000,
     },
   },
+  GOSSIP: {
+    CHAR_LIMITS: {
+      quick: 2000,
+      standard: 3500,
+      detailed: 6000,
+    },
+  },
   STORAGE: {
     BUCKET_AUDIO: 'audio',
     EXT_WAV: '.wav',

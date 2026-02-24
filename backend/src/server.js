@@ -9,6 +9,7 @@ dotenv.config();
 
 import initialRoute from "./routes/initialRoute.js"
 import podcastRoute from "./routes/podcastRoute.js"
+import gossipRoute from "./routes/gossipRoute.js"
 import authRoute from "./routes/authRoute.js"
 import summarizerRoute from "./routes/summarizerRoute.js"
 import chatRoute from "./routes/chatRoute.js"
@@ -20,8 +21,10 @@ import { verifyToken } from "./middleware/verifyToken.js";
 import { errorHandler } from "./middleware/errorMiddleware.js";
 import { getSummaryPublic } from "./controllers/summarizerController.js";
 import { getPodcastPublic } from "./controllers/podcastController.js";
+import { getGossipPublic } from "./controllers/gossipController.js";
 import { githubCallback } from "./controllers/authController.js";
 import "./queue/worker.js";
+import "./queue/gossipWorker.js";
 
 const app = express()
 
@@ -61,6 +64,7 @@ app.use(cookieParser());
 // Public share routes (no auth required)
 app.get("/api/summary/share/:id", getSummaryPublic);
 app.get("/api/podcast/share/:id", getPodcastPublic);
+app.get("/api/gossip/share/:id", getGossipPublic);
 
 // GitHub OAuth callback — uses apiLimiter (not authLimiter) since it's
 // an automated redirect from GitHub, not a brute-force target
@@ -72,6 +76,7 @@ app.use("/api/auth", apiLimiter, authRoute)
 // Protected API routes
 app.use("/", initialRoute)
 app.use("/api/podcast", apiLimiter, verifyToken, podcastRoute)
+app.use("/api/gossip", apiLimiter, verifyToken, gossipRoute)
 app.use("/api/summarize", apiLimiter, verifyToken, summarizerRoute)
 app.use("/api/chat", apiLimiter, verifyToken, chatRoute)
 app.use("/api/deep-explain", apiLimiter, verifyToken, deepExplainRoute)

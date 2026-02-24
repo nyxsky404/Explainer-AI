@@ -16,6 +16,8 @@ import Dashboard from './pages/protected/dashboard'
 import Library from './pages/protected/Library'
 import PodcastDetail from './pages/protected/PodcastDetail'
 import PodcastGenerate from './pages/protected/PodcastGenerate'
+import GossipGenerate from './pages/protected/GossipGenerate'
+import GossipDetail from './pages/protected/GossipDetail'
 import Profile from './pages/protected/Profile'
 import YouTubeSummarize from './pages/protected/YouTubeSummarize'
 import WebSummarize from './pages/protected/WebSummarize'
@@ -30,6 +32,7 @@ import QuizAttempt from './pages/protected/QuizAttempt'
 import QuizLibrary from './pages/protected/QuizLibrary'
 import PublicSummaryView from './pages/public/PublicSummaryView'
 import PublicPodcastView from './pages/public/PublicPodcastView'
+import PublicGossipView from './pages/public/PublicGossipView'
 import NotesGenerate from './pages/protected/NotesGenerate'
 import NotesLibrary from './pages/protected/NotesLibrary'
 import NotesView from './pages/protected/NotesView'
@@ -62,6 +65,8 @@ function App() {
           <Route path="/dashboard/quiz/:id" element={<QuizAttempt />} />
           <Route path="/dashboard/podcast/generate" element={<PodcastGenerate />} />
           <Route path="/dashboard/podcast/:id" element={<PodcastDetail />} />
+          <Route path="/dashboard/gossip/generate" element={<GossipGenerate />} />
+          <Route path="/dashboard/gossip/:id" element={<GossipDetail />} />
           <Route path="/dashboard/library" element={<Library />} />
           <Route path="/profile" element={<Profile />} />
           <Route path="/dashboard/youtube-summarize" element={<YouTubeSummarize />} />
@@ -81,6 +86,7 @@ function App() {
         {/* Public Share Routes */}
         <Route path="/share/summary/:id" element={<PublicSummaryView />} />
         <Route path="/share/podcast/:id" element={<PublicPodcastView />} />
+        <Route path="/share/gossip/:id" element={<PublicGossipView />} />
 
         {/* Landing page - accessible to all */}
         <Route path="/" element={<Landing />} />
