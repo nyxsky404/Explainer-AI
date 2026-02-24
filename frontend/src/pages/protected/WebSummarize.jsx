@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import api from '@/api/axios';
 import { toast } from 'sonner';
 import { Globe } from 'lucide-react';
@@ -6,13 +6,36 @@ import { getFriendlyErrorMessage } from '@/utils/errorMessages';
 import UrlInputCard from '@/components/shared/UrlInputCard';
 import DepthSelector from '@/components/shared/DepthSelector';
 
-import { useNavigate } from 'react-router';
+import { useNavigate, useSearchParams } from 'react-router';
 
 export default function WebSummarize() {
     const navigate = useNavigate();
+    const [searchParams] = useSearchParams();
     const [url, setUrl] = useState('');
     const [depth, setDepth] = useState('standard');
     const [isLoading, setIsLoading] = useState(false);
+
+    // Handle extension parameters
+    useEffect(() => {
+        const urlParam = searchParams.get('url');
+        const auto = searchParams.get('auto') === 'true';
+        
+        if (urlParam) {
+            setUrl(decodeURIComponent(urlParam));
+        }
+    }, [searchParams]);
+
+    // Auto-submit after URL is set
+    useEffect(() => {
+        const auto = searchParams.get('auto') === 'true';
+        if (url && auto) {
+            // Auto-submit if auto=true and URL is set
+            const timer = setTimeout(() => {
+                handleSubmit({ preventDefault: () => {} });
+            }, 500);
+            return () => clearTimeout(timer);
+        }
+    }, [url, searchParams]);
 
     const handleSubmit = async (e) => {
         e.preventDefault();

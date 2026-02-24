@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router';
+import { useState, useEffect } from 'react';
+import { useNavigate, useSearchParams } from 'react-router';
 import api from '@/api/axios';
 import { toast } from 'sonner';
 import { BookOpen, FileText, Upload, Lightbulb, Brain, GraduationCap } from 'lucide-react';
@@ -15,10 +15,37 @@ import ExplainModeSelector from '@/components/shared/ExplainModeSelector';
 
 export default function DeepExplain() {
     const navigate = useNavigate();
+    const [searchParams] = useSearchParams();
     const [topic, setTopic] = useState('');
     const [mode, setMode] = useState('easy');
     const [sourceContent, setSourceContent] = useState('');
     const [isLoading, setIsLoading] = useState(false);
+
+    // Handle extension parameters
+    useEffect(() => {
+        const topicParam = searchParams.get('topic');
+        const textParam = searchParams.get('text');
+        const auto = searchParams.get('auto') === 'true';
+        
+        if (topicParam) {
+            setTopic(decodeURIComponent(topicParam));
+        }
+        if (textParam) {
+            setSourceContent(decodeURIComponent(textParam));
+        }
+    }, [searchParams]);
+
+    // Auto-submit after content is set
+    useEffect(() => {
+        const auto = searchParams.get('auto') === 'true';
+        if ((topic || sourceContent) && auto) {
+            // Auto-submit if auto=true and content is set
+            const timer = setTimeout(() => {
+                handleSubmit({ preventDefault: () => {} });
+            }, 500);
+            return () => clearTimeout(timer);
+        }
+    }, [topic, sourceContent, searchParams]);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -113,7 +140,7 @@ export default function DeepExplain() {
                                             placeholder="Paste any relevant text, notes, or content that provides context for your question..."
                                             value={sourceContent}
                                             onChange={(e) => setSourceContent(e.target.value)}
-                                            className="min-h-[120px]"
+                                            className="min-h-30"
                                         />
                                         <p className="text-xs text-muted-foreground">
                                             Providing context helps generate more accurate and relevant

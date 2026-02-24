@@ -39,6 +39,8 @@ import NotesView from './pages/protected/NotesView'
 import VisualizerGenerate from './pages/protected/VisualizerGenerate'
 import VisualizerLibrary from './pages/protected/VisualizerLibrary'
 import VisualizerView from './pages/protected/VisualizerView'
+import ExtensionSummarize from './pages/extension/ExtensionSummarize'
+import ExtensionExplain from './pages/extension/ExtensionExplain'
 
 function App() {
   return (
@@ -57,6 +59,9 @@ function App() {
 
         {/* Protected routes - redirect to login if not authenticated */}
         <Route element={<ProtectedLayout />}>
+          {/* Extension redirect routes */}
+          <Route path="/summarize" element={<ExtensionSummarize />} />
+          <Route path="/explain" element={<ExtensionExplain />} />
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/dashboard/deep-explain" element={<DeepExplain />} />
           <Route path="/dashboard/deep-explain/:id" element={<DeepExplainView />} />
