@@ -1,6 +1,14 @@
 import { GoogleGenAI } from "@google/genai";
 import { getGossipPrompt } from '../prompts/gossipPrompts.js';
 
+// Validate GEMINI_API_KEY at startup
+if (!process.env.GEMINI_API_KEY) {
+    throw new Error('GEMINI_API_KEY environment variable is required but not defined');
+}
+
+// Initialize GoogleGenAI client once at module level
+const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+
 /**
  * Generate a Gen Z-style gossip script from scraped content.
  * @param {string} scrapedText - The scraped article/blog content
@@ -10,8 +18,6 @@ import { getGossipPrompt } from '../prompts/gossipPrompts.js';
  */
 export const generateGossipScript = async (scrapedText, options = {}) => {
     try {
-        const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
-
         const Gemini_Response = await ai.models.generateContent({
             model: "gemini-2.5-flash",
             contents: getGossipPrompt(scrapedText, options),
@@ -25,6 +31,7 @@ export const generateGossipScript = async (scrapedText, options = {}) => {
 
         return result;
     } catch (err) {
-        throw new Error(err.message);
+        // Re-throw the original error to preserve stack trace
+        throw err;
     }
 };

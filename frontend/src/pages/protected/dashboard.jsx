@@ -15,7 +15,7 @@ import {
     TableHeader,
     TableRow,
 } from '@/components/ui/table';
-import { Mic, Library, ExternalLink, Youtube, Globe, Coins, Volume2, FileText, Type, Layers, BookOpen, ClipboardList, NotebookPen, BarChart2, Sparkles } from 'lucide-react';
+import { Mic, Library, ExternalLink, Youtube, Globe, Coins, Volume2, FileText, Type, Layers, BookOpen, ClipboardList, NotebookPen, BarChart2, Sparkles, FileQuestion, StickyNote, Brain } from 'lucide-react';
 import ToolsGrid from '@/components/blocks/Dashboard/tools-grid';
 import { useCreditPricing } from '@/hooks/useCreditPricing';
 import { truncateUrl } from '@/lib/utils';
@@ -151,55 +151,88 @@ export default function Dashboard() {
     const usagePercentage = usage ? (usage.current / usage.limit) * 100 : 0;
 
     const getActivityIcon = (item) => {
-        if (item.activityType === 'podcast') {
-            return <Mic className="size-4 text-purple-500" />;
-        } else if (item.type === 'youtube') {
-            return <Youtube className="size-4 text-red-500" />;
-        } else {
-            return <Globe className="size-4 text-blue-500" />;
+        switch (item.activityType) {
+            case 'podcast':
+                return <Mic className="size-4 text-purple-500" />;
+            case 'gossip':
+                return <Sparkles className="size-4 text-pink-500" />;
+            case 'quiz':
+                return <FileQuestion className="size-4 text-indigo-500" />;
+            case 'note':
+                return <StickyNote className="size-4 text-amber-500" />;
+            case 'visualization':
+                return <BarChart2 className="size-4 text-cyan-500" />;
+            case 'deepExplain':
+                return <Brain className="size-4 text-emerald-500" />;
+            case 'summary':
+            default:
+                if (item.type === 'youtube') {
+                    return <Youtube className="size-4 text-red-500" />;
+                } else if (item.type === 'pdf') {
+                    return <FileText className="size-4 text-orange-500" />;
+                } else if (item.type === 'text') {
+                    return <Type className="size-4 text-gray-500" />;
+                }
+                return <Globe className="size-4 text-blue-500" />;
         }
     };
 
     const getActivityBadge = (item) => {
-        if (item.activityType === 'podcast') {
-            if (item.status === 'failed') {
-                return <Badge variant="destructive" className="gap-1"><Mic className="size-3" />Failed</Badge>;
-            } else if (item.status === 'completed') {
-                return <Badge className="bg-green-500 hover:bg-green-600 gap-1"><Mic className="size-3" />Completed</Badge>;
-            } else {
+        switch (item.activityType) {
+            case 'podcast':
+            case 'gossip':
+                if (item.status === 'failed') {
+                    return <Badge variant="destructive" className="gap-1"><Mic className="size-3" />Failed</Badge>;
+                } else if (item.status === 'completed') {
+                    return <Badge className="bg-green-500 hover:bg-green-600 gap-1"><Mic className="size-3" />Completed</Badge>;
+                }
                 return <Badge variant="secondary" className="capitalize gap-1"><Mic className="size-3" />{item.status?.replace(/_/g, ' ')}</Badge>;
-            }
-        } else {
-            // Summary badge: red speaker if audio failed, green speaker if audio completed, green YT/Globe if no audio
-            if (item.audioStatus === 'failed') {
-                return (
-                    <Badge variant="destructive" className="gap-1">
-                        <Volume2 className="size-3" />
-                        Failed
-                    </Badge>
-                );
-            }
-            const hasAudio = item.audioStatus === 'completed';
-            const Icon = hasAudio ? Volume2 : (item.type === 'youtube' ? Youtube : Globe);
-            return (
-                <Badge className="bg-green-500 hover:bg-green-600 gap-1">
-                    <Icon className="size-3" />
-                    Completed
-                </Badge>
-            );
+            case 'quiz':
+                return <Badge className="bg-indigo-500 hover:bg-indigo-600 gap-1"><FileQuestion className="size-3" />Quiz</Badge>;
+            case 'note':
+                return <Badge className="bg-amber-500 hover:bg-amber-600 gap-1"><StickyNote className="size-3" />Notes</Badge>;
+            case 'visualization':
+                return <Badge className="bg-cyan-500 hover:bg-cyan-600 gap-1"><BarChart2 className="size-3" />Visual</Badge>;
+            case 'deepExplain':
+                return <Badge className="bg-emerald-500 hover:bg-emerald-600 gap-1"><Brain className="size-3" />Explain</Badge>;
+            case 'summary':
+            default:
+                if (item.audioStatus === 'failed') {
+                    return <Badge variant="destructive" className="gap-1"><Volume2 className="size-3" />Failed</Badge>;
+                }
+                const hasAudio = item.audioStatus === 'completed';
+                const Icon = hasAudio ? Volume2 : (item.type === 'youtube' ? Youtube : Globe);
+                return <Badge className="bg-green-500 hover:bg-green-600 gap-1"><Icon className="size-3" />Completed</Badge>;
         }
     };
 
     const getActivityLink = (item) => {
-        if (item.activityType === 'podcast') {
-            return `/dashboard/podcast/${item.id}`;
-        } else {
-            return `/dashboard/summary/${item.id}`;
+        switch (item.activityType) {
+            case 'podcast':
+                return `/dashboard/podcast/${item.id}`;
+            case 'gossip':
+                return `/dashboard/gossip/${item.id}`;
+            case 'quiz':
+                return `/dashboard/quiz/${item.id}`;
+            case 'note':
+                return `/dashboard/notes/${item.id}`;
+            case 'visualization':
+                return `/dashboard/visualizer/${item.id}`;
+            case 'deepExplain':
+                return `/dashboard/deep-explain/${item.id}`;
+            case 'summary':
+            default:
+                return `/dashboard/summary/${item.id}`;
         }
     };
 
     const getActivityUrl = (item) => {
-        return truncateUrl(item.blogUrl || item.sourceUrl);
+        // Tools with URLs
+        if (item.blogUrl || item.sourceUrl) {
+            return truncateUrl(item.blogUrl || item.sourceUrl);
+        }
+        // Tools with title/topic fields
+        return item.title || item.topic || 'Content';
     };
 
     const formatDate = (dateString) => {
@@ -291,24 +324,31 @@ export default function Dashboard() {
                                 {recentActivity.map((item) => (
                                     <TableRow key={`${item.activityType || 'summary'}-${item.id}`}>
                                         <TableCell className="font-medium max-w-md">
-                                            <a
-                                                href={item.blogUrl || item.sourceUrl}
-                                                target="_blank"
-                                                rel="noopener noreferrer"
-                                                className="hover:underline inline-flex items-center gap-2"
-                                            >
-                                                {getActivityIcon(item)}
-                                                <span className="truncate">{getActivityUrl(item)}</span>
-                                                <ExternalLink className="size-3 shrink-0" />
-                                            </a>
+                                            {item.blogUrl || item.sourceUrl ? (
+                                                <a
+                                                    href={item.blogUrl || item.sourceUrl}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    className="hover:underline inline-flex items-center gap-2"
+                                                >
+                                                    {getActivityIcon(item)}
+                                                    <span className="truncate">{getActivityUrl(item)}</span>
+                                                    <ExternalLink className="size-3 shrink-0" />
+                                                </a>
+                                            ) : (
+                                                <span className="inline-flex items-center gap-2">
+                                                    {getActivityIcon(item)}
+                                                    <span className="truncate">{getActivityUrl(item)}</span>
+                                                </span>
+                                            )}
                                         </TableCell>
                                         <TableCell>{getActivityBadge(item)}</TableCell>
                                         <TableCell>
                                             <span className="inline-flex items-center gap-1 text-amber-600">
                                                 <Coins className="size-3" />
-                                                {item.activityType === 'podcast' 
-                                                    ? (item.credits || pricing.podcast)
-                                                    : (pricing.youtubeSummary + (item.audioStatus === 'completed' ? pricing.audioGeneration : 0))
+                                                {item.credits || (item.activityType === 'summary' 
+                                                    ? (pricing.youtubeSummary + (item.audioStatus === 'completed' ? pricing.audioGeneration : 0))
+                                                    : 2)
                                                 }
                                             </span>
                                         </TableCell>

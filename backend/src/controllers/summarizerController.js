@@ -302,7 +302,7 @@ export const getRecentActivity = async (req, res) => {
       return res.status(200).json(JSON.parse(cachedData));
     }
 
-    const [podcasts, summaries, totalPodcasts, totalSummaries] = await Promise.all([
+    const [podcasts, summaries, quizzes, notes, visualizations, gossips, deepExplanations, totalPodcasts, totalSummaries, totalQuizzes, totalNotes, totalVisualizations, totalGossips, totalDeepExplanations] = await Promise.all([
       prisma.podcast.findMany({
         where: { userId },
         orderBy: { createdAt: "desc" },
@@ -328,16 +328,87 @@ export const getRecentActivity = async (req, res) => {
           createdAt: true,
         },
       }),
+      prisma.quiz.findMany({
+        where: { userId },
+        orderBy: { createdAt: "desc" },
+        take: parsedLimit,
+        skip,
+        select: {
+          id: true,
+          title: true,
+          sourceType: true,
+          createdAt: true,
+        },
+      }),
+      prisma.note.findMany({
+        where: { userId },
+        orderBy: { createdAt: "desc" },
+        take: parsedLimit,
+        skip,
+        select: {
+          id: true,
+          title: true,
+          style: true,
+          sourceType: true,
+          createdAt: true,
+        },
+      }),
+      prisma.visualization.findMany({
+        where: { userId },
+        orderBy: { createdAt: "desc" },
+        take: parsedLimit,
+        skip,
+        select: {
+          id: true,
+          topic: true,
+          type: true,
+          createdAt: true,
+        },
+      }),
+      prisma.gossip.findMany({
+        where: { userId },
+        orderBy: { createdAt: "desc" },
+        take: parsedLimit,
+        skip,
+        select: {
+          id: true,
+          blogUrl: true,
+          status: true,
+          createdAt: true,
+        },
+      }),
+      prisma.deepExplanation.findMany({
+        where: { userId },
+        orderBy: { createdAt: "desc" },
+        take: parsedLimit,
+        skip,
+        select: {
+          id: true,
+          topic: true,
+          mode: true,
+          createdAt: true,
+        },
+      }),
       prisma.podcast.count({ where: { userId } }),
       prisma.summary.count({ where: { userId } }),
+      prisma.quiz.count({ where: { userId } }),
+      prisma.note.count({ where: { userId } }),
+      prisma.visualization.count({ where: { userId } }),
+      prisma.gossip.count({ where: { userId } }),
+      prisma.deepExplanation.count({ where: { userId } }),
     ]);
 
     const allActivity = [
       ...podcasts.map((p) => ({ ...p, activityType: "podcast", credits: CREDIT_COSTS.PODCAST_GENERATION })),
       ...summaries.map((s) => ({ ...s, activityType: "summary", credits: CREDIT_COSTS.YOUTUBE_SUMMARY })),
+      ...quizzes.map((q) => ({ ...q, activityType: "quiz", credits: CREDIT_COSTS.QUIZ_GENERATE })),
+      ...notes.map((n) => ({ ...n, activityType: "note", credits: CREDIT_COSTS.NOTES_GENERATE })),
+      ...visualizations.map((v) => ({ ...v, activityType: "visualization", credits: CREDIT_COSTS.VISUALIZER_MERMAID })),
+      ...gossips.map((g) => ({ ...g, activityType: "gossip", credits: CREDIT_COSTS.GOSSIP_GENERATION })),
+      ...deepExplanations.map((d) => ({ ...d, activityType: "deepExplain", credits: CREDIT_COSTS.DEEP_EXPLAIN })),
     ].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
 
-    const total = totalPodcasts + totalSummaries;
+    const total = totalPodcasts + totalSummaries + totalQuizzes + totalNotes + totalVisualizations + totalGossips + totalDeepExplanations;
 
     const response = {
       success: true,

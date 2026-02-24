@@ -22,7 +22,7 @@ import {
     PaginationNext,
     PaginationPrevious,
 } from '@/components/ui/pagination';
-import { ExternalLink, Mic, Plus, Youtube, Globe, Library as LibraryIcon, FileText, Type } from 'lucide-react';
+import { ExternalLink, Mic, Plus, Youtube, Globe, Library as LibraryIcon, FileText, Type, FileQuestion, StickyNote, BarChart2, Sparkles, Brain } from 'lucide-react';
 import { truncateUrl } from '@/lib/utils';
 
 export default function Library() {
@@ -77,37 +77,62 @@ export default function Library() {
     };
 
     const getIcon = (item) => {
-        if (item.activityType === 'podcast') {
-            return <Mic className="size-4 text-purple-500" />;
-        } else if (item.type === 'youtube') {
-            return <Youtube className="size-4 text-red-500" />;
-        } else if (item.type === 'pdf') {
-            return <FileText className="size-4 text-orange-500" />;
-        } else if (item.type === 'text') {
-            return <Type className="size-4 text-gray-500" />;
-        } else {
-            return <Globe className="size-4 text-blue-500" />;
+        switch (item.activityType) {
+            case 'podcast':
+                return <Mic className="size-4 text-purple-500" />;
+            case 'gossip':
+                return <Sparkles className="size-4 text-pink-500" />;
+            case 'quiz':
+                return <FileQuestion className="size-4 text-indigo-500" />;
+            case 'note':
+                return <StickyNote className="size-4 text-amber-500" />;
+            case 'visualization':
+                return <BarChart2 className="size-4 text-cyan-500" />;
+            case 'deepExplain':
+                return <Brain className="size-4 text-emerald-500" />;
+            case 'summary':
+            default:
+                if (item.type === 'youtube') {
+                    return <Youtube className="size-4 text-red-500" />;
+                } else if (item.type === 'pdf') {
+                    return <FileText className="size-4 text-orange-500" />;
+                } else if (item.type === 'text') {
+                    return <Type className="size-4 text-gray-500" />;
+                }
+                return <Globe className="size-4 text-blue-500" />;
         }
     };
 
     const getBadge = (item) => {
-        if (item.activityType === 'podcast') {
-            const variants = { completed: 'default', failed: 'destructive' };
-            const variant = variants[item.status] || 'secondary';
-            const className = item.status === 'completed' ? 'bg-green-500 hover:bg-green-600' : '';
-            return (
-                <Badge variant={variant} className={`capitalize gap-1 ${className}`}>
-                    <Mic className="size-3" />
-                    {item.status?.replace(/_/g, ' ')}
-                </Badge>
-            );
-        } else {
-            return (
-                <Badge variant="outline" className="capitalize gap-1">
-                    {item.type === 'youtube' ? <Youtube className="size-3" /> : <Globe className="size-3" />}
-                    {item.type} Summary
-                </Badge>
-            );
+        switch (item.activityType) {
+            case 'podcast':
+            case 'gossip': {
+                const variants = { completed: 'default', failed: 'destructive' };
+                const variant = variants[item.status] || 'secondary';
+                const className = item.status === 'completed' ? 'bg-green-500 hover:bg-green-600' : '';
+                return (
+                    <Badge variant={variant} className={`capitalize gap-1 ${className}`}>
+                        <Mic className="size-3" />
+                        {item.status?.replace(/_/g, ' ')}
+                    </Badge>
+                );
+            }
+            case 'quiz':
+                return <Badge className="bg-indigo-500 hover:bg-indigo-600 gap-1"><FileQuestion className="size-3" />Quiz</Badge>;
+            case 'note':
+                return <Badge className="bg-amber-500 hover:bg-amber-600 gap-1"><StickyNote className="size-3" />Notes</Badge>;
+            case 'visualization':
+                return <Badge className="bg-cyan-500 hover:bg-cyan-600 gap-1"><BarChart2 className="size-3" />Visual</Badge>;
+            case 'deepExplain':
+                return <Badge className="bg-emerald-500 hover:bg-emerald-600 gap-1"><Brain className="size-3" />Explain</Badge>;
+            case 'summary':
+            default:
+                return (
+                    <Badge variant="outline" className="capitalize gap-1">
+                        {item.type === 'youtube' ? <Youtube className="size-3" /> : <Globe className="size-3" />}
+                        {item.type} Summary
+                    </Badge>
+                );
         }
     };
 
@@ -136,10 +161,26 @@ export default function Library() {
         );
     };
 
-    const getUrl = (item) => item.blogUrl || item.sourceUrl;
-    const getLink = (item) => item.activityType === 'podcast' 
-        ? `/dashboard/podcast/${item.id}` 
-        : `/dashboard/summary/${item.id}`;
+    const getUrl = (item) => item.blogUrl || item.sourceUrl || item.title || item.topic || 'Content';
+    const getLink = (item) => {
+        switch (item.activityType) {
+            case 'podcast':
+                return `/dashboard/podcast/${item.id}`;
+            case 'gossip':
+                return `/dashboard/gossip/${item.id}`;
+            case 'quiz':
+                return `/dashboard/quiz/${item.id}`;
+            case 'note':
+                return `/dashboard/notes/${item.id}`;
+            case 'visualization':
+                return `/dashboard/visualizer/${item.id}`;
+            case 'deepExplain':
+                return `/dashboard/deep-explain/${item.id}`;
+            case 'summary':
+            default:
+                return `/dashboard/summary/${item.id}`;
+        }
+    };
 
     const formatDate = (dateString) => {
         return new Date(dateString).toLocaleDateString('en-US', {
@@ -270,16 +311,23 @@ export default function Library() {
                                         {activity.map((item) => (
                                             <TableRow key={`${item.activityType || 'summary'}-${item.id}`}>
                                                 <TableCell className="font-medium max-w-md">
-                                                    <a
-                                                        href={getUrl(item)}
-                                                        target="_blank"
-                                                        rel="noopener noreferrer"
-                                                        className="hover:underline inline-flex items-center gap-2"
-                                                    >
-                                                        {getIcon(item)}
-                                                        <span className="truncate">{truncateUrl(getUrl(item))}</span>
-                                                        <ExternalLink className="size-3 shrink-0" />
-                                                    </a>
+                                                    {item.blogUrl || item.sourceUrl ? (
+                                                        <a
+                                                            href={getUrl(item)}
+                                                            target="_blank"
+                                                            rel="noopener noreferrer"
+                                                            className="hover:underline inline-flex items-center gap-2"
+                                                        >
+                                                            {getIcon(item)}
+                                                            <span className="truncate">{truncateUrl(getUrl(item))}</span>
+                                                            <ExternalLink className="size-3 shrink-0" />
+                                                        </a>
+                                                    ) : (
+                                                        <span className="inline-flex items-center gap-2">
+                                                            {getIcon(item)}
+                                                            <span className="truncate">{getUrl(item)}</span>
+                                                        </span>
+                                                    )}
                                                 </TableCell>
                                                 <TableCell>{getBadge(item)}</TableCell>
                                                 <TableCell className="text-muted-foreground">{formatDate(item.createdAt)}</TableCell>

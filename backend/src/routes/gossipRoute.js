@@ -7,8 +7,12 @@ import {
   getAllGossips,
   deleteGossip,
 } from "../controllers/gossipController.js";
+import { verifyToken } from "../middleware/verifyToken.js";
 
 const router = express.Router();
+
+// Apply authentication middleware to all routes
+router.use(verifyToken);
 
 // Generate a new gossip
 router.post("/generate", gossipGenerate);

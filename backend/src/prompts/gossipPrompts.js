@@ -1,12 +1,18 @@
 import { DEFAULTS } from '../config/constants.js';
 
+// Safe default character limit if config is missing
+const SAFE_DEFAULT_CHAR_LIMIT = 8000;
+
 /**
  * Get character limit for a given depth level for gossip.
  * @param {'quick' | 'standard' | 'detailed'} depth
  * @returns {number}
  */
 export function getGossipCharLimit(depth = 'standard') {
-  return DEFAULTS.GOSSIP.CHAR_LIMITS[depth] || DEFAULTS.GOSSIP.CHAR_LIMITS.standard;
+  const limit = DEFAULTS?.GOSSIP?.CHAR_LIMITS?.[depth] ?? DEFAULTS?.GOSSIP?.CHAR_LIMITS?.standard;
+  // Validate and return a safe number
+  const parsedLimit = Number(limit);
+  return Number.isFinite(parsedLimit) && parsedLimit > 0 ? parsedLimit : SAFE_DEFAULT_CHAR_LIMIT;
 }
 
 /**
@@ -103,6 +109,31 @@ Think two smart besties discussing something fascinating over brunch. The conver
 - Jump straight into the conversation`;
 }
 
+// Maximum content length to prevent overly large prompts
+const MAX_CONTENT_LENGTH = 50000;
+
+/**
+ * Sanitize content for use in prompts.
+ * @param {string} content - The content to sanitize
+ * @returns {string}
+ */
+function sanitizeContent(content) {
+  // Ensure content is a non-null string
+  if (content == null) {
+    return '';
+  }
+  
+  // Convert to string and trim
+  let sanitized = String(content).trim();
+  
+  // Apply length limit
+  if (sanitized.length > MAX_CONTENT_LENGTH) {
+    sanitized = sanitized.substring(0, MAX_CONTENT_LENGTH);
+  }
+  
+  return sanitized;
+}
+
 /**
  * Get the gossip prompt with content injected.
  * @param {string} content - The scraped content to discuss
@@ -111,5 +142,12 @@ Think two smart besties discussing something fascinating over brunch. The conver
  */
 export const getGossipPrompt = (content, options = {}) => {
   const basePrompt = buildGossipPrompt(options);
-  return `${basePrompt}\n\n**Source Article:** ${content}`;
+  const sanitizedContent = sanitizeContent(content);
+  
+  // Wrap content in XML-style fences for clear boundaries
+  return `${basePrompt}
+
+<article>
+${sanitizedContent}
+</article>`;
 };

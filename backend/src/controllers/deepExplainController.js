@@ -5,6 +5,17 @@ import {
   addFollowUp,
   deleteExplanation,
 } from '../services/deepExplainService.js';
+import redis from '../config/redis.js';
+
+// Invalidate activity cache so new explanation appears in recent activity
+async function invalidateActivityCache(userId) {
+  let cursor = '0';
+  do {
+    const [nextCursor, keys] = await redis.scan(cursor, 'MATCH', `user:${userId}:activity:*`, 'COUNT', 100);
+    cursor = nextCursor;
+    if (keys.length > 0) await redis.del(keys);
+  } while (cursor !== '0');
+}
 
 /**
  * Generate a new deep explanation
@@ -35,6 +46,8 @@ export const generateExplanation = async (req, res) => {
       mode,
       sourceContent
     );
+
+    await invalidateActivityCache(userId);
 
     return res.status(201).json({
       success: true,

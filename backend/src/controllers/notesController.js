@@ -26,6 +26,16 @@ async function invalidateNotesCache(userId) {
   } while (cursor !== '0');
 }
 
+// Invalidate activity cache so new note appears in recent activity
+async function invalidateActivityCache(userId) {
+  let cursor = '0';
+  do {
+    const [nextCursor, keys] = await redis.scan(cursor, 'MATCH', `user:${userId}:activity:*`, 'COUNT', 100);
+    cursor = nextCursor;
+    if (keys.length > 0) await redis.del(keys);
+  } while (cursor !== '0');
+}
+
 /**
  * Generate a new note from content
  * POST /api/notes/generate
@@ -56,6 +66,7 @@ export const generateNoteController = async (req, res) => {
 
     // Invalidate notes list cache
     await invalidateNotesCache(userId);
+    await invalidateActivityCache(userId);
 
     res.status(201).json({ success: true, message: 'Note generated successfully', data: note });
   } catch (error) {
@@ -92,6 +103,7 @@ export const generateNoteFromSummaryController = async (req, res) => {
 
     // Invalidate notes list cache
     await invalidateNotesCache(userId);
+    await invalidateActivityCache(userId);
 
     res.status(201).json({ success: true, message: 'Note generated from summary successfully', data: note });
   } catch (error) {

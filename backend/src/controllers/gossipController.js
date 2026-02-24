@@ -31,46 +31,7 @@ export const gossipGenerate = async (req, res) => {
       });
     }
 
-    // Check usage limits
-    const creditCheck = await checkCredits(req.userID, GOSSIP_CREDIT_COST);
-
-    if (!creditCheck.allowed) {
-      return res.status(403).json({
-        success: false,
-        message: creditCheck.message,
-        usage: {
-          current: creditCheck.user.creditsUsed,
-          limit: creditCheck.user.creditLimit,
-          resetDate: creditCheck.user.usageResetDate,
-        },
-      });
-    }
-
-    const data = await prisma.gossip.create({
-      data: {
-        blogUrl,
-        status: "processing",
-        progress: 0,
-        creditsUsed: GOSSIP_CREDIT_COST,
-        user: {
-          connect: {
-            id: req.userID,
-          },
-        },
-      },
-    });
-
-    // Deduct credits for gossip (3 credits)
-    await prisma.user.update({
-      where: { id: req.userID },
-      data: {
-        creditsUsed: {
-          increment: GOSSIP_CREDIT_COST,
-        },
-      },
-    });
-
-    // Fetch user preferences and merge with per-request depth
+    // Fetch user preferences first (outside transaction)
     const preferences = await prisma.userPreference.findUnique({
       where: { userId: req.userID },
     });
@@ -78,25 +39,110 @@ export const gossipGenerate = async (req, res) => {
       depth: depth || preferences?.defaultDepth || 'standard',
     };
 
-    await addGossipJob(data.id, blogUrl, options);
+    // Use transaction for atomic credit check, gossip creation, and credit deduction
+    const { gossip, user } = await prisma.$transaction(async (tx) => {
+      // Check current credits within transaction
+      const currentUser = await tx.user.findUnique({
+        where: { id: req.userID },
+      });
 
-    // Invalidate user cache (SCAN-based)
+      if (!currentUser) {
+        throw new Error('User not found');
+      }
+
+      // Check if credits are sufficient
+      if (currentUser.creditsUsed + GOSSIP_CREDIT_COST > currentUser.creditLimit) {
+        const error = new Error('Insufficient credits');
+        error.code = 'INSUFFICIENT_CREDITS';
+        error.user = currentUser;
+        throw error;
+      }
+
+      // Create gossip record
+      const newGossip = await tx.gossip.create({
+        data: {
+          blogUrl,
+          status: "processing",
+          progress: 0,
+          creditsUsed: GOSSIP_CREDIT_COST,
+          user: {
+            connect: {
+              id: req.userID,
+            },
+          },
+        },
+      });
+
+      // Deduct credits atomically
+      const updatedUser = await tx.user.update({
+        where: { id: req.userID },
+        data: {
+          creditsUsed: {
+            increment: GOSSIP_CREDIT_COST,
+          },
+        },
+      });
+
+      return { gossip: newGossip, user: updatedUser };
+    });
+
+    // Try to add job to queue - rollback if fails
+    try {
+      await addGossipJob(gossip.id, blogUrl, options);
+    } catch (queueError) {
+      console.error('gossipController::gossipGenerate queue error:', queueError);
+      // Rollback: delete gossip record and refund credits
+      await prisma.$transaction(async (tx) => {
+        await tx.gossip.delete({
+          where: { id: gossip.id },
+        });
+        await tx.user.update({
+          where: { id: req.userID },
+          data: {
+            creditsUsed: {
+              decrement: GOSSIP_CREDIT_COST,
+            },
+          },
+        });
+      });
+      return res.status(500).json({
+        success: false,
+        message: 'Failed to queue gossip generation job',
+      });
+    }
+
+    // Invalidate user cache (SCAN-based) - only after successful queuing
     await invalidateUserCache(req.userID);
 
     res.status(200).json({
       success: true,
-      data,
+      data: gossip,
       usage: {
-        current: creditCheck.user.creditsUsed + GOSSIP_CREDIT_COST,
-        limit: creditCheck.user.creditLimit,
-        resetDate: creditCheck.user.usageResetDate,
+        current: user.creditsUsed,
+        limit: user.creditLimit,
+        resetDate: user.usageResetDate,
         creditsUsed: GOSSIP_CREDIT_COST,
       },
     });
   } catch (err) {
+    console.error('gossipController::gossipGenerate error:', err);
+    
+    // Handle specific credit error
+    if (err.code === 'INSUFFICIENT_CREDITS') {
+      return res.status(403).json({
+        success: false,
+        message: 'Credit limit exceeded',
+        usage: {
+          current: err.user.creditsUsed,
+          limit: err.user.creditLimit,
+          resetDate: err.user.usageResetDate,
+        },
+      });
+    }
+    
     res.status(500).json({
       success: false,
-      message: 'An unexpected error occurred',
+      message: 'Internal server error',
     });
   }
 };
@@ -194,9 +240,10 @@ export const getGossipProgress = async (req, res) => {
       },
     });
   } catch (err) {
+    console.error('gossipController::getGossipProgress error:', err);
     res.status(500).json({
       success: false,
-      message: 'An unexpected error occurred',
+      message: 'Internal server error',
     });
   }
 };
@@ -252,7 +299,15 @@ export const retryGossip = async (req, res) => {
       },
     });
 
-    await addGossipJob(id, gossip.blogUrl);
+    // Fetch user preferences for retry options
+    const preferences = await prisma.userPreference.findUnique({
+      where: { userId },
+    });
+    const options = {
+      depth: preferences?.defaultDepth || 'standard',
+    };
+
+    await addGossipJob(id, gossip.blogUrl, options);
 
     // Invalidate user cache
     await invalidateUserCache(userId);
@@ -267,9 +322,10 @@ export const retryGossip = async (req, res) => {
       },
     });
   } catch (err) {
+    console.error('gossipController::retryGossip error:', err);
     res.status(500).json({
       success: false,
-      message: 'An unexpected error occurred',
+      message: 'Internal server error',
     });
   }
 };
@@ -306,7 +362,7 @@ export const getAllGossips = async (req, res) => {
     // Check if user exists
     const user = await prisma.user.findUnique({
       where: { id: userId },
-      select: { id: true, name: true, email: true },
+      select: { id: true, name: true },
     });
 
     if (!user) {
@@ -349,7 +405,6 @@ export const getAllGossips = async (req, res) => {
         user: {
           id: user.id,
           name: user.name,
-          email: user.email,
         },
         gossips: gossips,
       },
@@ -368,9 +423,10 @@ export const getAllGossips = async (req, res) => {
 
     res.status(200).json(response);
   } catch (err) {
+    console.error('gossipController::getAllGossips error:', err);
     res.status(500).json({
       success: false,
-      message: 'An unexpected error occurred',
+      message: 'Internal server error',
     });
   }
 };
@@ -426,9 +482,10 @@ export const deleteGossip = async (req, res) => {
       message: "Gossip deleted successfully",
     });
   } catch (err) {
+    console.error('gossipController::deleteGossip error:', err);
     res.status(500).json({
       success: false,
-      message: 'An unexpected error occurred',
+      message: 'Internal server error',
     });
   }
 };
@@ -471,10 +528,11 @@ export const getGossipPublic = async (req, res) => {
         audioUrl: gossip.audioUrl,
         audioDuration: gossip.audioDuration,
         createdAt: gossip.createdAt,
-        author: gossip.user.name,
+        author: gossip.user?.name || 'Deleted user',
       },
     });
   } catch (err) {
-    res.status(500).json({ success: false, message: err.message });
+    console.error('gossipController::getGossipPublic error:', err);
+    res.status(500).json({ success: false, message: 'Internal server error' });
   }
 };

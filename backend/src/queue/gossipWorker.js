@@ -9,6 +9,11 @@ const connection = new IORedis(process.env.REDIS_URL, {
   maxRetriesPerRequest: null,
 });
 
+// Attach error listener to prevent unhandled exceptions
+connection.on('error', (err) => {
+  console.error('gossipWorker::Redis connection error:', err.message);
+});
+
 const gossipWorker = new Worker(
   "gossip-generate",
   async (job) => {
@@ -126,20 +131,31 @@ const gossipWorker = new Worker(
   }
 );
 
+// Add error event listener to catch infrastructure-level errors
+gossipWorker.on('error', (err) => {
+  console.error('gossipWorker::Worker error:', err.message, err.stack);
+});
+
 gossipWorker.on("completed", (job) => {
   console.log(`Gossip worker job ${job.id} has completed!`);
 });
 
+// The "failed" event fires on every failed attempt, not only on permanent failure
 gossipWorker.on("failed", async (job, err) => {
   console.log(`Gossip worker job ${job.id} has failed with ${err.message}`);
 
-  // Update gossip status if job is permanently failed (after all retries)
-  if (job && job.data && job.data.gossipId) {
+  // Only update to permanent failure status if all retries are exhausted
+  const maxAttempts = job?.opts?.attempts || 2;
+  const attemptsMade = job?.attemptsMade || 0;
+  const isPermanentFailure = attemptsMade >= maxAttempts;
+
+  if (job && job.data && job.data.gossipId && isPermanentFailure) {
     try {
       const gossip = await prisma.gossip.findUnique({
         where: { id: job.data.gossipId },
       });
 
+      // Defensive check: only update if not already marked as failed
       if (gossip && gossip.status !== "failed") {
         await prisma.gossip.update({
           where: { id: job.data.gossipId },

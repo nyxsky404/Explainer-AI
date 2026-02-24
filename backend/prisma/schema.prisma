@@ -124,32 +124,23 @@ enum PodcastStatus {
 }
 
 model Gossip {
-  id            String      @id @default(uuid())
+  id            String        @id @default(uuid())
   userId        String
   blogUrl       String
   scrapedText   String?
   script        String?
   audioUrl      String?
-  status        GossipStatus @default(processing)
-  progress      Int         @default(0)
+  status        PodcastStatus @default(processing)
+  progress      Int           @default(0)
   audioDuration Float?
-  creditsUsed   Int         @default(0)
+  creditsUsed   Int           @default(0)
   errorMessage  String?
   failedAt      DateTime?
-  createdAt     DateTime    @default(now())
-  updatedAt     DateTime    @updatedAt
-  user          User        @relation(fields: [userId], references: [id], onDelete: Cascade)
-}
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+  user          User          @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-enum GossipStatus {
-  processing
-  scraping
-  scraped
-  generating_script
-  script_generated
-  generating_audio
-  completed
-  failed
+  @@index([userId])
 }
 
 enum SummaryType {

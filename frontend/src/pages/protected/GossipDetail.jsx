@@ -33,6 +33,36 @@ const STATUS_MAP = {
     failed: { label: 'Failed', progress: 0 },
 };
 
+/**
+ * Extract file extension from URL
+ * @param {string} url - The URL to extract extension from
+ * @returns {string} - The file extension with dot (e.g., '.wav') or default '.wav'
+ */
+const getFileExtension = (url) => {
+    if (!url || typeof url !== 'string') return '.wav';
+    try {
+        const pathname = new URL(url).pathname;
+        const lastDot = pathname.lastIndexOf('.');
+        if (lastDot !== -1 && lastDot < pathname.length - 1) {
+            const ext = pathname.substring(lastDot);
+            // Validate it's a reasonable audio extension
+            if (/^\.[a-zA-Z0-9]{2,4}$/.test(ext)) {
+                return ext;
+            }
+        }
+    } catch {
+        // URL parsing failed, try simple extraction
+        const lastDot = url.lastIndexOf('.');
+        if (lastDot !== -1 && lastDot < url.length - 1) {
+            const ext = url.substring(lastDot).split(/[?#]/)[0];
+            if (/^\.[a-zA-Z0-9]{2,4}$/.test(ext)) {
+                return ext;
+            }
+        }
+    }
+    return '.wav';
+};
+
 export default function GossipDetail() {
     const { id } = useParams();
     const navigate = useNavigate();
@@ -41,6 +71,8 @@ export default function GossipDetail() {
     const [deleting, setDeleting] = useState(false);
     const [retrying, setRetrying] = useState(false);
     const pollIntervalRef = useRef(null);
+    const consecutiveFailureRef = useRef(0);
+    const isFetchingRef = useRef(false);
 
     const [shareDialogOpen, setShareDialogOpen] = useState(false);
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -74,15 +106,37 @@ export default function GossipDetail() {
     };
 
     const fetchProgress = async () => {
+        // Prevent concurrent requests
+        if (isFetchingRef.current) return;
+        isFetchingRef.current = true;
+
         try {
             const res = await api.get(`/gossip/progress/${id}`);
+            // Reset consecutive failures on success
+            consecutiveFailureRef.current = 0;
             setGossip((prev) => ({ ...prev, ...res.data.data }));
             if (['completed', 'failed'].includes(res.data.data.status)) {
                 clearInterval(pollIntervalRef.current);
-                if (res.data.data.status === 'completed') fetchGossip();
+                if (res.data.data.status === 'completed') {
+                    try {
+                        setLoading(true);
+                        await fetchGossip();
+                    } catch (error) {
+                        toast.error('Failed to fetch completed gossip details');
+                    }
+                }
             }
         } catch (error) {
+            consecutiveFailureRef.current++;
             console.error('Failed to fetch progress:', error);
+            
+            // Stop polling after 3 consecutive failures
+            if (consecutiveFailureRef.current >= 3) {
+                clearInterval(pollIntervalRef.current);
+                toast.error('Lost connection to server. Please refresh the page.');
+            }
+        } finally {
+            isFetchingRef.current = false;
         }
     };
 
@@ -184,7 +238,7 @@ export default function GossipDetail() {
             <div className="flex gap-4">
                 {gossip?.status === 'completed' && gossip?.audioUrl && (
                     <Button variant="outline" className="flex-1" asChild>
-                        <a href={gossip.audioUrl} download={`gossip-${id}.wav`}>
+                        <a href={gossip.audioUrl} download={`gossip-${id}${getFileExtension(gossip.audioUrl)}`}>
                             <Download className="mr-2 size-4" />
                             Download
                         </a>

@@ -25,9 +25,15 @@ export default function GossipGenerate() {
 
         try {
             const res = await api.post('/gossip/generate', { blogUrl: url.trim(), depth });
-            if (res.data.success) {
+            
+            // Check if response is successful and has valid data
+            if (res.data.success && res.data.data && res.data.data.id) {
                 toast.success('Gossip generation started! ✨');
                 navigate(`/dashboard/gossip/${res.data.data.id}`);
+            } else {
+                // Handle unsuccessful response
+                const errorMessage = res.data?.message || 'Failed to start gossip generation';
+                toast.error(errorMessage);
             }
         } catch (error) {
             toast.error(getFriendlyErrorMessage(error));

@@ -18,16 +18,18 @@ import { CheckIcon, CopyIcon, ExternalLink, Link } from "lucide-react";
 import { useRef, useState } from "react";
 
 export default function ShareDialog({ open, onOpenChange, url, type = 'podcast' }) {
-  const [copied, setCopied] = useState(false);
-  const inputRef = useRef(null);
-
-  const handleCopy = () => {
-    navigator.clipboard.writeText(url);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 1500);
-  };
-
-  const typeName = type.charAt(0).toUpperCase() + type.slice(1);
+   const [copied, setCopied] = useState(false);
+   const inputRef = useRef(null);
+ 
+   const handleCopy = () => {
+     navigator.clipboard.writeText(url);
+     setCopied(true);
+     setTimeout(() => setCopied(false), 1500);
+   };
+ 
+   // Guard against null/undefined type and ensure it's a string
+   const safeType = (typeof type === 'string' && type) ? type : 'podcast';
+   const typeName = safeType.charAt(0).toUpperCase() + safeType.slice(1);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -35,7 +37,7 @@ export default function ShareDialog({ open, onOpenChange, url, type = 'podcast' 
         <DialogHeader>
           <DialogTitle>Share {typeName}</DialogTitle>
           <p className="text-sm text-muted-foreground">
-            Copy the link below to share this {type}
+            Copy the link below to share this {safeType}
           </p>
         </DialogHeader>
         <div className="space-y-4 py-4">

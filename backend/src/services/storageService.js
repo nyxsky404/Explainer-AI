@@ -8,8 +8,30 @@ function getSupabaseClient() {
   );
 }
 
+/**
+ * Validate and normalize an ID for file path construction.
+ * @param {string} id - The ID to validate
+ * @param {string} context - Context for error message (e.g., 'gossipId', 'podcastId')
+ * @returns {string} - The normalized ID
+ * @throws {Error} - If ID is invalid
+ */
+function validateAndNormalizeId(id, context = 'id') {
+  if (id == null) {
+    throw new Error(`${context} is required but was ${id}`);
+  }
+  
+  const normalizedId = String(id).trim();
+  
+  if (normalizedId === '') {
+    throw new Error(`${context} cannot be empty or whitespace`);
+  }
+  
+  return normalizedId;
+}
+
 function getPodcastFilePath(podcastId) {
-  return `podcasts/${podcastId}.wav`;
+  const validatedId = validateAndNormalizeId(podcastId, 'podcastId');
+  return `podcasts/${validatedId}.wav`;
 }
 
 export async function uploadAudioBuffer(wavBuffer, podcastId) {
@@ -52,7 +74,8 @@ export async function deleteAudioFile(podcastId) {
 }
 
 function getSummaryFilePath(summaryId) {
-  return `summaries/${summaryId}.wav`;
+  const validatedId = validateAndNormalizeId(summaryId, 'summaryId');
+  return `summaries/${validatedId}.wav`;
 }
 
 export async function uploadSummaryAudio(wavBuffer, summaryId) {
@@ -118,7 +141,8 @@ export async function uploadDocument(buffer, fileName, contentType) {
 // ============== GOSSIP AUDIO STORAGE ==============
 
 function getGossipFilePath(gossipId) {
-  return `gossips/${gossipId}.wav`;
+  const validatedId = validateAndNormalizeId(gossipId, 'gossipId');
+  return `gossips/${validatedId}.wav`;
 }
 
 export async function uploadGossipAudioBuffer(wavBuffer, gossipId) {
