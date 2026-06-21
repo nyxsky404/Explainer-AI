@@ -23,19 +23,25 @@ export const summarizeWebPage = async (url, options = {}) => {
     // Step 2: Build dynamic prompt based on user preferences
     const systemPrompt = getDynamicSummaryPrompt({ ...options, type: 'web' });
 
+    // ~4 chars per token; reserve 30k tokens for system prompt + response headroom
+    const MAX_CONTENT_CHARS = (131072 - 30000) * 4;
+    const trimmedContent = content.length > MAX_CONTENT_CHARS
+      ? content.slice(0, MAX_CONTENT_CHARS) + '\n\n[Content trimmed due to length]'
+      : content;
+
     // Step 3: Summarize using OpenRouter
     const completion = await openai.chat.completions.create({
       model: process.env.MODEL,
       messages: [
         { role: 'system', content: systemPrompt },
-        { role: 'user', content: content },
+        { role: 'user', content: trimmedContent },
       ],
     });
 
     const summary = completion.choices[0]?.message?.content;
     if (!summary) throw new Error('AI model returned an empty response');
 
-    return { summary, rawContent: content };
+    return { summary, rawContent: trimmedContent };
   } catch (err) {
     console.error('Web page summarization error:', err.message);
     throw new Error(`Failed to summarize web page: ${err.message}`);

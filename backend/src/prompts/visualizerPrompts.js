@@ -10,7 +10,11 @@ Choose the most appropriate diagram type:
 - mindmap (for concept hierarchies)
 - graph (for networks/topologies)
 
-Return ONLY valid Mermaid syntax. No markdown code blocks, no fences, no extra text.
+STRICT RULES (mermaid v11):
+- Do NOT use double quotes anywhere — use single quotes instead (e.g. |Clicks 'Login'| not |Clicks "Login"|)
+- Do NOT wrap subgraph names in quotes
+- Edge labels must use pipe syntax: -->|label text| not -->["label"]
+- Return ONLY valid Mermaid syntax. No markdown code blocks, no fences, no extra text.
 `;
 
 export const getImagePrompt = (topic) => `

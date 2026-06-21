@@ -8,7 +8,6 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Checkbox } from '@/components/ui/checkbox';
 import {
   Select,
   SelectContent,
@@ -182,7 +181,7 @@ export default function QuizGenerate() {
                         }`}
                       >
                         <div className="flex items-center gap-2">
-                          <Checkbox checked={isSelected} tabIndex={-1} className="pointer-events-none" />
+                          <input type="checkbox" checked={isSelected} onChange={() => {}} tabIndex={-1} className="pointer-events-none size-4 accent-primary" />
                           <Icon className="size-4 text-muted-foreground" />
                         </div>
                         <div>

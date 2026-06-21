@@ -67,10 +67,15 @@ const generateMermaid = async (topic) => {
   });
 
   let content = response.choices[0].message.content;
-  
-  // Clean up markdown code blocks if present
-  content = content.replace(/^```(?:mermaid)?\s*\n?/i, '').replace(/\n?```\s*$/i, '');
-  
+
+  // Extract mermaid block if fenced, otherwise strip any stray fences
+  const fenced = content.match(/```(?:mermaid)?\s*\n([\s\S]*?)\n?```/i);
+  if (fenced) {
+    content = fenced[1];
+  } else {
+    content = content.replace(/^```(?:mermaid)?\s*\n?/i, '').replace(/\n?```\s*$/i, '');
+  }
+
   return content.trim();
 };
 

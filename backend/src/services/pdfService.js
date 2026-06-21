@@ -1,11 +1,7 @@
 import OpenAI from 'openai';
-import { createRequire } from 'module';
+import { PDFParse } from 'pdf-parse';
 import { uploadDocument } from './storageService.js';
 import { getDynamicSummaryPrompt } from '../prompts/summaryPrompts.js';
-
-// pdf-parse is a CommonJS module — must use createRequire in an ESM project
-const require = createRequire(import.meta.url);
-const pdf = require('pdf-parse');
 
 
 /**
@@ -17,8 +13,10 @@ const pdf = require('pdf-parse');
  */
 export const summarizePdf = async (fileBuffer, originalName, options = {}) => {
   try {
-    // Step 1: Extract text using pdf-parse (default export, returns a promise directly)
-    const pdfData = await pdf(fileBuffer);
+    // Step 1: Extract text using pdf-parse v2 (PDFParse class with data buffer)
+    const parser = new PDFParse({ data: fileBuffer });
+    const pdfData = await parser.getText();
+    await parser.destroy();
     const rawContent = pdfData.text?.trim();
 
     if (!rawContent || rawContent.length < 100) {
