@@ -130,10 +130,10 @@ export const githubCallback = async (req, res) => {
       });
     }
 
-    generateTokenAndSetCookie(res, user.id);
+    const token = generateTokenAndSetCookie(res, user.id);
 
     const frontendUrl = process.env.FRONTEND_URL || "http://localhost:5173";
-    res.redirect(`${frontendUrl}/auth/callback?success=true`);
+    res.redirect(`${frontendUrl}/auth/callback?success=true&token=${token}`);
   } catch (err) {
     console.error("GitHub OAuth error:", err);
     const frontendUrl = process.env.FRONTEND_URL || "http://localhost:5173";

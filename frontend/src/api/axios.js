@@ -10,17 +10,23 @@ const api = axios.create({
     },
 });
 
+api.interceptors.request.use((config) => {
+    const token = localStorage.getItem('auth_token');
+    if (token) {
+        config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+});
+
 api.interceptors.response.use(
     (response) => response,
     (error) => {
-        // Handle 401 Unauthorized - redirect to login
         if (error.response?.status === 401) {
-            // Don't redirect on these pages/paths
             const noRedirectPaths = ['/', '/login', '/signup', '/forgot-password', '/reset-password', '/verify-email'];
             const isProfileCheck = error.config?.url?.includes('/auth/profile');
 
-            // Don't redirect if on allowed pages or during initial auth check
             if (!noRedirectPaths.includes(window.location.pathname) && !isProfileCheck) {
+                localStorage.removeItem('auth_token');
                 window.location.href = '/login';
             }
         }

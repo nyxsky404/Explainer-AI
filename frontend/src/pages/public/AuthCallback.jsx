@@ -2,12 +2,6 @@ import { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router';
 import { useAuth } from '@/context/AuthContext';
 
-/**
- * Handles the redirect from GitHub OAuth.
- * Backend sets the JWT cookie then redirects here with:
- *   ?success=true  — login succeeded
- *   ?error=...     — login failed, error message in param
- */
 export default function AuthCallback() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
@@ -17,6 +11,7 @@ export default function AuthCallback() {
   useEffect(() => {
     const success = searchParams.get('success');
     const error = searchParams.get('error');
+    const token = searchParams.get('token');
 
     if (error) {
       setErrorMsg('GitHub login failed. Please try again.');
@@ -24,13 +19,12 @@ export default function AuthCallback() {
       return () => clearTimeout(timer);
     }
 
-    if (success === 'true') {
-      // Cookie is already set by backend — refresh auth state
+    if (success === 'true' && token) {
+      localStorage.setItem('auth_token', token);
       profile().then(() => {
         navigate('/dashboard', { replace: true });
       });
     } else {
-      // Neither success nor error — something unexpected
       navigate('/login', { replace: true });
     }
   }, []);
@@ -48,7 +42,6 @@ export default function AuthCallback() {
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center gap-4 bg-background">
-      {/* Spinner */}
       <div className="h-10 w-10 rounded-full border-4 border-primary border-t-transparent animate-spin" />
       <p className="text-muted-foreground text-sm">Signing you in with GitHub…</p>
     </div>
