@@ -28,6 +28,9 @@ import "./queue/gossipWorker.js";
 
 const app = express()
 
+// Trust Render/reverse-proxy forwarded headers (needed for rate limiting and secure cookies)
+app.set('trust proxy', 1)
+
 // Security headers
 app.use(helmet({
   crossOriginResourcePolicy: { policy: "cross-origin" }, // allow Supabase storage assets
