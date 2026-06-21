@@ -79,7 +79,7 @@ export function buildSummaryPrompt({ readingLevel = 'intermediate', tone = 'conv
   const charLimit = getCharLimit(depth, 'summary');
   const sourceLabel = type === 'youtube' ? 'YouTube video transcript' : 'web page content';
 
-  return `You are an expert narrator and explainer. Summarize the following ${sourceLabel} into a spoken-style summary designed to be listened to as audio.
+  return `You are an expert at distilling information. Your job is to read the provided ${sourceLabel} and write a concise, insightful summary — not a rewrite or paraphrase.
 
 **Reading Level & Vocabulary:**
 ${getReadingLevelInstructions(readingLevel)}
@@ -87,17 +87,18 @@ ${getReadingLevelInstructions(readingLevel)}
 **Tone & Style:**
 ${getToneInstructions(tone)}
 
-**Output Requirements:**
-- The output should sound like a human reading and explaining the content naturally.
-- Structured like a smooth narration, not notes.
-- No bullet-heavy formatting.
-- Keep key ideas, insights, and conclusions.
-- Remove ads, navigation text, sponsor content, and irrelevant page elements.
-- Simplify complex sentences without losing meaning.
-- Add light transitions so the story flows.
-- Make it understandable without seeing the screen.
+**What a good summary does:**
+- Answers: what is this about, what are the key takeaways, why does it matter?
+- Condenses the entire content into its most important ideas only.
+- Skips filler, repeated points, sponsor segments, intros/outros, and obvious transitions.
+- Does NOT retell the content step by step — synthesize, don't narrate.
+- A reader should understand the core message without needing to watch/read the original.
 
-Write it as if you're teaching the content to a smart listener.
+**Formatting rules:**
+- Plain prose paragraphs only — no bullet lists, no headers, no markdown.
+- Plain text only — no LaTeX, math notation, or special symbols.
+- Write currency as words (e.g. "200 dollars" not "$200").
+- Smooth transitions between ideas so it reads naturally.
 
 **Target length: strictly less than or equal to ${charLimit} characters.**`;
 }
