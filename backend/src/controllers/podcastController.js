@@ -34,14 +34,31 @@ const PODCAST_CREDIT_COST = PODCAST_GENERATION_COST;
 
 
 export const podcastGenerate = async (req, res) => {
-  const { blogUrl, depth } = req.body;
+  const { blogUrl, directText, depth } = req.body;
 
   try {
-    if (!req.body || !blogUrl) {
+    // Require either a URL or direct text
+    if (!req.body || (!blogUrl && !directText)) {
       return res.status(400).json({
         success: false,
-        message: "Url not Provided",
+        message: "Please provide a URL or text content",
       });
+    }
+
+    // Validate direct text length
+    if (directText) {
+      if (directText.trim().length < 100) {
+        return res.status(400).json({
+          success: false,
+          message: "Text is too short (minimum 100 characters)",
+        });
+      }
+      if (directText.trim().length > 50000) {
+        return res.status(400).json({
+          success: false,
+          message: "Text is too long (maximum 50,000 characters)",
+        });
+      }
     }
 
     // Check usage limits
@@ -59,18 +76,27 @@ export const podcastGenerate = async (req, res) => {
       });
     }
 
-    const data = await prisma.podcast.create({
-      data: {
-        blogUrl,
-        status: "processing",
-        progress: 0,
-        creditsUsed: PODCAST_CREDIT_COST,
-        user: {
-          connect: {
-            id: req.userID,
-          },
+    // When direct text is provided, skip scraping by storing it as scrapedText
+    const podcastData = {
+      status: "processing",
+      progress: 0,
+      creditsUsed: PODCAST_CREDIT_COST,
+      user: {
+        connect: {
+          id: req.userID,
         },
       },
+    };
+
+    if (directText) {
+      podcastData.blogUrl = null;
+      podcastData.scrapedText = directText.trim();
+    } else {
+      podcastData.blogUrl = blogUrl;
+    }
+
+    const data = await prisma.podcast.create({
+      data: podcastData,
     });
 
     // Deduct credits for podcast (3 credits)
@@ -93,7 +119,7 @@ export const podcastGenerate = async (req, res) => {
       depth: depth || preferences?.defaultDepth || 'standard',
     };
 
-    await addJobs(data.id, blogUrl, options);
+    await addJobs(data.id, blogUrl || null, options);
 
     // Invalidate caches
     await invalidateUserCache(req.userID);

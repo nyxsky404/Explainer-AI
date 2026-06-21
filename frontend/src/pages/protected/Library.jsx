@@ -450,7 +450,7 @@ export default function Library() {
                                 <Table>
                                     <TableHeader>
                                         <TableRow>
-                                            <TableHead>Source URL</TableHead>
+                                            <TableHead>Source</TableHead>
                                             <TableHead>Status</TableHead>
                                             <TableHead>Created</TableHead>
                                             <TableHead className="w-24">Action</TableHead>
@@ -460,16 +460,23 @@ export default function Library() {
                                         {podcasts.map((podcast) => (
                                             <TableRow key={podcast.id}>
                                                 <TableCell className="font-medium">
-                                                    <a
-                                                        href={podcast.blogUrl}
-                                                        target="_blank"
-                                                        rel="noopener noreferrer"
-                                                        className="hover:underline inline-flex items-center gap-2"
-                                                    >
-                                                        <Mic className="size-4 text-purple-500" />
-                                                        {truncateUrl(podcast.blogUrl)}
-                                                        <ExternalLink className="size-3" />
-                                                    </a>
+                                                    {podcast.blogUrl ? (
+                                                        <a
+                                                            href={podcast.blogUrl}
+                                                            target="_blank"
+                                                            rel="noopener noreferrer"
+                                                            className="hover:underline inline-flex items-center gap-2"
+                                                        >
+                                                            <Mic className="size-4 text-purple-500" />
+                                                            {truncateUrl(podcast.blogUrl)}
+                                                            <ExternalLink className="size-3" />
+                                                        </a>
+                                                    ) : (
+                                                        <span className="inline-flex items-center gap-2">
+                                                            <Mic className="size-4 text-purple-500" />
+                                                            <span className="truncate">Direct Text</span>
+                                                        </span>
+                                                    )}
                                                 </TableCell>
                                                 <TableCell>{getStatusBadge(podcast.status)}</TableCell>
                                                 <TableCell className="text-muted-foreground">{formatDate(podcast.createdAt)}</TableCell>

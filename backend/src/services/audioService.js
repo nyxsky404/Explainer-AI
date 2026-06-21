@@ -32,7 +32,7 @@ export const generateAudio = async (script, podcastId) => {
         const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 
         const response = await ai.models.generateContent({
-            model: "gemini-2.5-flash-preview-tts",
+            model: "gemini-3.1-flash-tts-preview",
             contents: [{ parts: [{ text: script }] }],
             config: {
                 responseModalities: ['AUDIO'],

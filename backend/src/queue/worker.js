@@ -40,6 +40,10 @@ const worker = new Worker(
     try {
       // STEP 1: Scrape (0-33%)
       if (!scrapedText) {
+        if (!blogUrl) {
+          throw new UnrecoverableError("No URL or text content available for this podcast");
+        }
+
         await job.updateProgress(10);
         await prisma.podcast.update({
           where: { id: podcastId },

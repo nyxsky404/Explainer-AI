@@ -53,10 +53,9 @@ export const githubCallback = async (req, res) => {
     const tokenData = await tokenResponse.json();
 
     if (tokenData.error) {
-      return res.status(400).json({
-        success: false,
-        message: tokenData.error_description || "Failed to authenticate with GitHub",
-      });
+      console.error("GitHub token error:", tokenData.error, tokenData.error_description);
+      const frontendUrl = process.env.FRONTEND_URL || "http://localhost:5173";
+      return res.redirect(`${frontendUrl}/auth/callback?error=${encodeURIComponent(tokenData.error_description || "Failed to authenticate with GitHub")}`);
     }
 
     const accessToken = tokenData.access_token;

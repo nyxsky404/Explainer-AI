@@ -24,7 +24,7 @@ export const generateGossipScript = async (scrapedText, options = {}) => {
     
     try {
         const Gemini_Response = await ai.models.generateContent({
-            model: "gemini-2.5-flash",
+            model: "gemini-3-flash-preview",
             contents: getGossipPrompt(scrapedText, options),
         });
 

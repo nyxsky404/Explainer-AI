@@ -53,7 +53,7 @@ model UserPreference {
 model Podcast {
   id            String        @id @default(uuid())
   userId        String
-  blogUrl       String
+  blogUrl       String?
   scrapedText   String?
   script        String?
   audioUrl      String?

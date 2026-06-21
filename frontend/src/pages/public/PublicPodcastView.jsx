@@ -101,15 +101,19 @@ export default function PublicPodcastView() {
                         <span>•</span>
                         <span>{formatDate(podcast.createdAt)}</span>
                     </div>
-                    <a
-                        href={podcast.blogUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-sm text-muted-foreground hover:text-foreground inline-flex items-center gap-1 mt-1"
-                    >
-                        {truncateUrl(podcast.blogUrl)}
-                        <ExternalLink className="size-3" />
-                    </a>
+                    {podcast.blogUrl ? (
+                        <a
+                            href={podcast.blogUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-sm text-muted-foreground hover:text-foreground inline-flex items-center gap-1 mt-1"
+                        >
+                            {truncateUrl(podcast.blogUrl)}
+                            <ExternalLink className="size-3" />
+                        </a>
+                    ) : (
+                        <span className="text-sm text-muted-foreground mt-1">Direct Text Input</span>
+                    )}
                 </div>
                 <div className="flex items-center gap-2">
                     <Button variant="outline" size="sm" onClick={handleCopy} className="gap-2">

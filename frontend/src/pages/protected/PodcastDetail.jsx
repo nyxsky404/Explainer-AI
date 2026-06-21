@@ -136,15 +136,19 @@ export default function PodcastDetail() {
                 </Button>
                 <div className="flex-1">
                     <h1 className="text-2xl font-bold">Podcast Details</h1>
-                    <a
-                        href={podcast?.blogUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-sm text-muted-foreground hover:text-foreground inline-flex items-center gap-1"
-                    >
-                        {truncateUrl(podcast?.blogUrl)}
-                        <ExternalLink className="size-3" />
-                    </a>
+                    {podcast?.blogUrl ? (
+                        <a
+                            href={podcast.blogUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-sm text-muted-foreground hover:text-foreground inline-flex items-center gap-1"
+                        >
+                            {truncateUrl(podcast.blogUrl)}
+                            <ExternalLink className="size-3" />
+                        </a>
+                    ) : (
+                        <span className="text-sm text-muted-foreground">Direct Text Input</span>
+                    )}
                 </div>
             </div>
 
