@@ -182,7 +182,7 @@ export default function QuizGenerate() {
                         }`}
                       >
                         <div className="flex items-center gap-2">
-                          <Checkbox defaultChecked={isSelected} tabIndex={-1} className="pointer-events-none" />
+                          <Checkbox checked={isSelected} tabIndex={-1} className="pointer-events-none" />
                           <Icon className="size-4 text-muted-foreground" />
                         </div>
                         <div>

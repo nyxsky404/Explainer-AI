@@ -7,44 +7,44 @@ import {
   regenerateQuestion,
   deleteQuiz,
 } from '../services/quizService.js';
-import redis from '../config/redis.js';
+// import redis from '../config/redis.js';
 
-const QUIZ_CACHE_TTL = 3600;
+// const QUIZ_CACHE_TTL = 3600;
 
-function quizCacheKey(userId, page, limit) {
-  return `user:${userId}:quizzes:${page}:${limit}`;
-}
+// function quizCacheKey(userId, page, limit) {
+//   return `user:${userId}:quizzes:${page}:${limit}`;
+// }
 
-// Invalidate activity cache so new quiz appears in recent activity
-// Non-throwing to prevent cache failures from affecting HTTP responses
-async function invalidateActivityCache(userId) {
-  try {
-    let cursor = '0';
-    do {
-      const [nextCursor, keys] = await redis.scan(cursor, 'MATCH', `user:${userId}:activity:*`, 'COUNT', 100);
-      cursor = nextCursor;
-      if (keys.length > 0) await redis.del(keys);
-    } while (cursor !== '0');
-  } catch (err) {
-    console.error('quizController::invalidateActivityCache error for userId:', userId, err.message);
-    // Non-fatal: continue without rethrowing
-  }
-}
+// // Invalidate activity cache so new quiz appears in recent activity
+// // Non-throwing to prevent cache failures from affecting HTTP responses
+// async function invalidateActivityCache(userId) {
+//   try {
+//     let cursor = '0';
+//     do {
+//       const [nextCursor, keys] = await redis.scan(cursor, 'MATCH', `user:${userId}:activity:*`, 'COUNT', 100);
+//       cursor = nextCursor;
+//       if (keys.length > 0) await redis.del(keys);
+//     } while (cursor !== '0');
+//   } catch (err) {
+//     console.error('quizController::invalidateActivityCache error for userId:', userId, err.message);
+//     // Non-fatal: continue without rethrowing
+//   }
+// }
 
-// Invalidate quiz list cache - also non-throwing
-async function invalidateQuizCache(userId) {
-  try {
-    let cursor = '0';
-    do {
-      const [nextCursor, keys] = await redis.scan(cursor, 'MATCH', `user:${userId}:quizzes:*`, 'COUNT', 100);
-      cursor = nextCursor;
-      if (keys.length > 0) await redis.del(keys);
-    } while (cursor !== '0');
-  } catch (err) {
-    console.error('quizController::invalidateQuizCache error for userId:', userId, err.message);
-    // Non-fatal: continue without rethrowing
-  }
-}
+// // Invalidate quiz list cache - also non-throwing
+// async function invalidateQuizCache(userId) {
+//   try {
+//     let cursor = '0';
+//     do {
+//       const [nextCursor, keys] = await redis.scan(cursor, 'MATCH', `user:${userId}:quizzes:*`, 'COUNT', 100);
+//       cursor = nextCursor;
+//       if (keys.length > 0) await redis.del(keys);
+//     } while (cursor !== '0');
+//   } catch (err) {
+//     console.error('quizController::invalidateQuizCache error for userId:', userId, err.message);
+//     // Non-fatal: continue without rethrowing
+//   }
+// }
 
 /**
  * Generate a new quiz from content
@@ -112,8 +112,8 @@ export const generateQuizController = async (req, res) => {
       sourceType: sourceType || 'TEXT',
     });
 
-    await invalidateQuizCache(userId);
-    await invalidateActivityCache(userId);
+    // await invalidateQuizCache(userId);
+    // await invalidateActivityCache(userId);
 
     return res.status(201).json({
       success: true,
@@ -161,7 +161,7 @@ export const generateQuizFromSummaryController = async (req, res) => {
       focusAreas,
     });
 
-    await invalidateActivityCache(userId);
+    // await invalidateActivityCache(userId);
 
     return res.status(201).json({
       success: true,
@@ -237,15 +237,15 @@ export const listQuizzes = async (req, res) => {
       });
     }
 
-    // Check cache first before fetching from DB
-    const cacheKey = quizCacheKey(userId, page, limit);
-    const cached = await redis.get(cacheKey);
-    if (cached) return res.status(200).json(JSON.parse(cached));
+    // // Check cache first before fetching from DB
+    // const cacheKey = quizCacheKey(userId, page, limit);
+    // const cached = await redis.get(cacheKey);
+    // if (cached) return res.status(200).json(JSON.parse(cached));
 
     const result = await getUserQuizzes(userId, page, limit);
 
     const response = { success: true, data: result };
-    await redis.set(cacheKey, JSON.stringify(response), 'EX', QUIZ_CACHE_TTL);
+    // await redis.set(cacheKey, JSON.stringify(response), 'EX', QUIZ_CACHE_TTL);
 
     return res.status(200).json(response);
   } catch (error) {
@@ -343,8 +343,8 @@ export const deleteQuizController = async (req, res) => {
     const userId = req.userID;
 
     await deleteQuiz(id, userId);
-    await invalidateQuizCache(userId);
-    await invalidateActivityCache(userId);
+    // await invalidateQuizCache(userId);
+    // await invalidateActivityCache(userId);
 
     return res.status(200).json({
       success: true,

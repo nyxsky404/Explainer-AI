@@ -1,17 +1,17 @@
 import prisma from '../config/db.js';
-import redis from '../config/redis.js';
+// import redis from '../config/redis.js';
 import { chatWithContent, explainSelection } from '../services/chatService.js';
 import { CHAT_MESSAGE_COST } from '../config/credits.js';
 import { checkCredits } from '../services/creditService.js';
 
-// Invalidate credit cache - non-throwing
-async function invalidateCreditCache(userId) {
-  try {
-    await redis.del(`user:${userId}:credits`);
-  } catch (err) {
-    console.error('chatController::invalidateCreditCache error for userId:', userId, err.message);
-  }
-}
+// // Invalidate credit cache - non-throwing
+// async function invalidateCreditCache(userId) {
+//   try {
+//     await redis.del(`user:${userId}:credits`);
+//   } catch (err) {
+//     console.error('chatController::invalidateCreditCache error for userId:', userId, err.message);
+//   }
+// }
 
 /**
  * POST /api/chat/:summaryId
@@ -72,8 +72,8 @@ export const sendMessage = async (req, res) => {
       }),
     ]);
 
-    // Invalidate credit cache
-    await invalidateCreditCache(userId);
+    // // Invalidate credit cache
+    // await invalidateCreditCache(userId);
 
     res.status(200).json({
       success: true,
@@ -140,8 +140,8 @@ export const explainText = async (req, res) => {
       }),
     ]);
 
-    // Invalidate credit cache
-    await invalidateCreditCache(userId);
+    // // Invalidate credit cache
+    // await invalidateCreditCache(userId);
 
     res.status(200).json({
       success: true,

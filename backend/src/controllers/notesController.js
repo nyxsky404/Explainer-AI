@@ -7,45 +7,45 @@ import {
   deleteNote,
 } from '../services/notesService.js';
 import prisma from '../config/db.js';
-import redis from '../config/redis.js';
+// import redis from '../config/redis.js';
 
-// Cache helpers
-const NOTES_CACHE_TTL = 3600; // 1 hour
+// // Cache helpers
+// const NOTES_CACHE_TTL = 3600; // 1 hour
 
-function notesCacheKey(userId, page, limit) {
-  return `user:${userId}:notes:${page}:${limit}`;
-}
+// function notesCacheKey(userId, page, limit) {
+//   return `user:${userId}:notes:${page}:${limit}`;
+// }
 
-// Invalidate activity cache so new note appears in recent activity
-// Non-throwing to prevent cache failures from affecting HTTP responses
-async function invalidateActivityCache(userId) {
-  try {
-    let cursor = '0';
-    do {
-      const [nextCursor, keys] = await redis.scan(cursor, 'MATCH', `user:${userId}:activity:*`, 'COUNT', 100);
-      cursor = nextCursor;
-      if (keys.length > 0) await redis.del(keys);
-    } while (cursor !== '0');
-  } catch (err) {
-    console.error('notesController::invalidateActivityCache error for userId:', userId, err.message);
-    // Non-fatal: continue without rethrowing
-  }
-}
+// // Invalidate activity cache so new note appears in recent activity
+// // Non-throwing to prevent cache failures from affecting HTTP responses
+// async function invalidateActivityCache(userId) {
+//   try {
+//     let cursor = '0';
+//     do {
+//       const [nextCursor, keys] = await redis.scan(cursor, 'MATCH', `user:${userId}:activity:*`, 'COUNT', 100);
+//       cursor = nextCursor;
+//       if (keys.length > 0) await redis.del(keys);
+//     } while (cursor !== '0');
+//   } catch (err) {
+//     console.error('notesController::invalidateActivityCache error for userId:', userId, err.message);
+//     // Non-fatal: continue without rethrowing
+//   }
+// }
 
-// Invalidate notes list cache - also non-throwing
-async function invalidateNotesCache(userId) {
-  try {
-    let cursor = '0';
-    do {
-      const [nextCursor, keys] = await redis.scan(cursor, 'MATCH', `user:${userId}:notes:*`, 'COUNT', 100);
-      cursor = nextCursor;
-      if (keys.length > 0) await redis.del(keys);
-    } while (cursor !== '0');
-  } catch (err) {
-    console.error('notesController::invalidateNotesCache error for userId:', userId, err.message);
-    // Non-fatal: continue without rethrowing
-  }
-}
+// // Invalidate notes list cache - also non-throwing
+// async function invalidateNotesCache(userId) {
+//   try {
+//     let cursor = '0';
+//     do {
+//       const [nextCursor, keys] = await redis.scan(cursor, 'MATCH', `user:${userId}:notes:*`, 'COUNT', 100);
+//       cursor = nextCursor;
+//       if (keys.length > 0) await redis.del(keys);
+//     } while (cursor !== '0');
+//   } catch (err) {
+//     console.error('notesController::invalidateNotesCache error for userId:', userId, err.message);
+//     // Non-fatal: continue without rethrowing
+//   }
+// }
 
 /**
  * Generate a new note from content
@@ -75,9 +75,9 @@ export const generateNoteController = async (req, res) => {
 
     const note = await generateNote(userId, sourceContent, { sourceType, style, pages: pageCount });
 
-    // Invalidate notes list cache
-    await invalidateNotesCache(userId);
-    await invalidateActivityCache(userId);
+    // // Invalidate notes list cache
+    // await invalidateNotesCache(userId);
+    // await invalidateActivityCache(userId);
 
     res.status(201).json({ success: true, message: 'Note generated successfully', data: note });
   } catch (error) {
@@ -112,9 +112,9 @@ export const generateNoteFromSummaryController = async (req, res) => {
 
     const note = await generateNoteFromSummary(userId, summaryId, { style, pages: pageCount });
 
-    // Invalidate notes list cache
-    await invalidateNotesCache(userId);
-    await invalidateActivityCache(userId);
+    // // Invalidate notes list cache
+    // await invalidateNotesCache(userId);
+    // await invalidateActivityCache(userId);
 
     res.status(201).json({ success: true, message: 'Note generated from summary successfully', data: note });
   } catch (error) {
@@ -153,16 +153,16 @@ export const listNotes = async (req, res) => {
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 10;
 
-    const cacheKey = notesCacheKey(userId, page, limit);
-    const cached = await redis.get(cacheKey);
-    if (cached) {
-      return res.status(200).json(JSON.parse(cached));
-    }
+    // const cacheKey = notesCacheKey(userId, page, limit);
+    // const cached = await redis.get(cacheKey);
+    // if (cached) {
+    //   return res.status(200).json(JSON.parse(cached));
+    // }
 
     const result = await getUserNotes(userId, page, limit);
 
     const response = { success: true, data: result.notes, pagination: result.pagination };
-    await redis.set(cacheKey, JSON.stringify(response), 'EX', NOTES_CACHE_TTL);
+    // await redis.set(cacheKey, JSON.stringify(response), 'EX', NOTES_CACHE_TTL);
 
     res.status(200).json(response);
   } catch (error) {
@@ -193,8 +193,8 @@ export const updateNoteController = async (req, res) => {
 
     const note = await updateNote(id, userId, updates);
 
-    // Invalidate notes list cache (title may have changed)
-    await invalidateNotesCache(userId);
+    // // Invalidate notes list cache (title may have changed)
+    // await invalidateNotesCache(userId);
 
     res.status(200).json({ success: true, message: 'Note updated successfully', data: note });
   } catch (error) {
@@ -215,9 +215,9 @@ export const deleteNoteController = async (req, res) => {
 
     const result = await deleteNote(id, userId);
 
-    // Invalidate notes list cache and activity cache
-    await invalidateNotesCache(userId);
-    await invalidateActivityCache(userId);
+    // // Invalidate notes list cache and activity cache
+    // await invalidateNotesCache(userId);
+    // await invalidateActivityCache(userId);
 
     res.status(200).json({ success: true, message: result.message });
   } catch (error) {

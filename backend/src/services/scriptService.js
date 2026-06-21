@@ -6,7 +6,7 @@ export const generateScript = async (scrapedText, options = {}) => {
         const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 
         const Gemini_Response = await ai.models.generateContent({
-            model: "gemini-3-flash-preview",
+            model: process.env.GEMINI_SCRIPT_MODEL,
             contents: getPrompt(scrapedText, options),
         });
 

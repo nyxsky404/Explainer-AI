@@ -1,5 +1,9 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
+import remarkMath from 'remark-math';
+import rehypeKatex from 'rehype-katex';
+import 'katex/dist/katex.min.css';
 import { Button } from '@/components/ui/button';
 import { Sparkles } from 'lucide-react';
 
@@ -95,12 +99,33 @@ export default function MarkdownRenderer({ content, onExplainRequest }) {
                     prose-li:my-2 prose-li:leading-7 prose-li:marker:text-muted-foreground
                     prose-strong:text-foreground prose-strong:font-semibold
                     prose-hr:my-10 prose-hr:border-border
+                    prose-table:border-collapse
+                    prose-th:border prose-th:border-border prose-th:bg-muted prose-th:px-4 prose-th:py-2
+                    prose-td:border prose-td:border-border prose-td:px-4 prose-td:py-2
+                    prose-code:bg-muted prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded prose-code:text-sm
+                    prose-pre:bg-muted prose-pre:rounded-lg prose-pre:overflow-x-auto
                     [&>*:first-child]:mt-0
                 "
                 onMouseUp={handleMouseUp}
                 onMouseDown={handleMouseDown}
             >
-                <ReactMarkdown>{content}</ReactMarkdown>
+                <ReactMarkdown
+                    remarkPlugins={[remarkGfm, remarkMath]}
+                    rehypePlugins={[rehypeKatex]}
+                    components={{
+                        table: ({ children }) => (
+                            <div className="overflow-x-auto my-6">
+                                <table className="w-full border-collapse border border-border">{children}</table>
+                            </div>
+                        ),
+                        th: ({ children }) => (
+                            <th className="border border-border bg-muted px-4 py-2 text-left font-semibold">{children}</th>
+                        ),
+                        td: ({ children }) => (
+                            <td className="border border-border px-4 py-2">{children}</td>
+                        ),
+                    }}
+                >{content}</ReactMarkdown>
             </article>
         </div>
     );

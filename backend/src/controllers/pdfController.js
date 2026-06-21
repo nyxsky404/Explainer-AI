@@ -2,18 +2,18 @@ import multer from 'multer';
 import { summarizePdf } from '../services/pdfService.js';
 import { extractConcepts } from '../services/conceptService.js';
 import prisma from '../config/db.js';
-import redis from '../config/redis.js';
+// import redis from '../config/redis.js';
 import { CREDIT_COSTS } from '../config/credits.js';
 import { checkCredits } from '../services/creditService.js';
 
-// Invalidate credit cache - non-throwing
-async function invalidateCreditCache(userId) {
-  try {
-    await redis.del(`user:${userId}:credits`);
-  } catch (err) {
-    console.error('pdfController::invalidateCreditCache error for userId:', userId, err.message);
-  }
-}
+// // Invalidate credit cache - non-throwing
+// async function invalidateCreditCache(userId) {
+//   try {
+//     await redis.del(`user:${userId}:credits`);
+//   } catch (err) {
+//     console.error('pdfController::invalidateCreditCache error for userId:', userId, err.message);
+//   }
+// }
 
 // Configure multer for memory storage
 const upload = multer({
@@ -98,8 +98,8 @@ export const summarizePdfController = async (req, res) => {
       }),
     ]);
 
-    // Invalidate credit cache
-    await invalidateCreditCache(userId);
+    // // Invalidate credit cache
+    // await invalidateCreditCache(userId);
 
     res.status(200).json({
       success: true,

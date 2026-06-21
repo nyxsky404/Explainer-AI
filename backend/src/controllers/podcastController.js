@@ -3,31 +3,31 @@ import { addJobs } from "../queue/producer.js";
 import { deleteAudioFile } from "../services/storageService.js";
 import { PODCAST_GENERATION_COST } from "../config/credits.js";
 import { checkCredits } from "../services/creditService.js";
-import redis from "../config/redis.js";
-// Safe SCAN-based cache invalidation — redis.keys() blocks the server under load
-// Non-throwing to prevent cache failures from affecting HTTP responses
-async function invalidateUserCache(userId) {
-  try {
-    let cursor = '0';
-    do {
-      const [nextCursor, keys] = await redis.scan(cursor, 'MATCH', `user:${userId}:*`, 'COUNT', 100);
-      cursor = nextCursor;
-      if (keys.length > 0) await redis.del(keys);
-    } while (cursor !== '0');
-  } catch (err) {
-    console.error('podcastController::invalidateUserCache error for userId:', userId, err.message);
-    // Non-fatal: continue without rethrowing
-  }
-}
+// import redis from "../config/redis.js";
+// // Safe SCAN-based cache invalidation — redis.keys() blocks the server under load
+// // Non-throwing to prevent cache failures from affecting HTTP responses
+// async function invalidateUserCache(userId) {
+//   try {
+//     let cursor = '0';
+//     do {
+//       const [nextCursor, keys] = await redis.scan(cursor, 'MATCH', `user:${userId}:*`, 'COUNT', 100);
+//       cursor = nextCursor;
+//       if (keys.length > 0) await redis.del(keys);
+//     } while (cursor !== '0');
+//   } catch (err) {
+//     console.error('podcastController::invalidateUserCache error for userId:', userId, err.message);
+//     // Non-fatal: continue without rethrowing
+//   }
+// }
 
-// Invalidate credit cache specifically (called after direct credit updates)
-async function invalidateCreditCache(userId) {
-  try {
-    await redis.del(`user:${userId}:credits`);
-  } catch (err) {
-    console.error('podcastController::invalidateCreditCache error for userId:', userId, err.message);
-  }
-}
+// // Invalidate credit cache specifically (called after direct credit updates)
+// async function invalidateCreditCache(userId) {
+//   try {
+//     await redis.del(`user:${userId}:credits`);
+//   } catch (err) {
+//     console.error('podcastController::invalidateCreditCache error for userId:', userId, err.message);
+//   }
+// }
 
 const PODCAST_CREDIT_COST = PODCAST_GENERATION_COST;
 
@@ -121,9 +121,9 @@ export const podcastGenerate = async (req, res) => {
 
     await addJobs(data.id, blogUrl || null, options);
 
-    // Invalidate caches
-    await invalidateUserCache(req.userID);
-    await invalidateCreditCache(req.userID);
+    // // Invalidate caches
+    // await invalidateUserCache(req.userID);
+    // await invalidateCreditCache(req.userID);
 
     res.status(200).json({
       success: true,
@@ -289,8 +289,8 @@ export const retryPodcast = async (req, res) => {
 
     await addJobs(id, podcast.blogUrl);
 
-        // Invalidate user cache (SCAN-based)
-    await invalidateUserCache(userId);
+        // // Invalidate user cache (SCAN-based)
+    // await invalidateUserCache(userId);
 
     res.status(200).json({
       success: true,
@@ -348,12 +348,12 @@ export const getAllPodcasts = async (req, res) => {
       });
     }
 
-    const cacheKey = `user:${userId}:podcasts:${page}:${limit}`;
-    const cachedData = await redis.get(cacheKey);
+    // const cacheKey = `user:${userId}:podcasts:${page}:${limit}`;
+    // const cachedData = await redis.get(cacheKey);
 
-    if (cachedData) {
-      return res.status(200).json(JSON.parse(cachedData));
-    }
+    // if (cachedData) {
+    //   return res.status(200).json(JSON.parse(cachedData));
+    // }
 
     // Get total count of podcasts for this user
     const totalPodcasts = await prisma.podcast.count({
@@ -395,8 +395,8 @@ export const getAllPodcasts = async (req, res) => {
       },
     };
 
-    // Cache for 1 hour
-    await redis.set(cacheKey, JSON.stringify(response), "EX", 3600);
+    // // Cache for 1 hour
+    // await redis.set(cacheKey, JSON.stringify(response), "EX", 3600);
 
     res.status(200).json(response);
   } catch (err) {
@@ -448,8 +448,8 @@ export const deletePodcast = async (req, res) => {
       where: { id },
     });
 
-        // Invalidate user cache (SCAN-based)
-    await invalidateUserCache(userId);
+        // // Invalidate user cache (SCAN-based)
+    // await invalidateUserCache(userId);
 
     res.status(200).json({
       success: true,

@@ -1,41 +1,41 @@
 import { generateVisualization, getUserVisualizations, getVisualizationById, deleteVisualization } from '../services/visualizerService.js';
-import redis from '../config/redis.js';
+// import redis from '../config/redis.js';
 
-const VIZ_CACHE_TTL = 3600; // 1 hour
+// const VIZ_CACHE_TTL = 3600; // 1 hour
 
-function vizCacheKey(userId, page, limit) {
-  return `user:${userId}:visualizations:${page}:${limit}`;
-}
+// function vizCacheKey(userId, page, limit) {
+//   return `user:${userId}:visualizations:${page}:${limit}`;
+// }
 
-// Invalidate visualization list cache - non-throwing
-async function invalidateVizCache(userId) {
-  try {
-    let cursor = '0';
-    do {
-      const [nextCursor, keys] = await redis.scan(cursor, 'MATCH', `user:${userId}:visualizations:*`, 'COUNT', 100);
-      cursor = nextCursor;
-      if (keys.length > 0) await redis.del(keys);
-    } while (cursor !== '0');
-  } catch (err) {
-    console.error('visualizerController::invalidateVizCache error for userId:', userId, err.message);
-    // Non-fatal: continue without rethrowing
-  }
-}
+// // Invalidate visualization list cache - non-throwing
+// async function invalidateVizCache(userId) {
+//   try {
+//     let cursor = '0';
+//     do {
+//       const [nextCursor, keys] = await redis.scan(cursor, 'MATCH', `user:${userId}:visualizations:*`, 'COUNT', 100);
+//       cursor = nextCursor;
+//       if (keys.length > 0) await redis.del(keys);
+//     } while (cursor !== '0');
+//   } catch (err) {
+//     console.error('visualizerController::invalidateVizCache error for userId:', userId, err.message);
+//     // Non-fatal: continue without rethrowing
+//   }
+// }
 
-// Invalidate activity cache so new visualization appears in recent activity - non-throwing
-async function invalidateActivityCache(userId) {
-  try {
-    let cursor = '0';
-    do {
-      const [nextCursor, keys] = await redis.scan(cursor, 'MATCH', `user:${userId}:activity:*`, 'COUNT', 100);
-      cursor = nextCursor;
-      if (keys.length > 0) await redis.del(keys);
-    } while (cursor !== '0');
-  } catch (err) {
-    console.error('visualizerController::invalidateActivityCache error for userId:', userId, err.message);
-    // Non-fatal: continue without rethrowing
-  }
-}
+// // Invalidate activity cache so new visualization appears in recent activity - non-throwing
+// async function invalidateActivityCache(userId) {
+//   try {
+//     let cursor = '0';
+//     do {
+//       const [nextCursor, keys] = await redis.scan(cursor, 'MATCH', `user:${userId}:activity:*`, 'COUNT', 100);
+//       cursor = nextCursor;
+//       if (keys.length > 0) await redis.del(keys);
+//     } while (cursor !== '0');
+//   } catch (err) {
+//     console.error('visualizerController::invalidateActivityCache error for userId:', userId, err.message);
+//     // Non-fatal: continue without rethrowing
+//   }
+// }
 
 /**
  * Generate a new visualization
@@ -52,9 +52,9 @@ export const generateVisualizationController = async (req, res) => {
 
     const result = await generateVisualization(userId, topic, forceMode);
 
-    // Invalidate visualization list cache
-    await invalidateVizCache(userId);
-    await invalidateActivityCache(userId);
+    // // Invalidate visualization list cache
+    // await invalidateVizCache(userId);
+    // await invalidateActivityCache(userId);
 
     res.status(201).json({ success: true, data: result });
   } catch (error) {
@@ -74,16 +74,16 @@ export const listVisualizations = async (req, res) => {
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 10;
 
-    const cacheKey = vizCacheKey(userId, page, limit);
-    const cached = await redis.get(cacheKey);
-    if (cached) {
-      return res.status(200).json(JSON.parse(cached));
-    }
+    // const cacheKey = vizCacheKey(userId, page, limit);
+    // const cached = await redis.get(cacheKey);
+    // if (cached) {
+    //   return res.status(200).json(JSON.parse(cached));
+    // }
 
     const result = await getUserVisualizations(userId, page, limit);
 
     const response = { success: true, data: result };
-    await redis.set(cacheKey, JSON.stringify(response), 'EX', VIZ_CACHE_TTL);
+    // await redis.set(cacheKey, JSON.stringify(response), 'EX', VIZ_CACHE_TTL);
 
     res.status(200).json(response);
   } catch (error) {
@@ -122,9 +122,9 @@ export const deleteVisualizationController = async (req, res) => {
 
     await deleteVisualization(id, userId);
 
-    // Invalidate visualization list cache and activity cache
-    await invalidateVizCache(userId);
-    await invalidateActivityCache(userId);
+    // // Invalidate visualization list cache and activity cache
+    // await invalidateVizCache(userId);
+    // await invalidateActivityCache(userId);
 
     res.status(200).json({ success: true, message: 'Visualization deleted successfully' });
   } catch (error) {

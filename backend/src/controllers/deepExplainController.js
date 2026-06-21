@@ -5,43 +5,43 @@ import {
   addFollowUp,
   deleteExplanation,
 } from '../services/deepExplainService.js';
-import redis from '../config/redis.js';
+// import redis from '../config/redis.js';
 
-// Invalidate activity cache so new explanation appears in recent activity
-// Non-throwing to prevent cache failures from affecting HTTP responses
-async function invalidateActivityCache(userId) {
-  try {
-    let cursor = '0';
-    do {
-      const [nextCursor, keys] = await redis.scan(cursor, 'MATCH', `user:${userId}:activity:*`, 'COUNT', 100);
-      cursor = nextCursor;
-      if (keys.length > 0) await redis.del(keys);
-    } while (cursor !== '0');
-  } catch (err) {
-    console.error('deepExplainController::invalidateActivityCache error for userId:', userId, err.message);
-    // Non-fatal: continue without rethrowing
-  }
-}
+// // Invalidate activity cache so new explanation appears in recent activity
+// // Non-throwing to prevent cache failures from affecting HTTP responses
+// async function invalidateActivityCache(userId) {
+//   try {
+//     let cursor = '0';
+//     do {
+//       const [nextCursor, keys] = await redis.scan(cursor, 'MATCH', `user:${userId}:activity:*`, 'COUNT', 100);
+//       cursor = nextCursor;
+//       if (keys.length > 0) await redis.del(keys);
+//     } while (cursor !== '0');
+//   } catch (err) {
+//     console.error('deepExplainController::invalidateActivityCache error for userId:', userId, err.message);
+//     // Non-fatal: continue without rethrowing
+//   }
+// }
 
-// Invalidate explanations list cache
-async function invalidateExplanationsCache(userId) {
-  try {
-    let cursor = '0';
-    do {
-      const [nextCursor, keys] = await redis.scan(cursor, 'MATCH', `user:${userId}:explanations:*`, 'COUNT', 100);
-      cursor = nextCursor;
-      if (keys.length > 0) await redis.del(keys);
-    } while (cursor !== '0');
-  } catch (err) {
-    console.error('deepExplainController::invalidateExplanationsCache error for userId:', userId, err.message);
-  }
-}
+// // Invalidate explanations list cache
+// async function invalidateExplanationsCache(userId) {
+//   try {
+//     let cursor = '0';
+//     do {
+//       const [nextCursor, keys] = await redis.scan(cursor, 'MATCH', `user:${userId}:explanations:*`, 'COUNT', 100);
+//       cursor = nextCursor;
+//       if (keys.length > 0) await redis.del(keys);
+//     } while (cursor !== '0');
+//   } catch (err) {
+//     console.error('deepExplainController::invalidateExplanationsCache error for userId:', userId, err.message);
+//   }
+// }
 
-const EXPLANATIONS_CACHE_TTL = 3600; // 1 hour
+// const EXPLANATIONS_CACHE_TTL = 3600; // 1 hour
 
-function explanationsCacheKey(userId, page, limit) {
-  return `user:${userId}:explanations:${page}:${limit}`;
-}
+// function explanationsCacheKey(userId, page, limit) {
+//   return `user:${userId}:explanations:${page}:${limit}`;
+// }
 
 /**
  * Generate a new deep explanation
@@ -73,13 +73,13 @@ export const generateExplanation = async (req, res) => {
       sourceContent
     );
 
-    // Best-effort cache invalidation - don't let Redis failures affect response
-    try {
-      await invalidateActivityCache(userId);
-      await invalidateExplanationsCache(userId);
-    } catch (cacheError) {
-      console.error('deepExplainController::generateExplanation cache invalidation failed for userId:', userId, 'explanationId:', explanation.id, cacheError.message);
-    }
+    // // Best-effort cache invalidation - don't let Redis failures affect response
+    // try {
+    //   await invalidateActivityCache(userId);
+    //   await invalidateExplanationsCache(userId);
+    // } catch (cacheError) {
+    //   console.error('deepExplainController::generateExplanation cache invalidation failed for userId:', userId, 'explanationId:', explanation.id, cacheError.message);
+    // }
 
     return res.status(201).json({
       success: true,
@@ -133,12 +133,12 @@ export const listExplanations = async (req, res) => {
     const page = Math.max(1, Math.floor(parseInt(req.query.page) || 1));
     const limit = Math.max(1, Math.min(Math.floor(parseInt(req.query.limit) || 10), 100));
 
-    // Check cache first
-    const cacheKey = explanationsCacheKey(userId, page, limit);
-    const cached = await redis.get(cacheKey);
-    if (cached) {
-      return res.status(200).json(JSON.parse(cached));
-    }
+    // // Check cache first
+    // const cacheKey = explanationsCacheKey(userId, page, limit);
+    // const cached = await redis.get(cacheKey);
+    // if (cached) {
+    //   return res.status(200).json(JSON.parse(cached));
+    // }
 
     const result = await getUserExplanations(userId, page, limit);
 
@@ -148,7 +148,7 @@ export const listExplanations = async (req, res) => {
       message: 'Explanations retrieved successfully',
     };
 
-    await redis.set(cacheKey, JSON.stringify(response), 'EX', EXPLANATIONS_CACHE_TTL);
+    // await redis.set(cacheKey, JSON.stringify(response), 'EX', EXPLANATIONS_CACHE_TTL);
 
     return res.status(200).json(response);
   } catch (error) {
@@ -208,9 +208,9 @@ export const deleteExplanationById = async (req, res) => {
 
     await deleteExplanation(id, userId);
 
-    // Invalidate caches
-    await invalidateActivityCache(userId);
-    await invalidateExplanationsCache(userId);
+    // // Invalidate caches
+    // await invalidateActivityCache(userId);
+    // await invalidateExplanationsCache(userId);
 
     return res.status(200).json({
       success: true,

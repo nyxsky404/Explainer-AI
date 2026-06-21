@@ -39,7 +39,7 @@ export const generateGossipAudio = async (script, gossipId) => {
         const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 
         const response = await ai.models.generateContent({
-            model: "gemini-3.1-flash-tts-preview",
+            model: process.env.GEMINI_TTS_MODEL,
             contents: [{ parts: [{ text: script }] }],
             config: {
                 responseModalities: ['AUDIO'],

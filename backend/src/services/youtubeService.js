@@ -9,7 +9,7 @@ export const summarizeYouTube = async (url, options = {}) => {
     const systemPrompt = getDynamicSummaryPrompt({ ...options, type: 'youtube' });
 
     const response = await ai.models.generateContent({
-      model: "gemini-2.5-flash",
+      model: process.env.GEMINI_TEXT_MODEL,
       contents: [`${systemPrompt}\n\nSummarize this YouTube video: ${url}`],
       config: {
         tools: [{ urlContext: {} }],

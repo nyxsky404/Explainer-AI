@@ -1,5 +1,5 @@
 import prisma from "../config/db.js";
-import redis from "../config/redis.js";
+// import redis from "../config/redis.js";
 import { DEFAULTS } from "../config/constants.js";
 
 /**
@@ -9,19 +9,19 @@ import { DEFAULTS } from "../config/constants.js";
  * @returns {Promise<object>} - Result object { allowed: boolean, user: object, message: string }
  */
 export const checkCredits = async (userId, cost) => {
-  const cacheKey = `user:${userId}:credits`;
-  let user = await redis.get(cacheKey);
+  // const cacheKey = `user:${userId}:credits`;
+  // let user = await redis.get(cacheKey);
 
-  if (user) {
-    user = JSON.parse(user);
-  } else {
-    user = await prisma.user.findUnique({
+  // if (user) {
+  //   user = JSON.parse(user);
+  // } else {
+  let user = await prisma.user.findUnique({
       where: { id: userId },
       select: { creditLimit: true, creditsUsed: true, usageResetDate: true },
     });
-    // Cache for 1 hour
-    await redis.set(cacheKey, JSON.stringify(user), "EX", 3600);
-  }
+  //   // Cache for 1 hour
+  //   await redis.set(cacheKey, JSON.stringify(user), "EX", 3600);
+  // }
 
   // Check if reset is needed (30 days cycle)
   const today = new Date();
@@ -38,9 +38,9 @@ export const checkCredits = async (userId, cost) => {
       },
     });
     
-    // Update cache
-    await redis.set(cacheKey, JSON.stringify(updatedUser), "EX", 3600);
-    
+    // // Update cache
+    // await redis.set(cacheKey, JSON.stringify(updatedUser), "EX", 3600);
+
     // Return allowed since usage is now 0
     return { allowed: true, user: updatedUser };
   }
@@ -68,8 +68,8 @@ export const deductCredits = async (userId, cost) => {
     data: { creditsUsed: { increment: cost } },
   });
 
-  // Invalidate credit cache
-  await redis.del(`user:${userId}:credits`);
+  // // Invalidate credit cache
+  // await redis.del(`user:${userId}:credits`);
 
   return updatedUser;
 };
@@ -86,8 +86,8 @@ export const refundCredits = async (userId, cost) => {
     data: { creditsUsed: { decrement: cost } },
   });
 
-  // Invalidate credit cache
-  await redis.del(`user:${userId}:credits`);
+  // // Invalidate credit cache
+  // await redis.del(`user:${userId}:credits`);
 
   return updatedUser;
 };

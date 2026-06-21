@@ -4,31 +4,31 @@ import { extractConcepts } from "../services/conceptService.js";
 import { textToSpeech } from "../services/deepgramService.js";
 import { uploadSummaryAudio, deleteSummaryAudio } from "../services/storageService.js";
 import prisma from "../config/db.js";
-import redis from "../config/redis.js";
-// Safe SCAN-based cache invalidation — redis.keys() blocks the server under load
-// Non-throwing to prevent cache failures from affecting HTTP responses
-async function invalidateUserCache(userId) {
-  try {
-    let cursor = '0';
-    do {
-      const [nextCursor, keys] = await redis.scan(cursor, 'MATCH', `user:${userId}:*`, 'COUNT', 100);
-      cursor = nextCursor;
-      if (keys.length > 0) await redis.del(keys);
-    } while (cursor !== '0');
-  } catch (err) {
-    console.error('summarizerController::invalidateUserCache error for userId:', userId, err.message);
-    // Non-fatal: continue without rethrowing
-  }
-}
+// import redis from "../config/redis.js";
+// // Safe SCAN-based cache invalidation — redis.keys() blocks the server under load
+// // Non-throwing to prevent cache failures from affecting HTTP responses
+// async function invalidateUserCache(userId) {
+//   try {
+//     let cursor = '0';
+//     do {
+//       const [nextCursor, keys] = await redis.scan(cursor, 'MATCH', `user:${userId}:*`, 'COUNT', 100);
+//       cursor = nextCursor;
+//       if (keys.length > 0) await redis.del(keys);
+//     } while (cursor !== '0');
+//   } catch (err) {
+//     console.error('summarizerController::invalidateUserCache error for userId:', userId, err.message);
+//     // Non-fatal: continue without rethrowing
+//   }
+// }
 
-// Invalidate credit cache specifically (called after direct credit updates)
-async function invalidateCreditCache(userId) {
-  try {
-    await redis.del(`user:${userId}:credits`);
-  } catch (err) {
-    console.error('summarizerController::invalidateCreditCache error for userId:', userId, err.message);
-  }
-}
+// // Invalidate credit cache specifically (called after direct credit updates)
+// async function invalidateCreditCache(userId) {
+//   try {
+//     await redis.del(`user:${userId}:credits`);
+//   } catch (err) {
+//     console.error('summarizerController::invalidateCreditCache error for userId:', userId, err.message);
+//   }
+// }
 
 import { SUMMARY_CREDIT_COST, AUDIO_GENERATION_COST, CREDIT_COSTS } from "../config/credits.js";
 import { checkCredits, refundCredits } from "../services/creditService.js";
@@ -98,9 +98,9 @@ export const summarizeYouTubeController = async (req, res) => {
       }),
     ]);
 
-        // Invalidate caches
-    await invalidateUserCache(userId);
-    await invalidateCreditCache(userId);
+        // // Invalidate caches
+    // await invalidateUserCache(userId);
+    // await invalidateCreditCache(userId);
 
     res.status(200).json({
       success: true,
@@ -206,9 +206,9 @@ export const summarizeWebController = async (req, res) => {
       }),
     ]);
 
-        // Invalidate caches
-    await invalidateUserCache(userId);
-    await invalidateCreditCache(userId);
+        // // Invalidate caches
+    // await invalidateUserCache(userId);
+    // await invalidateCreditCache(userId);
 
     res.status(200).json({
       success: true,
@@ -235,12 +235,12 @@ export const getSummaries = async (req, res) => {
   const { page = 1, limit = 10, type } = req.query;
 
   try {
-    const cacheKey = `user:${userId}:summaries:${page}:${limit}:${type || 'all'}`;
-    const cachedData = await redis.get(cacheKey);
+    // const cacheKey = `user:${userId}:summaries:${page}:${limit}:${type || 'all'}`;
+    // const cachedData = await redis.get(cacheKey);
 
-    if (cachedData) {
-      return res.status(200).json(JSON.parse(cachedData));
-    }
+    // if (cachedData) {
+    //   return res.status(200).json(JSON.parse(cachedData));
+    // }
 
     const skip = (parseInt(page) - 1) * parseInt(limit);
     const where = { userId };
@@ -269,8 +269,8 @@ export const getSummaries = async (req, res) => {
       },
     };
 
-    // Cache for 1 hour
-    await redis.set(cacheKey, JSON.stringify(response), "EX", 3600);
+    // // Cache for 1 hour
+    // await redis.set(cacheKey, JSON.stringify(response), "EX", 3600);
 
     res.status(200).json(response);
   } catch (err) {
@@ -313,11 +313,11 @@ export const getRecentActivity = async (req, res) => {
     const parsedLimit = parseInt(limit);
     const skip = (parsedPage - 1) * parsedLimit;
 
-    const cacheKey = `user:${userId}:activity:${parsedPage}:${parsedLimit}`;
-    const cachedData = await redis.get(cacheKey);
-    if (cachedData) {
-      return res.status(200).json(JSON.parse(cachedData));
-    }
+    // const cacheKey = `user:${userId}:activity:${parsedPage}:${parsedLimit}`;
+    // const cachedData = await redis.get(cacheKey);
+    // if (cachedData) {
+    //   return res.status(200).json(JSON.parse(cachedData));
+    // }
 
     // Fetch counts for pagination
     const [totalPodcasts, totalSummaries, totalQuizzes, totalNotes, totalVisualizations, totalGossips, totalDeepExplanations] = await Promise.all([
@@ -449,7 +449,7 @@ export const getRecentActivity = async (req, res) => {
       },
     };
 
-    await redis.set(cacheKey, JSON.stringify(response), "EX", 3600);
+    // await redis.set(cacheKey, JSON.stringify(response), "EX", 3600);
     res.status(200).json(response);
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
@@ -548,8 +548,8 @@ async function processAudioGeneration(summaryId, userId, content) {
       })
     ]);
 
-    // Invalidate credit cache
-    await invalidateCreditCache(userId);
+    // // Invalidate credit cache
+    // await invalidateCreditCache(userId);
 
   } catch (err) {
     console.error("Background audio generation failed:", err);
@@ -595,8 +595,8 @@ export const deleteSummary = async (req, res) => {
       where: { id },
     });
 
-        // Invalidate user cache (SCAN-based)
-    await invalidateUserCache(userId);
+        // // Invalidate user cache (SCAN-based)
+    // await invalidateUserCache(userId);
 
     res.status(200).json({
       success: true,
