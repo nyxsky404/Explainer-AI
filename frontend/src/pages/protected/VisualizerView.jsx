@@ -7,6 +7,8 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import axiosInstance from '@/api/axios';
 import MermaidRenderer from '@/components/shared/MermaidRenderer';
 import ImageViewer from '@/components/shared/ImageViewer';
+import DeleteDialog from '@/components/blocks/DetailsDialogs/delete-dialog';
+import { toast } from 'sonner';
 
 const VisualizerView = () => {
   const { id } = useParams();
@@ -15,6 +17,7 @@ const VisualizerView = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [deleting, setDeleting] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
   useEffect(() => {
     const fetchVisualization = async () => {
@@ -35,15 +38,14 @@ const VisualizerView = () => {
   }, [id]);
 
   const handleDelete = async () => {
-    if (!window.confirm('Are you sure you want to delete this visualization?')) return;
-    
     setDeleting(true);
     try {
       await axiosInstance.delete(`/visualizer/${id}`);
+      toast.success('Visualization deleted');
       navigate('/dashboard/visualizer/library');
     } catch (err) {
       console.error('Delete failed:', err);
-      // Optional: show toast error
+      toast.error('Failed to delete visualization');
     } finally {
       setDeleting(false);
     }
@@ -86,10 +88,9 @@ const VisualizerView = () => {
             </p>
           </div>
         </div>
-        
+
         <div className="flex gap-2">
-           {/* Future: Edit/Regenerate button */}
-           <Button variant="destructive" size="icon" onClick={handleDelete} disabled={deleting}>
+          <Button variant="destructive" size="icon" onClick={() => setDeleteDialogOpen(true)} disabled={deleting}>
             {deleting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}
           </Button>
         </div>
@@ -102,6 +103,15 @@ const VisualizerView = () => {
           <ImageViewer src={visualization.content} title={visualization.topic} />
         )}
       </div>
+
+      <DeleteDialog
+        open={deleteDialogOpen}
+        onOpenChange={setDeleteDialogOpen}
+        onDelete={handleDelete}
+        isDeleting={deleting}
+        title="Delete Visualization"
+        description="Are you sure you want to delete this visualization? This action cannot be undone."
+      />
     </div>
   );
 };

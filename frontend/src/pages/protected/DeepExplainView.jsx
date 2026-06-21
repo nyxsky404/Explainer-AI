@@ -142,10 +142,10 @@ export default function DeepExplainView() {
             <DeleteDialog
                 open={deleteDialogOpen}
                 onOpenChange={setDeleteDialogOpen}
-                onConfirm={handleDelete}
+                onDelete={handleDelete}
                 title="Delete Explanation"
                 description="Are you sure you want to delete this explanation? This action cannot be undone."
-                isLoading={deleting}
+                isDeleting={deleting}
             />
         </div>
     );

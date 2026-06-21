@@ -10,14 +10,14 @@ import {
 } from "@/components/ui/dialog";
 import { Loader2 } from "lucide-react";
 
-export default function DeletePodcastDialog({ open, onOpenChange, onDelete, isDeleting }) {
+export default function DeleteDialog({ open, onOpenChange, onDelete, isDeleting, title = "Delete", description = "Are you sure you want to delete this? This action cannot be undone." }) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Delete Podcast</DialogTitle>
+          <DialogTitle>{title}</DialogTitle>
           <DialogDescription>
-            Are you sure you want to delete this? This action cannot be undone.
+            {description}
           </DialogDescription>
         </DialogHeader>
         <DialogFooter>
