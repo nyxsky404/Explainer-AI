@@ -38,13 +38,14 @@ const MermaidRenderer = ({ chart, title = 'Diagram' }) => {
       if (!chart) return;
       try {
         setError(null);
+        await mermaid.parse(sanitizeMermaid(chart));
         const id = `mermaid-${Math.random().toString(36).substr(2, 9)}`;
         const { svg } = await mermaid.render(id, sanitizeMermaid(chart));
         setSvgContent(makeResponsive(svg));
         setZoom(1);
       } catch (err) {
         console.error('Mermaid rendering failed:', err);
-        setError('Failed to render diagram. Syntax might be invalid.');
+        setError('Failed to render diagram. The AI generated invalid diagram syntax.');
       }
     };
     renderChart();

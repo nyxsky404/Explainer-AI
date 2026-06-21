@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useParams } from 'react-router';
 import api from '@/api/axios';
 import { Card } from '@/components/ui/card';
@@ -6,6 +6,7 @@ import HandwrittenRenderer from '@/components/shared/HandwrittenRenderer';
 import { Loader2, Calendar, FileText, Download } from 'lucide-react';
 import { format } from 'date-fns';
 import { Button } from '@/components/ui/button';
+import { toast } from 'sonner';
 
 export default function PublicNotesView() {
   const { id } = useParams();
@@ -13,6 +14,8 @@ export default function PublicNotesView() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [cleanMode, setCleanMode] = useState(false);
+  const [exporting, setExporting] = useState(false);
+  const noteContentRef = useRef(null);
 
   useEffect(() => {
     fetchNote();
@@ -20,7 +23,6 @@ export default function PublicNotesView() {
 
   const fetchNote = async () => {
     try {
-      // Use the public sharing endpoint
       const response = await api.get(`/notes/share/${id}`);
       setNote(response.data.data);
     } catch (error) {
@@ -31,8 +33,50 @@ export default function PublicNotesView() {
     }
   };
 
-  const handleExport = () => {
-    window.print();
+  const handleExport = async () => {
+    if (!noteContentRef.current) return;
+    setExporting(true);
+    try {
+      const [{ toPng }, { default: jsPDF }] = await Promise.all([
+        import('html-to-image'),
+        import('jspdf'),
+      ]);
+
+      const element = noteContentRef.current;
+      const imgData = await toPng(element, {
+        pixelRatio: 2,
+        backgroundColor: '#ffffff',
+      });
+
+      const img = new Image();
+      await new Promise((resolve) => { img.onload = resolve; img.src = imgData; });
+
+      const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+
+      const pdfWidth = pdf.internal.pageSize.getWidth();
+      const pdfHeight = pdf.internal.pageSize.getHeight();
+      const ratio = pdfWidth / img.naturalWidth;
+      const scaledHeight = img.naturalHeight * ratio;
+
+      let yOffset = 0;
+      let pageCount = 0;
+
+      while (yOffset < scaledHeight) {
+        if (pageCount > 0) pdf.addPage();
+        pdf.addImage(imgData, 'PNG', 0, -yOffset, pdfWidth, scaledHeight);
+        yOffset += pdfHeight;
+        pageCount++;
+      }
+
+      const fileName = `${note.title.replace(/[^a-z0-9]/gi, '_').toLowerCase()}.pdf`;
+      pdf.save(fileName);
+      toast.success('PDF downloaded!');
+    } catch (err) {
+      console.error('PDF export error:', err);
+      toast.error('Failed to export PDF');
+    } finally {
+      setExporting(false);
+    }
   };
 
   if (loading) {
@@ -72,20 +116,24 @@ export default function PublicNotesView() {
               </div>
             </div>
           </div>
-          <Button variant="outline" size="sm" onClick={handleExport}>
-            <Download className="w-4 h-4 mr-2" />
-            Export PDF
+          <Button variant="outline" size="sm" onClick={handleExport} disabled={exporting}>
+            {exporting ? (
+              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+            ) : (
+              <Download className="w-4 h-4 mr-2" />
+            )}
+            {exporting ? 'Exporting...' : 'Export PDF'}
           </Button>
         </div>
 
-        <Card className="p-6 bg-white shadow-md">
+        <Card className="p-6 bg-white shadow-md" ref={noteContentRef}>
           <HandwrittenRenderer
             note={note}
             cleanMode={cleanMode}
             onCleanModeChange={setCleanMode}
           />
         </Card>
-        
+
         <div className="mt-8 text-center">
           <p className="text-sm text-muted-foreground mb-4">
             Generated with Explainer AI
@@ -98,22 +146,6 @@ export default function PublicNotesView() {
           </a>
         </div>
       </div>
-
-      {/* Print Styles */}
-      <style>{`
-        @media print {
-          .no-print {
-            display: none !important;
-          }
-          body {
-            background: white;
-          }
-          .min-h-screen {
-            min-height: auto;
-            padding: 0;
-          }
-        }
-      `}</style>
     </div>
   );
 }

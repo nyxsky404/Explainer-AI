@@ -22,6 +22,7 @@ import { errorHandler } from "./middleware/errorMiddleware.js";
 import { getSummaryPublic } from "./controllers/summarizerController.js";
 import { getPodcastPublic } from "./controllers/podcastController.js";
 import { getGossipPublic } from "./controllers/gossipController.js";
+import { getNotePublic } from "./controllers/notesController.js";
 import { githubCallback } from "./controllers/authController.js";
 import "./queue/worker.js";
 import "./queue/gossipWorker.js";
@@ -68,6 +69,7 @@ app.use(cookieParser());
 app.get("/api/summary/share/:id", getSummaryPublic);
 app.get("/api/podcast/share/:id", getPodcastPublic);
 app.get("/api/gossip/share/:id", getGossipPublic);
+app.get("/api/notes/share/:id", getNotePublic);
 
 // GitHub OAuth callback — uses apiLimiter (not authLimiter) since it's
 // an automated redirect from GitHub, not a brute-force target

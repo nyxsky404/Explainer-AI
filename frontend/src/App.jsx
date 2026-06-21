@@ -33,6 +33,7 @@ import QuizLibrary from './pages/protected/QuizLibrary'
 import PublicSummaryView from './pages/public/PublicSummaryView'
 import PublicPodcastView from './pages/public/PublicPodcastView'
 import PublicGossipView from './pages/public/PublicGossipView'
+import PublicNotesView from './pages/public/PublicNotesView'
 import NotesGenerate from './pages/protected/NotesGenerate'
 import NotesLibrary from './pages/protected/NotesLibrary'
 import NotesView from './pages/protected/NotesView'
@@ -92,6 +93,7 @@ function App() {
         <Route path="/share/summary/:id" element={<PublicSummaryView />} />
         <Route path="/share/podcast/:id" element={<PublicPodcastView />} />
         <Route path="/share/gossip/:id" element={<PublicGossipView />} />
+        <Route path="/share/notes/:id" element={<PublicNotesView />} />
 
         {/* Landing page - accessible to all */}
         <Route path="/" element={<Landing />} />

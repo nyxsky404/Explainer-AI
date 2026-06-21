@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router';
 import api from '@/api/axios';
 import { toast } from 'sonner';
@@ -16,6 +16,7 @@ import {
   FileText,
 } from 'lucide-react';
 import { format } from 'date-fns';
+import ShareDialog from '@/components/blocks/DetailsDialogs/share-dialog';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -36,6 +37,9 @@ export default function NotesView() {
   const [loading, setLoading] = useState(true);
   const [cleanMode, setCleanMode] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [exporting, setExporting] = useState(false);
+  const [shareDialogOpen, setShareDialogOpen] = useState(false);
+  const noteContentRef = useRef(null);
 
   useEffect(() => {
     fetchNote();
@@ -55,16 +59,53 @@ export default function NotesView() {
   };
 
   const handleShare = () => {
-    const shareUrl = `${window.location.origin}/share/notes/${id}`;
-    navigator.clipboard.writeText(shareUrl);
-    toast.success('Share link copied to clipboard!');
+    setShareDialogOpen(true);
   };
 
-  const handleExport = () => {
-    // For now, use browser print functionality
-    // In a full implementation, this would use @react-pdf/renderer
-    window.print();
-    toast.success('Opening print dialog...');
+  const handleExport = async () => {
+    if (!noteContentRef.current) return;
+    setExporting(true);
+    try {
+      const [{ toPng }, { default: jsPDF }] = await Promise.all([
+        import('html-to-image'),
+        import('jspdf'),
+      ]);
+
+      const element = noteContentRef.current;
+      const imgData = await toPng(element, {
+        pixelRatio: 2,
+        backgroundColor: '#ffffff',
+      });
+
+      const img = new Image();
+      await new Promise((resolve) => { img.onload = resolve; img.src = imgData; });
+
+      const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+
+      const pdfWidth = pdf.internal.pageSize.getWidth();
+      const pdfHeight = pdf.internal.pageSize.getHeight();
+      const ratio = pdfWidth / img.naturalWidth;
+      const scaledHeight = img.naturalHeight * ratio;
+
+      let yOffset = 0;
+      let pageCount = 0;
+
+      while (yOffset < scaledHeight) {
+        if (pageCount > 0) pdf.addPage();
+        pdf.addImage(imgData, 'PNG', 0, -yOffset, pdfWidth, scaledHeight);
+        yOffset += pdfHeight;
+        pageCount++;
+      }
+
+      const fileName = `${note.title.replace(/[^a-z0-9]/gi, '_').toLowerCase()}.pdf`;
+      pdf.save(fileName);
+      toast.success('PDF downloaded!');
+    } catch (err) {
+      console.error('PDF export error:', err);
+      toast.error('Failed to export PDF');
+    } finally {
+      setExporting(false);
+    }
   };
 
   const handleDelete = async () => {
@@ -126,14 +167,24 @@ export default function NotesView() {
           </div>
 
           <div className="flex items-center gap-2">
-            <Button variant="outline" size="sm" onClick={handleExport}>
-              <Download className="w-4 h-4 mr-2" />
-              Export PDF
+            <Button variant="outline" size="sm" onClick={handleExport} disabled={exporting}>
+              {exporting ? (
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+              ) : (
+                <Download className="w-4 h-4 mr-2" />
+              )}
+              {exporting ? 'Exporting...' : 'Export PDF'}
             </Button>
             <Button variant="outline" size="sm" onClick={handleShare}>
               <Share2 className="w-4 h-4 mr-2" />
               Share
             </Button>
+            <ShareDialog
+              open={shareDialogOpen}
+              onOpenChange={setShareDialogOpen}
+              url={`${window.location.origin}/share/notes/${id}`}
+              type="note"
+            />
             <AlertDialog>
               <AlertDialogTrigger asChild>
                 <Button variant="outline" size="sm">
@@ -168,7 +219,7 @@ export default function NotesView() {
       </div>
 
       {/* Note Content */}
-      <Card className="p-6">
+      <Card className="p-6" ref={noteContentRef}>
         <HandwrittenRenderer
           note={note}
           cleanMode={cleanMode}
@@ -176,14 +227,7 @@ export default function NotesView() {
         />
       </Card>
 
-      {/* Print Styles */}
-      <style>{`
-        @media print {
-          .no-print {
-            display: none !important;
-          }
-        }
-      `}</style>
+
     </div>
   );
 }
