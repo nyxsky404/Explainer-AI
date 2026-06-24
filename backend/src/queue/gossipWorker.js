@@ -133,6 +133,8 @@ const gossipWorker = new Worker(
   {
     connection,
     concurrency: 3, // Process up to 3 jobs simultaneously
+    drainDelay: 60, // Wait up to 60s per idle poll (vs 5s default) — jobs still picked up instantly
+    stalledInterval: 300000, // Check for stalled jobs every 5 min (vs 30s default) to cut idle Redis commands
   }
 );
 
