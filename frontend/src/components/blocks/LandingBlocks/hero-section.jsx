@@ -12,16 +12,16 @@ const HeroSection = () => {
         <div
           className='bg-muted flex items-center gap-3 rounded-full border px-4 py-2.5'>
           <Badge className='text-sm px-3 py-1'>AI-Powered</Badge>
-          <span className='text-muted-foreground text-sm sm:text-base'>Turn any article into a podcast</span>
+          <span className='text-muted-foreground text-sm sm:text-base'>Summaries, podcasts, notes &amp; quizzes</span>
         </div>
 
         <h1
           className='text-4xl leading-[1.2] font-bold text-balance sm:text-5xl md:text-6xl lg:text-7xl'>
-          Turn your reading list
+          Turn anything you read
           <br />
-          into a{' '}
+          into something you'll{' '}
           <span className='relative'>
-            playlist
+            remember
             <svg
               width='223'
               height='12'
@@ -51,9 +51,9 @@ const HeroSection = () => {
         </h1>
 
         <p className='text-muted-foreground text-lg sm:text-xl max-w-2xl'>
-          Transform any web page into a studio-quality podcast instantly.
+          Paste any URL, YouTube video, PDF, or text and get instant summaries, podcasts, notes, quizzes, and deep explanations.
           <br />
-          Skip the mic, the editing, and the awkward pauses. It's not just text-to-speech; it's storytelling.
+          One tool for every way you learn — read it, hear it, or test yourself on it.
         </p>
 
         <Button size='lg' className='text-base px-8 py-6' asChild>

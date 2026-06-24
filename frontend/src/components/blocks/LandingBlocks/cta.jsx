@@ -14,10 +14,10 @@ const CTASection = () => {
             <div className='space-y-4'>
               <h2
                 className='text-foreground text-2xl font-semibold md:text-3xl lg:text-4xl'>
-                Stop reading. Start listening.
+                Stop skimming. Start understanding.
               </h2>
               <p className='text-muted-foreground text-lg md:text-xl'>
-                Join the audio revolution in seconds. No credit card, no microphone, no excuses.
+                Turn any article, video, or PDF into summaries, podcasts, notes, and quizzes in seconds. No credit card required.
               </p>
             </div>
             <div>

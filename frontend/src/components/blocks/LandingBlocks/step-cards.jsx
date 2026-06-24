@@ -1,34 +1,34 @@
-import { Link2, Sparkles, Headphones } from "lucide-react";
+import { Link2, Sparkles, GraduationCap } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 
 const Feature13 = ({
   title = "How It Works",
-  description = "No equipment, no editing, no hassle.",
+  description = "From any source to the format that works for you — in three steps.",
   features = [
     {
       id: "feature-1",
-      heading: "Paste",
+      heading: "Drop a source",
       label: "STEP 01",
       description:
-        "If you can link it, we can voice it. Blogs, docs, or news. Turn static text into audio gold instantly.",
+        "Paste a URL, YouTube link, PDF, or raw text. If it has words, Explainer AI can break it down.",
       icon: Link2,
     },
     {
       id: "feature-2",
-      heading: "Generate",
+      heading: "Pick a format",
       label: "STEP 02",
       description:
-        "Studio quality, sans studio. Our AI doesn't just read; it comprehends. It scripts, paces, and performs like a human host.",
+        "Summary, podcast, notes, quiz, deep explanation, or visual. Our AI reads, understands, and reshapes the content.",
       icon: Sparkles,
     },
     {
       id: "feature-3",
-      heading: "Listen",
+      heading: "Learn your way",
       label: "STEP 03",
       description:
-        "Conquer your reading list. Lean back, hit play, and finally absorb that article while you drive, cook, or relax.",
-      icon: Headphones,
+        "Read the summary, listen on the go, study from notes, or test yourself with a quiz. It all lands in your library.",
+      icon: GraduationCap,
     },
   ],
   className,

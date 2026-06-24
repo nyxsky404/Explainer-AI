@@ -2,33 +2,33 @@ import { cn } from "@/lib/utils";
 
 const Feature166 = ({
   title = "Why you'll love Explainer AI",
-  description = "Podcast production used to take days. Now it takes a click.",
+  description = "Every way to learn from your content, in one place.",
 
   feature1 = {
-    title: "Lightning Fast",
+    title: "One Source, Every Format",
     description:
-      "Podcasts at the speed of thought. Go from URL to finished episode in under 5 minutes. That's faster than your coffee brewing. (We timed it.)",
+      "Turn a single article, video, or PDF into a summary, podcast, set of notes, quiz, deep explanation, or visualization. Pick whatever fits the moment.",
     image: "https://illustrations.popsy.co/amber/remote-work.svg",
   },
 
   feature2 = {
-    title: "Natural Voices",
+    title: "Learn On the Go",
     description:
-      "Voices so real, they breathe. Forget robotic monotones. Our AI hosts have personality, comedic timing, and the occasional dramatic flair.",
+      "Natural AI voices turn any article into a polished podcast or a Gen Z-style audio convo with Maya & Jay. Hit play and absorb it while you commute, cook, or relax.",
     image: "https://illustrations.popsy.co/amber/microphone.svg",
   },
 
   feature3 = {
-    title: "Any Content Works",
+    title: "Any Source Works",
     description:
-      "Fluency in every format. Dense research papers, breezy blog posts, or technical docs. If it has words, we make it talk.",
+      "Blog posts, news, research papers, YouTube videos, PDFs, or pasted text. If it has words, Explainer AI can read it, summarize it, and reshape it.",
     image: "https://illustrations.popsy.co/amber/paper-documents.svg",
   },
 
   feature4 = {
-    title: "Share Anywhere",
+    title: "Make It Stick",
     description:
-      "Your content, unbound. Download the MP3, embed the player, or share the link. Take your content where eyes can't go, but ears can.",
+      "Auto-generated quizzes, structured notes, and deep explanations turn passive reading into real understanding. Everything saves to your library to revisit anytime.",
     image: "https://illustrations.popsy.co/amber/video-call.svg",
   },
 

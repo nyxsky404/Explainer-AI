@@ -13,45 +13,45 @@ const Faq1 = ({
   items = [
     {
       id: "faq-1",
-      question: "What kind of content can I convert to podcasts?",
+      question: "What can Explainer AI do?",
       answer:
-        "Pretty much anything with text! Blog posts, news articles, documentation, research papers, even long Twitter threads (if you're into that). If it's on the web and has words, we can turn it into audio.",
+        "Explainer AI turns any content into the format you learn best from — summaries, podcasts, structured notes, quizzes, deep explanations, and visualizations. Bring a source once and generate as many formats as you need.",
     },
     {
       id: "faq-2",
-      question: "How long does it take to generate a podcast?",
+      question: "What kind of sources can I use?",
       answer:
-        "Usually under 5 minutes for most articles. Longer content might take a bit more, but we're talking minutes, not hours. Grab a coffee and it'll be ready when you get back.",
+        "Blog posts, news articles, documentation, research papers, YouTube videos, PDFs, or just pasted text. If it has words, we can read it, summarize it, and reshape it.",
     },
     {
       id: "faq-3",
-      question: "Do the AI voices sound robotic?",
+      question: "Do the AI podcast voices sound robotic?",
       answer:
-        "Nope! We use advanced text-to-speech technology that produces natural, human-like voices. No more robot uprising vibes. Just smooth, professional narration.",
+        "Nope! We use advanced text-to-speech that produces natural, human-like voices — whether you want a polished podcast or a casual Gen Z-style convo between our hosts Maya & Jay.",
     },
     {
       id: "faq-4",
-      question: "Can I download the podcasts?",
+      question: "How long does it take to generate something?",
       answer:
-        "Absolutely! Download your podcasts as audio files, share them via link, or embed them on your website. Your content, your rules.",
+        "Summaries and notes are usually ready in well under a minute. Podcasts and longer content take a few minutes since we generate audio. Either way, we're talking minutes, not hours.",
     },
     {
       id: "faq-5",
-      question: "Is there a free plan?",
+      question: "Can I save, download, and share what I create?",
       answer:
-        "Yes! You can create up to 10 podcasts per month on our free tier. Perfect for trying things out or casual use. Need more? We've got plans for that too.",
+        "Yes. Everything you generate is saved to your library. Download podcasts as audio, export summaries and notes, or share any item with a public link.",
     },
     {
       id: "faq-6",
-      question: "What about copyright and content ownership?",
+      question: "Is there a free plan?",
       answer:
-        "You retain full ownership of your generated podcasts. Just make sure you have the right to use the source content. We're not lawyers, but we trust you to do the right thing.",
+        "Yes! Every account starts with monthly credits you can spend across any tool — podcasts, summaries, notes, quizzes, and more. Perfect for trying things out, with more available when you need it.",
     },
     {
       id: "faq-7",
-      question: "Can I use this for my business?",
+      question: "Is there a browser extension?",
       answer:
-        "100%! Many users convert their blog content into podcasts for wider reach. It's a great way to repurpose content and reach audiences who prefer listening over reading.",
+        "Yes! Summarize or explain whatever you're reading without leaving the page — the extension sends the content straight into Explainer AI for you.",
     },
   ],
 

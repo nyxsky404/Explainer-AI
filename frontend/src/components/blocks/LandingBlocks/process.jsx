@@ -11,27 +11,27 @@ const Process1 = ({
   const process = [
     {
       step: "01",
-      title: "Feed the Engine",
+      title: "Bring Your Source",
       description:
-        "Grab a URL from any corner of the internet. Blogs, news, or wikis. If it links, it works.",
+        "Drop in a URL, YouTube link, PDF, or paste text directly. Blogs, news, docs, research papers — if it has words, it works.",
     },
     {
       step: "02",
-      title: "The AI Director",
+      title: "The AI Reads It",
       description:
-        "We analyze the text to identify key points, tone, and context, crafting a script that sounds like a conversation, not a lecture.",
+        "We analyze the content to identify key points, structure, tone, and context — so everything we generate actually makes sense.",
     },
     {
       step: "03",
-      title: "The Studio",
+      title: "Pick Your Output",
       description:
-        "The script is performed by ultra-realistic voices. No robotic glitches. Just smooth, professional narration.",
+        "Choose a summary, podcast, set of notes, quiz, deep explanation, or visualization. Mix and match as many as you like.",
     },
     {
       step: "04",
-      title: "Press Play",
+      title: "Learn & Revisit",
       description:
-        "Your episode is served. Listen in-app, download for your commute, or share it to expand your audience reach.",
+        "Read it, listen on the go, study from notes, or quiz yourself. Everything saves to your library — and you can share it with a link.",
     },
   ];
 
@@ -48,7 +48,7 @@ const Process1 = ({
                 className="absolute -top-2 -right-2 size-5 text-orange-500 md:size-10 lg:-right-14" />
             </div>
             <p className="text-base text-muted-foreground">
-              Four simple steps between you and podcast glory. No equipment needed, no editing required, no excuses left.
+              Four simple steps between any piece of content and the format you learn best from. No setup, no friction.
             </p>
 
             <Button variant="ghost" className="flex items-center justify-start gap-2" asChild>
