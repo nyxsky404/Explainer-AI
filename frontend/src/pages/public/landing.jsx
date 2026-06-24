@@ -12,12 +12,14 @@ const Landing = () => {
     return (
         <>
             <Header />
-            <HeroSection />
-            <StepCards />
-            <Feature />
-            <Process />
-            <Faq />
-            <CTASection />
+            <main id="main-content">
+                <HeroSection />
+                <StepCards />
+                <Feature />
+                <Process />
+                <Faq />
+                <CTASection />
+            </main>
             <Footer />
         </>
     )

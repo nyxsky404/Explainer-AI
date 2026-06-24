@@ -56,7 +56,7 @@ const Feature13 = ({
               >
                 <div className="flex justify-between gap-6 border-b border-[#e0e0e0]">
                   <div className="flex flex-col justify-between gap-6 py-6 pl-6 md:py-8 md:pl-8">
-                    <span className="font-mono text-xs text-[#888888]">
+                    <span className="font-mono text-xs text-[#6a6a6a]">
                       {feature.label}
                     </span>
                     <h3 className="text-xl font-semibold md:text-2xl text-[#161716]">

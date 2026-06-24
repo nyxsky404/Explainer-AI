@@ -28,16 +28,22 @@ export default function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [errors, setErrors] = useState({});
   const { login } = useAuth();
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!email || !password) {
+    const nextErrors = {};
+    if (!email) nextErrors.email = 'Email is required';
+    if (!password) nextErrors.password = 'Password is required';
+    if (Object.keys(nextErrors).length > 0) {
+      setErrors(nextErrors);
       toast.error('Please fill in all fields');
       return;
     }
+    setErrors({});
 
     setIsLoading(true);
     try {
@@ -46,17 +52,21 @@ export default function Login() {
         toast.success('Login successful!');
         navigate('/dashboard');
       } else {
-        toast.error(result.message || 'Login failed');
+        const message = result.message || 'Login failed';
+        setErrors({ form: message });
+        toast.error(message);
       }
     } catch (error) {
-      toast.error(getFriendlyErrorMessage(error));
+      const message = getFriendlyErrorMessage(error);
+      setErrors({ form: message });
+      toast.error(message);
     } finally {
       setIsLoading(false);
     }
   };
 
   return (
-    <div className="flex items-center justify-center min-h-screen">
+    <main className="flex items-center justify-center min-h-screen">
       <div className="flex flex-1 flex-col justify-center px-4 py-10 lg:px-6">
         <div className="sm:mx-auto sm:w-full sm:max-w-md">
           <Logo showText={false} />
@@ -95,7 +105,12 @@ export default function Login() {
             </div>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form onSubmit={handleSubmit} className="space-y-4" noValidate>
+            {errors.form && (
+              <p role="alert" className="text-sm font-medium text-destructive">
+                {errors.form}
+              </p>
+            )}
             <div>
               <Label
                 htmlFor="email"
@@ -112,7 +127,14 @@ export default function Login() {
                 onChange={(e) => setEmail(e.target.value)}
                 className="mt-2"
                 disabled={isLoading}
+                aria-invalid={!!errors.email}
+                aria-describedby={errors.email ? 'email-error' : undefined}
               />
+              {errors.email && (
+                <p id="email-error" role="alert" className="mt-1 text-sm text-destructive">
+                  {errors.email}
+                </p>
+              )}
             </div>
             <div>
               <Label
@@ -130,7 +152,14 @@ export default function Login() {
                 onChange={(e) => setPassword(e.target.value)}
                 className="mt-2"
                 disabled={isLoading}
+                aria-invalid={!!errors.password}
+                aria-describedby={errors.password ? 'password-error' : undefined}
               />
+              {errors.password && (
+                <p id="password-error" role="alert" className="mt-1 text-sm text-destructive">
+                  {errors.password}
+                </p>
+              )}
             </div>
             <div className="flex justify-end">
               <Link
@@ -146,6 +175,6 @@ export default function Login() {
 
         </div>
       </div>
-    </div>
+    </main>
   );
 }

@@ -146,7 +146,7 @@ export default function SummaryView() {
             {/* Header */}
             <div className="flex items-center gap-4">
                 <Link to="/dashboard/library">
-                    <Button variant="ghost" size="icon">
+                    <Button variant="ghost" size="icon" aria-label="Back to library">
                         <ArrowLeft className="size-4" />
                     </Button>
                 </Link>

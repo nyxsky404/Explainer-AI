@@ -69,6 +69,7 @@ export default function QuestionRenderer({
             <Button
               variant="ghost"
               size="icon"
+              aria-label="Regenerate this question"
               onClick={() => onRegenerate(question.id)}
               disabled={isRegenerating}
               title="Regenerate this question"

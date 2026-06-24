@@ -76,7 +76,7 @@ export default function AudioPlayer({ src, title = "Audio Player" }) {
                 </div>
                 <div className="flex items-center justify-between">
                     <span className="text-sm text-muted-foreground w-12">{formatTime(currentTime)}</span>
-                    <Button size="icon" onClick={togglePlay} className="size-12 rounded-full shadow-md">
+                    <Button size="icon" onClick={togglePlay} aria-label={isPlaying ? 'Pause' : 'Play'} className="size-12 rounded-full shadow-md">
                         {isPlaying ? <Pause className="size-6" /> : <Play className="size-6 ml-1" />}
                     </Button>
                     <span className="text-sm text-muted-foreground w-12 text-right">{formatTime(duration)}</span>

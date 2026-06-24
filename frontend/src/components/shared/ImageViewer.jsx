@@ -27,10 +27,10 @@ const ImageViewer = ({ src, alt = 'Visualizer Image', title = 'image' }) => {
   return (
     <div className="relative flex h-full w-full flex-col overflow-hidden rounded-xl border bg-zinc-950 shadow-sm">
       <div className="absolute right-4 top-4 z-10 flex gap-2">
-        <Button size="icon" variant="secondary" className="bg-black/50 hover:bg-black/70 text-white border-0" onClick={() => window.open(src, '_blank')} title="Open Original">
+        <Button size="icon" variant="secondary" aria-label="Open original image" className="bg-black/50 hover:bg-black/70 text-white border-0" onClick={() => window.open(src, '_blank')} title="Open Original">
           <ExternalLink className="h-4 w-4" />
         </Button>
-        <Button size="icon" variant="secondary" className="bg-black/50 hover:bg-black/70 text-white border-0" onClick={handleDownload} title="Download PNG">
+        <Button size="icon" variant="secondary" aria-label="Download PNG" className="bg-black/50 hover:bg-black/70 text-white border-0" onClick={handleDownload} title="Download PNG">
           <Download className="h-4 w-4" />
         </Button>
       </div>
@@ -44,13 +44,13 @@ const ImageViewer = ({ src, alt = 'Visualizer Image', title = 'image' }) => {
         {({ zoomIn, zoomOut, resetTransform }) => (
           <>
             <div className="absolute bottom-4 right-4 z-10 flex gap-2">
-              <Button size="icon" variant="secondary" className="bg-black/50 hover:bg-black/70 text-white border-0" onClick={() => zoomIn()}>
+              <Button size="icon" variant="secondary" aria-label="Zoom in" className="bg-black/50 hover:bg-black/70 text-white border-0" onClick={() => zoomIn()}>
                 <ZoomIn className="h-4 w-4" />
               </Button>
-              <Button size="icon" variant="secondary" className="bg-black/50 hover:bg-black/70 text-white border-0" onClick={() => zoomOut()}>
+              <Button size="icon" variant="secondary" aria-label="Zoom out" className="bg-black/50 hover:bg-black/70 text-white border-0" onClick={() => zoomOut()}>
                 <ZoomOut className="h-4 w-4" />
               </Button>
-              <Button size="icon" variant="secondary" className="bg-black/50 hover:bg-black/70 text-white border-0" onClick={() => resetTransform()}>
+              <Button size="icon" variant="secondary" aria-label="Reset zoom" className="bg-black/50 hover:bg-black/70 text-white border-0" onClick={() => resetTransform()}>
                 <RotateCcw className="h-4 w-4" />
               </Button>
             </div>

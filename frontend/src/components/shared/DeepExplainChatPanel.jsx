@@ -153,6 +153,7 @@ export default function DeepExplainChatPanel({ explanationId, initialFollowUps =
                             <Button
                                 type="submit"
                                 size="icon"
+                                aria-label="Send message"
                                 disabled={!input.trim() || loading}
                                 className="shrink-0"
                             >

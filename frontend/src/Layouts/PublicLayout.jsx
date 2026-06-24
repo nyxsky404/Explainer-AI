@@ -18,7 +18,10 @@ export default function PublicLayout() {
 
     return (
         <div className="min-h-screen bg-background">
-            <Outlet />
+            <a href="#main-content" className="skip-link">Skip to main content</a>
+            <div id="main-content">
+                <Outlet />
+            </div>
         </div>
     );
 }

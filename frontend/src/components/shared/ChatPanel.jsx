@@ -183,6 +183,7 @@ const ChatPanel = forwardRef(function ChatPanel({ summaryId }, ref) {
                             <Button
                                 type="submit"
                                 size="icon"
+                                aria-label="Send message"
                                 disabled={!input.trim() || loading}
                                 className="shrink-0"
                             >

@@ -23,9 +23,10 @@ export default function ProtectedLayout() {
 
     return (
         <SidebarProvider>
+            <a href="#main-content" className="skip-link">Skip to main content</a>
             <DashboardSidebar />
             <SidebarInset>
-                <main className="flex-1 overflow-auto p-6">
+                <main id="main-content" className="flex-1 overflow-auto p-6">
                     <Outlet />
                 </main>
             </SidebarInset>

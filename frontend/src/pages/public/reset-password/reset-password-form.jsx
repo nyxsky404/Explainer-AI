@@ -16,6 +16,7 @@ const ResetPasswordForm = () => {
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
   const [isConfirmPasswordVisible, setIsConfirmPasswordVisible] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [errors, setErrors] = useState({});
   const { resetPassword } = useAuth();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -26,24 +27,27 @@ const ResetPasswordForm = () => {
     const token = searchParams.get('token');
 
     if (!token) {
-      toast.error('Invalid reset link. Please request a new one.');
+      const message = 'Invalid reset link. Please request a new one.';
+      setErrors({ form: message });
+      toast.error(message);
       return;
     }
 
-    if (!password || !confirmPassword) {
-      toast.error('Please fill in all fields');
-      return;
+    const nextErrors = {};
+    if (!password) nextErrors.password = 'Password is required';
+    if (!confirmPassword) nextErrors.confirmPassword = 'Please confirm your password';
+    if (password && confirmPassword && password !== confirmPassword) {
+      nextErrors.confirmPassword = 'Passwords do not match';
+    } else if (password && password.length < 6) {
+      nextErrors.password = 'Password must be at least 6 characters';
     }
 
-    if (password !== confirmPassword) {
-      toast.error('Passwords do not match');
+    if (Object.keys(nextErrors).length > 0) {
+      setErrors(nextErrors);
+      toast.error(Object.values(nextErrors)[0]);
       return;
     }
-
-    if (password.length < 6) {
-      toast.error('Password must be at least 6 characters');
-      return;
-    }
+    setErrors({});
 
     setIsLoading(true);
     try {
@@ -52,17 +56,26 @@ const ResetPasswordForm = () => {
         toast.success('Password reset successfully!');
         navigate('/login');
       } else {
-        toast.error(result.message || 'Failed to reset password');
+        const message = result.message || 'Failed to reset password';
+        setErrors({ form: message });
+        toast.error(message);
       }
     } catch (error) {
-      toast.error(getFriendlyErrorMessage(error));
+      const message = getFriendlyErrorMessage(error);
+      setErrors({ form: message });
+      toast.error(message);
     } finally {
       setIsLoading(false);
     }
   };
 
   return (
-    <form className='space-y-4' onSubmit={handleSubmit}>
+    <form className='space-y-4' onSubmit={handleSubmit} noValidate>
+      {errors.form && (
+        <p role="alert" className="text-sm font-medium text-destructive">
+          {errors.form}
+        </p>
+      )}
       {/* Password */}
       <div className='w-full space-y-1'>
         <Label className='leading-5' htmlFor='password'>
@@ -77,6 +90,8 @@ const ResetPasswordForm = () => {
             onChange={(e) => setPassword(e.target.value)}
             className='pr-9'
             disabled={isLoading}
+            aria-invalid={!!errors.password}
+            aria-describedby={errors.password ? 'password-error' : undefined}
           />
           <Button
             type='button'
@@ -88,6 +103,11 @@ const ResetPasswordForm = () => {
             <span className='sr-only'>{isPasswordVisible ? 'Hide password' : 'Show password'}</span>
           </Button>
         </div>
+        {errors.password && (
+          <p id="password-error" role="alert" className="text-sm text-destructive">
+            {errors.password}
+          </p>
+        )}
       </div>
       {/* Confirm Password */}
       <div className='w-full space-y-1'>
@@ -103,6 +123,8 @@ const ResetPasswordForm = () => {
             onChange={(e) => setConfirmPassword(e.target.value)}
             className='pr-9'
             disabled={isLoading}
+            aria-invalid={!!errors.confirmPassword}
+            aria-describedby={errors.confirmPassword ? 'confirmPassword-error' : undefined}
           />
           <Button
             type='button'
@@ -114,6 +136,11 @@ const ResetPasswordForm = () => {
             <span className='sr-only'>{isConfirmPasswordVisible ? 'Hide password' : 'Show password'}</span>
           </Button>
         </div>
+        {errors.confirmPassword && (
+          <p id="confirmPassword-error" role="alert" className="text-sm text-destructive">
+            {errors.confirmPassword}
+          </p>
+        )}
       </div>
       <Button className='w-full' type='submit' disabled={isLoading}>
         {isLoading ? 'Resetting...' : 'Set New Password'}

@@ -24,7 +24,7 @@ export default function SummaryDisplay({
         <div className="space-y-6">
             {/* Audio Generation Progress Bar */}
             {isGenerating && (
-                <Card className="border-primary/50 bg-primary/5">
+                <Card role="status" aria-live="polite" className="border-primary/50 bg-primary/5">
                     <CardContent className="py-4">
                         <div className="flex items-center gap-4">
                             <Loader2 className="size-5 animate-spin text-primary" />
@@ -138,7 +138,7 @@ export default function SummaryDisplay({
             )}
 
             {/* Summary Content */}
-            <Card>
+            <Card aria-live="polite">
                 <CardContent className="py-6">
                     <MarkdownRenderer
                         content={summary.content}

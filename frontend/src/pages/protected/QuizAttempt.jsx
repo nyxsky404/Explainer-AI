@@ -213,6 +213,7 @@ export default function QuizAttempt() {
           <Button
             variant="ghost"
             size="icon"
+            aria-label="Delete"
             onClick={() => setDeleteDialogOpen(true)}
             disabled={deleting}
           >

@@ -162,6 +162,7 @@ export default function PdfSummarize() {
                                     <Button
                                         variant="ghost"
                                         size="icon"
+                                        aria-label="Remove file"
                                         onClick={removeFile}
                                     >
                                         <X className="size-4" />

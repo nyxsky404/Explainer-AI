@@ -62,6 +62,7 @@ export default function Dialog12() {
               <Button
                 variant="ghost"
                 size="icon"
+                aria-label={image ? 'Remove photo' : 'Upload photo'}
                 className="absolute -top-0.5 -right-0.5 bg-accent rounded-full border-[3px] border-background h-8 w-8 hover:bg-accent"
                 onClick={() => {
                   if (image) {

@@ -47,7 +47,7 @@ const Process1 = ({
               <Asterisk
                 className="absolute -top-2 -right-2 size-5 text-orange-500 md:size-10 lg:-right-14" />
             </div>
-            <p className="text-base text-foreground/50">
+            <p className="text-base text-muted-foreground">
               Four simple steps between you and podcast glory. No equipment needed, no editing required, no excuses left.
             </p>
 
@@ -73,7 +73,7 @@ const Process1 = ({
                   <h3 className="mb-4 text-2xl font-semibold tracking-tighter lg:text-3xl">
                     {step.title}
                   </h3>
-                  <p className="text-foreground/50">{step.description}</p>
+                  <p className="text-muted-foreground">{step.description}</p>
                 </div>
               </li>
             ))}

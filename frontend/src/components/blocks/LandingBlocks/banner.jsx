@@ -43,6 +43,7 @@ const Banner = ({
         <Button
           variant="ghost"
           size="icon"
+          aria-label="Dismiss banner"
           className="-mr-2 h-8 w-8 flex-none"
           onClick={handleClose}>
           <X className="h-4 w-4" />

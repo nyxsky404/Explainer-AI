@@ -98,6 +98,7 @@ export default function BatchSummarize() {
                                         <Button
                                             variant="ghost"
                                             size="icon"
+                                            aria-label="Remove URL"
                                             onClick={() => removeUrlField(index)}
                                             disabled={isLoading}
                                         >

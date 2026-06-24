@@ -38,8 +38,14 @@ const Footer = () => {
         </div>
 
         <div className='flex items-center gap-4'>
-          <a href='https://github.com/nyxsky404/Explainer-AI' target='_blank' rel='noopener noreferrer'>
-            <GithubIcon className='size-5 opacity-80 transition-opacity duration-300 hover:opacity-100' />
+          <a
+            href='https://github.com/nyxsky404/Explainer-AI'
+            target='_blank'
+            rel='noopener noreferrer'
+            aria-label='View Explainer AI on GitHub (opens in a new tab)'>
+            <GithubIcon
+              aria-hidden='true'
+              className='size-5 opacity-80 transition-opacity duration-300 hover:opacity-100' />
           </a>
         </div>
       </div>

@@ -78,7 +78,7 @@ const VisualizerView = () => {
     <div className="container mx-auto h-[calc(100vh-100px)] py-4 flex flex-col">
       <div className="mb-4 flex items-center justify-between">
         <div className="flex items-center gap-4">
-          <Button variant="ghost" size="icon" onClick={() => navigate('/dashboard/visualizer/library')}>
+          <Button variant="ghost" size="icon" aria-label="Back to library" onClick={() => navigate('/dashboard/visualizer/library')}>
             <ArrowLeft className="h-4 w-4" />
           </Button>
           <div>
@@ -90,7 +90,7 @@ const VisualizerView = () => {
         </div>
 
         <div className="flex gap-2">
-          <Button variant="destructive" size="icon" onClick={() => setDeleteDialogOpen(true)} disabled={deleting}>
+          <Button variant="destructive" size="icon" aria-label="Delete visualization" onClick={() => setDeleteDialogOpen(true)} disabled={deleting}>
             {deleting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}
           </Button>
         </div>

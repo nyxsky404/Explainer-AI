@@ -25,41 +25,39 @@ export default function Signup() {
   const [confirmPassword, setConfirmPassword] = useState('');
 
   const [isLoading, setIsLoading] = useState(false);
+  const [errors, setErrors] = useState({});
   const { signup } = useAuth();
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!name || !email || !password || !confirmPassword) {
-      toast.error('Please fill in all fields');
-      return;
+    const nextErrors = {};
+    if (!name) nextErrors.name = 'Name is required';
+    if (!email) nextErrors.email = 'Email is required';
+    if (!password) nextErrors.password = 'Password is required';
+    if (!confirmPassword) nextErrors.confirmPassword = 'Please confirm your password';
+
+    if (password && confirmPassword && password !== confirmPassword) {
+      nextErrors.confirmPassword = 'Passwords do not match';
+    } else if (password) {
+      if (password.length < 8) {
+        nextErrors.password = 'Password must be at least 8 characters';
+      } else if (!/[A-Z]/.test(password)) {
+        nextErrors.password = 'Password must contain at least one uppercase letter';
+      } else if (!/[0-9]/.test(password)) {
+        nextErrors.password = 'Password must contain at least one number';
+      } else if (!/[^A-Za-z0-9]/.test(password)) {
+        nextErrors.password = 'Password must contain at least one special character';
+      }
     }
 
-    if (password !== confirmPassword) {
-      toast.error('Passwords do not match');
+    if (Object.keys(nextErrors).length > 0) {
+      setErrors(nextErrors);
+      toast.error(Object.values(nextErrors)[0]);
       return;
     }
-
-    if (password.length < 8) {
-      toast.error('Password must be at least 8 characters');
-      return;
-    }
-
-    if (!/[A-Z]/.test(password)) {
-      toast.error('Password must contain at least one uppercase letter');
-      return;
-    }
-
-    if (!/[0-9]/.test(password)) {
-      toast.error('Password must contain at least one number');
-      return;
-    }
-
-    if (!/[^A-Za-z0-9]/.test(password)) {
-      toast.error('Password must contain at least one special character');
-      return;
-    }
+    setErrors({});
 
     setIsLoading(true);
     try {
@@ -68,10 +66,14 @@ export default function Signup() {
         toast.success('Account created successfully!');
         navigate('/dashboard');
       } else {
-        toast.error(result.message || 'Signup failed');
+        const message = result.message || 'Signup failed';
+        setErrors({ form: message });
+        toast.error(message);
       }
     } catch (error) {
-      toast.error(getFriendlyErrorMessage(error));
+      const message = getFriendlyErrorMessage(error);
+      setErrors({ form: message });
+      toast.error(message);
     } finally {
       setIsLoading(false);
     }
@@ -111,7 +113,12 @@ export default function Signup() {
               </div>
             </div>
 
-            <form onSubmit={handleSubmit} className="space-y-4">
+            <form onSubmit={handleSubmit} className="space-y-4" noValidate>
+              {errors.form && (
+                <p role="alert" className="text-sm font-medium text-destructive">
+                  {errors.form}
+                </p>
+              )}
               <div>
                 <Label
                   htmlFor="name"
@@ -128,7 +135,14 @@ export default function Signup() {
                   onChange={(e) => setName(e.target.value)}
                   className="mt-2"
                   disabled={isLoading}
+                  aria-invalid={!!errors.name}
+                  aria-describedby={errors.name ? 'name-error' : undefined}
                 />
+                {errors.name && (
+                  <p id="name-error" role="alert" className="mt-1 text-sm text-destructive">
+                    {errors.name}
+                  </p>
+                )}
               </div>
 
               <div>
@@ -147,7 +161,14 @@ export default function Signup() {
                   onChange={(e) => setEmail(e.target.value)}
                   className="mt-2"
                   disabled={isLoading}
+                  aria-invalid={!!errors.email}
+                  aria-describedby={errors.email ? 'email-error' : undefined}
                 />
+                {errors.email && (
+                  <p id="email-error" role="alert" className="mt-1 text-sm text-destructive">
+                    {errors.email}
+                  </p>
+                )}
               </div>
 
               <div>
@@ -166,7 +187,14 @@ export default function Signup() {
                   onChange={(e) => setPassword(e.target.value)}
                   className="mt-2"
                   disabled={isLoading}
+                  aria-invalid={!!errors.password}
+                  aria-describedby={errors.password ? 'password-error' : undefined}
                 />
+                {errors.password && (
+                  <p id="password-error" role="alert" className="mt-1 text-sm text-destructive">
+                    {errors.password}
+                  </p>
+                )}
               </div>
 
               <div>
@@ -185,7 +213,14 @@ export default function Signup() {
                   onChange={(e) => setConfirmPassword(e.target.value)}
                   className="mt-2"
                   disabled={isLoading}
+                  aria-invalid={!!errors.confirmPassword}
+                  aria-describedby={errors.confirmPassword ? 'confirmPassword-error' : undefined}
                 />
+                {errors.confirmPassword && (
+                  <p id="confirmPassword-error" role="alert" className="mt-1 text-sm text-destructive">
+                    {errors.confirmPassword}
+                  </p>
+                )}
               </div>
 
               <Button type="submit" className="mt-4 w-full py-2 font-medium" disabled={isLoading}>

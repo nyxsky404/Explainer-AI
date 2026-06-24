@@ -74,7 +74,7 @@ const MermaidRenderer = ({ chart, title = 'Diagram' }) => {
   return (
     <div className="relative flex h-full w-full flex-col overflow-hidden rounded-xl border bg-white shadow-sm dark:bg-zinc-950">
       <div className="absolute right-4 top-4 z-10 flex gap-2">
-        <Button size="icon" variant="outline" onClick={handleDownload} title="Download SVG">
+        <Button size="icon" variant="outline" aria-label="Download SVG" onClick={handleDownload} title="Download SVG">
           <Download className="h-4 w-4" />
         </Button>
       </div>
@@ -91,13 +91,13 @@ const MermaidRenderer = ({ chart, title = 'Diagram' }) => {
       </div>
 
       <div className="absolute bottom-4 right-4 z-10 flex gap-2">
-        <Button size="icon" variant="secondary" onClick={() => setZoom((z) => Math.min(+(z + 0.2).toFixed(1), 4))}>
+        <Button size="icon" variant="secondary" aria-label="Zoom in" onClick={() => setZoom((z) => Math.min(+(z + 0.2).toFixed(1), 4))}>
           <ZoomIn className="h-4 w-4" />
         </Button>
-        <Button size="icon" variant="secondary" onClick={() => setZoom((z) => Math.max(+(z - 0.2).toFixed(1), 0.2))}>
+        <Button size="icon" variant="secondary" aria-label="Zoom out" onClick={() => setZoom((z) => Math.max(+(z - 0.2).toFixed(1), 0.2))}>
           <ZoomOut className="h-4 w-4" />
         </Button>
-        <Button size="icon" variant="secondary" onClick={() => setZoom(1)}>
+        <Button size="icon" variant="secondary" aria-label="Reset zoom" onClick={() => setZoom(1)}>
           <RotateCcw className="h-4 w-4" />
         </Button>
       </div>
