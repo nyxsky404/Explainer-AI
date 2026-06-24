@@ -48,13 +48,13 @@ export default function QuizLibrary() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold">Quiz Library</h1>
+          <h1 className="text-2xl md:text-3xl font-bold">Quiz Library</h1>
           <p className="text-muted-foreground">Your generated quizzes</p>
         </div>
         <Link to="/dashboard/quiz/generate">
-          <Button className="gap-2">
+          <Button className="gap-2 shrink-0">
             <Plus className="size-4" />
-            New Quiz
+            <span className="hidden sm:inline">New Quiz</span>
           </Button>
         </Link>
       </div>

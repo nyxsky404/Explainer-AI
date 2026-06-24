@@ -100,7 +100,7 @@ export default function NotesGenerate() {
   return (
     <div className="container max-w-4xl mx-auto py-8 px-4">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold mb-2">Generate Handwritten Notes</h1>
+        <h1 className="text-2xl md:text-3xl font-bold mb-2">Generate Handwritten Notes</h1>
         <p className="text-muted-foreground">
           Create beautifully styled notes from any content with AI
         </p>

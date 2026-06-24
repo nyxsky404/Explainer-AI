@@ -3,6 +3,7 @@ import { useAuth } from '@/context/AuthContext';
 import { SidebarProvider, SidebarInset } from '@/components/ui/sidebar';
 import { Skeleton } from '@/components/ui/skeleton';
 import { DashboardSidebar } from '@/components/blocks/Dashboard/sidebar/app-sidebar';
+import MobileHeader from '@/components/blocks/Dashboard/mobile-header';
 
 export default function ProtectedLayout() {
     const { isAuthenticated, loading } = useAuth();
@@ -26,7 +27,8 @@ export default function ProtectedLayout() {
             <a href="#main-content" className="skip-link">Skip to main content</a>
             <DashboardSidebar />
             <SidebarInset>
-                <main id="main-content" className="flex-1 overflow-auto p-6">
+                <MobileHeader />
+                <main id="main-content" className="flex-1 overflow-auto p-4 md:p-6">
                     <Outlet />
                 </main>
             </SidebarInset>

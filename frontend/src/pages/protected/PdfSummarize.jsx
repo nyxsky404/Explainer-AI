@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { getFriendlyErrorMessage } from '@/utils/errorMessages';
 import DepthSelector from '@/components/shared/DepthSelector';
+import FormPageLayout from '@/components/shared/FormPageLayout';
 
 export default function PdfSummarize() {
     const navigate = useNavigate();
@@ -101,14 +102,11 @@ export default function PdfSummarize() {
     };
 
     return (
-        <div className="space-y-6 max-w-2xl mx-auto">
-            <div className="space-y-2">
-                <h1 className="text-3xl font-bold">PDF Summarizer</h1>
-                <p className="text-muted-foreground">
-                    Upload and summarize research papers, reports, or articles (2 credits)
-                </p>
-            </div>
-
+        <FormPageLayout
+            title="PDF Summarizer"
+            description="Upload and summarize research papers, reports, or articles (2 credits)"
+            center
+        >
             <Card>
                 <CardHeader>
                     <CardTitle className="flex items-center gap-2">
@@ -203,6 +201,6 @@ export default function PdfSummarize() {
                     </div>
                 </CardContent>
             </Card>
-        </div>
+        </FormPageLayout>
     );
 }

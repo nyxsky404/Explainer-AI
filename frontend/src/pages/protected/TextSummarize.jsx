@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { getFriendlyErrorMessage } from '@/utils/errorMessages';
 import DepthSelector from '@/components/shared/DepthSelector';
+import FormPageLayout from '@/components/shared/FormPageLayout';
 
 export default function TextSummarize() {
     const navigate = useNavigate();
@@ -48,14 +49,12 @@ export default function TextSummarize() {
     };
 
     return (
-        <div className="space-y-6 max-w-3xl mx-auto">
-            <div className="space-y-2">
-                <h1 className="text-3xl font-bold">Text Summarizer</h1>
-                <p className="text-muted-foreground">
-                    Paste any text to extract key insights and get a summary (2 credits)
-                </p>
-            </div>
-
+        <FormPageLayout
+            title="Text Summarizer"
+            description="Paste any text to extract key insights and get a summary (2 credits)"
+            center
+            className="max-w-3xl"
+        >
             <Card>
                 <CardHeader>
                     <CardTitle className="flex items-center gap-2">
@@ -100,6 +99,6 @@ export default function TextSummarize() {
                     </div>
                 </CardContent>
             </Card>
-        </div>
+        </FormPageLayout>
     );
 }

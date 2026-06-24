@@ -12,6 +12,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import DepthSelector from '@/components/shared/DepthSelector';
+import FormPageLayout from '@/components/shared/FormPageLayout';
 
 export default function PodcastGenerate() {
     const [inputMode, setInputMode] = useState('url');
@@ -68,15 +69,11 @@ export default function PodcastGenerate() {
     };
 
     return (
-        <div className="max-w-2xl mx-auto space-y-6">
-            {/* Page Heading */}
-            <div>
-                <h1 className="text-3xl font-bold">Generate Podcast</h1>
-                <p className="text-muted-foreground">
-                    Transform any article or text into an audio podcast (3 credits)
-                </p>
-            </div>
-
+        <FormPageLayout
+            title="Generate Podcast"
+            description="Transform any article or text into an audio podcast (3 credits)"
+            center
+        >
             {/* Card */}
             <Card>
                 <CardHeader>
@@ -164,6 +161,6 @@ export default function PodcastGenerate() {
                     </form>
                 </CardContent>
             </Card>
-        </div>
+        </FormPageLayout>
     );
 }

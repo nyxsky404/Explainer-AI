@@ -181,7 +181,7 @@ export default function Dashboard() {
         <div className="space-y-8">
             {/* Welcome Header */}
             <div>
-                <h1 className="text-3xl font-bold">Welcome back, {user?.name?.split(' ')[0]}</h1>
+                <h1 className="text-2xl md:text-3xl font-bold">Welcome back, {user?.name?.split(' ')[0]}</h1>
                 <p className="text-muted-foreground">What would you like to create today?</p>
             </div>
 
@@ -243,7 +243,41 @@ export default function Dashboard() {
                         </CardContent>
                     </Card>
                 ) : (
-                    <div className="border border-border rounded-lg overflow-hidden">
+                    <>
+                    {/* Mobile: card list */}
+                    <div className="space-y-3 md:hidden">
+                        {recentActivity.map((item) => (
+                            <Link
+                                key={`m-${item.activityType || 'summary'}-${item.id}`}
+                                to={getActivityLink(item)}
+                                className="block">
+                                <Card className="hover:border-primary transition-colors">
+                                    <CardContent className="p-4 space-y-2">
+                                        <div className="flex items-start gap-2">
+                                            <span className="mt-0.5 shrink-0">{getActivityIcon(item)}</span>
+                                            <span className="font-medium text-sm wrap-break-word line-clamp-2 flex-1">
+                                                {getActivityUrl(item)}
+                                            </span>
+                                        </div>
+                                        <div className="flex items-center justify-between gap-2">
+                                            {getActivityBadge(item)}
+                                            <span className="inline-flex items-center gap-1 text-xs text-amber-600">
+                                                <Coins className="size-3" />
+                                                {item.credits ?? (item.activityType === 'summary'
+                                                    ? (pricing.youtubeSummary + (item.audioStatus === 'completed' ? pricing.audioGeneration : 0))
+                                                    : (item.activityType === 'podcast' || item.activityType === 'gossip' ? 3 : 2))
+                                                }
+                                            </span>
+                                        </div>
+                                        <p className="text-xs text-muted-foreground">{formatDate(item.createdAt)}</p>
+                                    </CardContent>
+                                </Card>
+                            </Link>
+                        ))}
+                    </div>
+
+                    {/* Desktop: table */}
+                    <div className="hidden md:block border border-border rounded-lg overflow-hidden">
                         <Table>
                             <TableHeader>
                                 <TableRow>
@@ -297,6 +331,7 @@ export default function Dashboard() {
                             </TableBody>
                         </Table>
                     </div>
+                    </>
                 )}
             </div>
         </div>

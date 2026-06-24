@@ -112,14 +112,14 @@ export default function NotesLibrary() {
       <div className="mb-8">
         <div className="flex items-center justify-between mb-4">
           <div>
-            <h1 className="text-3xl font-bold mb-2">My Notes</h1>
+            <h1 className="text-2xl md:text-3xl font-bold mb-2">My Notes</h1>
             <p className="text-muted-foreground">
               {notes.length} note{notes.length !== 1 ? 's' : ''} created
             </p>
           </div>
-          <Button onClick={() => navigate('/dashboard/notes/generate')}>
-            <Plus className="w-4 h-4 mr-2" />
-            Create Note
+          <Button className="shrink-0" onClick={() => navigate('/dashboard/notes/generate')}>
+            <Plus className="w-4 h-4 sm:mr-2" />
+            <span className="hidden sm:inline">Create Note</span>
           </Button>
         </div>
 

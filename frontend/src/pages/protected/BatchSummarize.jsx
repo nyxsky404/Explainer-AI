@@ -67,7 +67,7 @@ export default function BatchSummarize() {
     return (
         <div className="space-y-6 max-w-3xl mx-auto">
             <div className="space-y-2">
-                <h1 className="text-3xl font-bold">Batch Summarizer</h1>
+                <h1 className="text-2xl md:text-3xl font-bold">Batch Summarizer</h1>
                 <p className="text-muted-foreground">
                     Summarize multiple URLs at once (YouTube videos or Web pages). 2 credits per URL.
                 </p>

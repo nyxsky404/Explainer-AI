@@ -113,7 +113,7 @@ export default function QuizGenerate() {
       <div className="max-w-2xl mx-auto space-y-6">
         {/* Page Heading */}
         <div>
-          <h1 className="text-3xl font-bold">AI Quiz Generator</h1>
+          <h1 className="text-2xl md:text-3xl font-bold">AI Quiz Generator</h1>
           <p className="text-muted-foreground">
             Generate quizzes from any content to test your knowledge ({summaryId ? '1 credit' : '2 credits'})
           </p>

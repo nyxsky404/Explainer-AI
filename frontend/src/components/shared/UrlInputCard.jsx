@@ -4,6 +4,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Loader2, Settings } from 'lucide-react';
+import FormPageLayout from '@/components/shared/FormPageLayout';
 
 export default function UrlInputCard({
     pageTitle,
@@ -22,13 +23,7 @@ export default function UrlInputCard({
     children,
 }) {
     return (
-        <div className="max-w-2xl mx-auto space-y-6">
-            {/* Page Heading - Left aligned within the centered container */}
-            <div>
-                <h1 className="text-3xl font-bold">{pageTitle}</h1>
-                <p className="text-muted-foreground">{pageDescription}</p>
-            </div>
-
+        <FormPageLayout title={pageTitle} description={pageDescription} center>
             {/* Card - Same width as heading */}
             <Card>
                 <CardHeader>
@@ -81,6 +76,6 @@ export default function UrlInputCard({
                     </form>
                 </CardContent>
             </Card>
-        </div>
+        </FormPageLayout>
     );
 }

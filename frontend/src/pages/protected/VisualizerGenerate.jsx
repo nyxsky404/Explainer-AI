@@ -45,7 +45,7 @@ const VisualizerGenerate = () => {
   return (
     <div className="container mx-auto max-w-3xl py-8">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold tracking-tight text-zinc-900 dark:text-zinc-50">AI Topic Visualizer</h1>
+        <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-zinc-900 dark:text-zinc-50">AI Topic Visualizer</h1>
         <p className="mt-2 text-zinc-600 dark:text-zinc-400">
           Turn complex concepts into clear diagrams or professional illustrations instantly.
         </p>

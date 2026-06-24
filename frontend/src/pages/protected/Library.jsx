@@ -24,6 +24,7 @@ import {
 } from '@/components/ui/pagination';
 import { ExternalLink, Mic, Plus, Youtube, Globe, Library as LibraryIcon, FileText, Type, FileQuestion, StickyNote, ChartBar, Sparkles, Brain, Layers } from 'lucide-react';
 import { truncateUrl } from '@/lib/utils';
+import LibraryItemCard from '@/components/blocks/Dashboard/library-item-card';
 
 export default function Library() {
     const [activity, setActivity] = useState([]);
@@ -328,13 +329,13 @@ export default function Library() {
         <div className="space-y-6">
             <div className="flex items-center justify-between">
                 <div>
-                    <h1 className="text-3xl font-bold">Library</h1>
+                    <h1 className="text-2xl md:text-3xl font-bold">Library</h1>
                     <p className="text-muted-foreground">All your generated content</p>
                 </div>
                 <Link to="/dashboard/podcast/generate">
-                    <Button className="gap-2">
+                    <Button className="gap-2 shrink-0">
                         <Plus className="size-4" />
-                        Create New
+                        <span className="hidden sm:inline">Create New</span>
                     </Button>
                 </Link>
             </div>
@@ -380,7 +381,22 @@ export default function Library() {
                         )
                     ) : (
                         <>
-                            <div className="border border-border rounded-lg overflow-hidden">
+                            {/* Mobile: card list */}
+                            <div className="space-y-3 md:hidden">
+                                {activity.map((item) => (
+                                    <LibraryItemCard
+                                        key={`m-${item.activityType || 'summary'}-${item.id}`}
+                                        icon={getIcon(item)}
+                                        title={item.blogUrl || item.sourceUrl ? truncateUrl(getUrl(item)) : getUrl(item)}
+                                        badge={getBadge(item)}
+                                        date={formatDate(item.createdAt)}
+                                        to={getLink(item)}
+                                        hasExternal={!!(item.blogUrl || item.sourceUrl)}
+                                    />
+                                ))}
+                            </div>
+                            {/* Desktop: table */}
+                            <div className="hidden md:block border border-border rounded-lg overflow-hidden">
                                 <Table>
                                     <TableHeader>
                                         <TableRow>
@@ -446,7 +462,22 @@ export default function Library() {
                         )
                     ) : (
                         <>
-                            <div className="border border-border rounded-lg overflow-hidden">
+                            {/* Mobile: card list */}
+                            <div className="space-y-3 md:hidden">
+                                {podcasts.map((podcast) => (
+                                    <LibraryItemCard
+                                        key={`m-${podcast.id}`}
+                                        icon={<Mic className="size-4 text-purple-500" />}
+                                        title={podcast.blogUrl ? truncateUrl(podcast.blogUrl) : 'Direct Text'}
+                                        badge={getStatusBadge(podcast.status)}
+                                        date={formatDate(podcast.createdAt)}
+                                        to={`/dashboard/podcast/${podcast.id}`}
+                                        hasExternal={!!podcast.blogUrl}
+                                    />
+                                ))}
+                            </div>
+                            {/* Desktop: table */}
+                            <div className="hidden md:block border border-border rounded-lg overflow-hidden">
                                 <Table>
                                     <TableHeader>
                                         <TableRow>
@@ -512,7 +543,22 @@ export default function Library() {
                         )
                     ) : (
                         <>
-                            <div className="border border-border rounded-lg overflow-hidden">
+                            {/* Mobile: card list */}
+                            <div className="space-y-3 md:hidden">
+                                {activity.map((item) => (
+                                    <LibraryItemCard
+                                        key={`m-${item.id}`}
+                                        icon={<Sparkles className="size-4 text-pink-500" />}
+                                        title={item.blogUrl ? truncateUrl(item.blogUrl) : 'Gossip Content'}
+                                        badge={getStatusBadge(item.status)}
+                                        date={formatDate(item.createdAt)}
+                                        to={`/dashboard/gossip/${item.id}`}
+                                        hasExternal={!!item.blogUrl}
+                                    />
+                                ))}
+                            </div>
+                            {/* Desktop: table */}
+                            <div className="hidden md:block border border-border rounded-lg overflow-hidden">
                                 <Table>
                                     <TableHeader>
                                         <TableRow>
@@ -578,7 +624,21 @@ export default function Library() {
                         )
                     ) : (
                         <>
-                            <div className="border border-border rounded-lg overflow-hidden">
+                            {/* Mobile: card list */}
+                            <div className="space-y-3 md:hidden">
+                                {activity.map((item) => (
+                                    <LibraryItemCard
+                                        key={`m-${item.id}`}
+                                        icon={<Brain className="size-4 text-emerald-500" />}
+                                        title={item.topic}
+                                        badge={<Badge variant="outline" className="capitalize gap-1">{item.mode}</Badge>}
+                                        date={formatDate(item.createdAt)}
+                                        to={`/dashboard/deep-explain/${item.id}`}
+                                    />
+                                ))}
+                            </div>
+                            {/* Desktop: table */}
+                            <div className="hidden md:block border border-border rounded-lg overflow-hidden">
                                 <Table>
                                     <TableHeader>
                                         <TableRow>
@@ -635,7 +695,25 @@ export default function Library() {
                         )
                     ) : (
                         <>
-                            <div className="border border-border rounded-lg overflow-hidden">
+                            {/* Mobile: card list */}
+                            <div className="space-y-3 md:hidden">
+                                {summaries.map((summary) => (
+                                    <LibraryItemCard
+                                        key={`m-${summary.id}`}
+                                        icon={summary.type === 'youtube' ? <Youtube className="size-4 text-red-500" /> :
+                                            summary.type === 'pdf' ? <FileText className="size-4 text-orange-500" /> :
+                                            summary.type === 'text' ? <Type className="size-4 text-gray-500" /> :
+                                            <Globe className="size-4 text-blue-500" />}
+                                        title={summary.sourceUrl ? truncateUrl(summary.sourceUrl) : 'Pasted Text'}
+                                        badge={getSummaryBadge(summary.type)}
+                                        date={formatDate(summary.createdAt)}
+                                        to={`/dashboard/summary/${summary.id}`}
+                                        hasExternal={!!summary.sourceUrl}
+                                    />
+                                ))}
+                            </div>
+                            {/* Desktop: table */}
+                            <div className="hidden md:block border border-border rounded-lg overflow-hidden">
                                 <Table>
                                     <TableHeader>
                                         <TableRow>
