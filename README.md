@@ -96,19 +96,49 @@ The backend runs a decoupled Express API with two dedicated BullMQ workers (podc
 
 ## Architecture
 
-```
-┌─────────────┐     REST API     ┌──────────────┐     BullMQ     ┌──────────────────┐
-│  React SPA  │ ───────────────► │  API Server  │ ─────────────► │  Podcast Worker  │
-│  (Vite)     │ ◄─────────────── │  (Express)   │                └──────────────────┘
-└─────────────┘                  └──────────────┘     BullMQ     ┌──────────────────┐
-                                        │            ─────────────► │  Gossip Worker   │
-                                        ▼                          └──────────────────┘
-                               ┌──────────────────┐
-                               │  PostgreSQL       │
-                               │  (Supabase)       │
-                               │  Redis (BullMQ)   │
-                               │  Supabase Storage │
-                               └──────────────────┘
+```mermaid
+flowchart TD
+    User(["👤 User"])
+
+    subgraph Frontend["Frontend (React + Vite)"]
+        SPA["React SPA"]
+    end
+
+    subgraph Backend["Backend (Node.js + Express)"]
+        API["API Server\n(Express 5)"]
+        PQ["Podcast Queue\n(BullMQ)"]
+        GQ["Gossip Queue\n(BullMQ)"]
+        PW["Podcast Worker"]
+        GW["Gossip Worker"]
+    end
+
+    subgraph Infrastructure["Infrastructure"]
+        Redis[("Redis")]
+        PG[("PostgreSQL\n(Supabase)")]
+        Storage[("Supabase\nStorage")]
+    end
+
+    subgraph AIProviders["AI Providers"]
+        OR["OpenRouter\n(text generation)"]
+        Gemini["Google Gemini\n(scripts · TTS)"]
+        EL["ElevenLabs\n(TTS)"]
+        DG["Deepgram\n(TTS)"]
+        FC["Firecrawl\n(web scraping)"]
+        SD["Supadata\n(YouTube transcripts)"]
+    end
+
+    User -- "HTTPS" --> SPA
+    SPA -- "REST API" --> API
+    API -- "auth / data" --> PG
+    API -- "enqueue job" --> PQ & GQ
+    PQ --> Redis
+    GQ --> Redis
+    Redis --> PW & GW
+    PW & GW -- "store audio" --> Storage
+    PW & GW -- "update job status" --> PG
+    API --> OR & Gemini & FC & SD
+    PW --> EL & DG & Gemini
+    GW --> EL & Gemini
 ```
 
 Long-running tasks (audio generation, script synthesis) are dispatched to background workers via Redis queues so the API responds immediately and the client polls for results.
