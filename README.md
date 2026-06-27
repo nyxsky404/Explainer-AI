@@ -3,152 +3,224 @@
   <h1>Explainer AI</h1>
   
   <p>
-    <strong>Turn your reading list
-into a playlist</strong>
+    <strong>AI summarizer · podcast generator · quiz maker · mind map builder</strong><br/>
+    <em>Paste a URL, YouTube link, or PDF — get a podcast, summary, quiz, or mind map in seconds.</em>
   </p>
 
   <p>
+    <a href="https://explainer-ai-two.vercel.app"><img src="https://img.shields.io/badge/Live%20Demo-explainer--ai-brightgreen?logo=vercel" alt="Live Demo" /></a>
     <a href="https://react.dev/"><img src="https://img.shields.io/badge/React-19-blue?logo=react&logoColor=white" alt="React 19" /></a>
-    <a href="https://nodejs.org/"><img src="https://img.shields.io/badge/Node.js-22-green?logo=nodedotjs&logoColor=white" alt="Node.js" /></a>
+    <a href="https://nodejs.org/"><img src="https://img.shields.io/badge/Node.js-22-green?logo=nodedotjs&logoColor=white" alt="Node.js 22" /></a>
     <a href="https://vitejs.dev/"><img src="https://img.shields.io/badge/Vite-7-646CFF?logo=vite&logoColor=white" alt="Vite 7" /></a>
     <a href="https://tailwindcss.com/"><img src="https://img.shields.io/badge/Tailwind-4-38B2AC?logo=tailwindcss&logoColor=white" alt="Tailwind CSS 4" /></a>
-    <a href="https://prisma.io/"><img src="https://img.shields.io/badge/Prisma-6-2D3748?logo=prisma&logoColor=white" alt="Prisma" /></a>
+    <a href="https://prisma.io/"><img src="https://img.shields.io/badge/Prisma-6-2D3748?logo=prisma&logoColor=white" alt="Prisma 6" /></a>
+    <img src="https://img.shields.io/badge/license-MIT-blue" alt="MIT License" />
   </p>
 </div>
 
 <br />
 
-## 🚀 Overview
+## Overview
 
-**Explainer AI** is a AI-powered Podcast Generator that transforms web content into high-quality audio podcasts. By leveraging Google's Gemini AI for script generation and advanced text-to-speech synthesis, it allows users to consume written content on the go.
+**Explainer AI** is an open-source, AI-powered learning platform that transforms web articles, YouTube videos, PDFs, and plain text into structured learning materials — summaries, podcasts, quizzes, notes, mind maps, and more.
 
-Designed with a modern, responsive dashboard and a robust backend architecture, Explainer-AI handles complex background processing to ensure a seamless user experience.
+Point it at any URL, paste a YouTube link, or upload a PDF and it generates ready-to-use content in seconds: an audio podcast you can listen to on the go, a structured summary, a quiz to test your understanding, or a visual mind map of the key concepts. Built for students, researchers, and anyone with more tabs open than time to read them.
 
-## ✨ Features
+The backend runs a decoupled Express API with two dedicated BullMQ workers (podcast + gossip audio) so long-running AI generation jobs never block the main server.
 
-- **🤖 AI-Powered Script Generation**: Automatically converts articles and web pages into engaging podcast scripts using **Google Gemini AI**.
-- **🌐 Web Scraping & Analysis**: Integrates **Firecrawl** to accurately extract key information from URLs.
-- **🎙️ High-Fidelity Audio Synthesis**: Generates natural-sounding lifelike voiceovers for your podcasts.
-- **⚡ Asynchronous Processing**: Utilizes **BullMQ** and **Redis** for reliable, scalable background job management using a specialized worker microservice.
-- **🔐 Secure Authentication**: Robust user management protected by JWT and secure password hashing.
-- **📊 Interactive Dashboard**: Built with **Shadcn/UI** for a premium, accessible, and responsive user interface.
-- **☁️ Cloud Storage**: Seamless audio file management using **Supabase Storage**.
+## What can I use it for?
 
-## 🛠️ Tech Stack
+| I want to… | Use this tool |
+|---|---|
+| Listen to a blog post or article during my commute | **Podcast Generator** |
+| Get the key points from a YouTube video without watching it | **Summarizer** (YouTube link) |
+| Turn a research PDF into an audio summary | **Podcast Generator** (PDF upload) |
+| Test my understanding of a topic | **Quiz Generator** |
+| Get structured notes from a web page | **Smart Notes** |
+| Visualize how concepts in an article relate to each other | **Visualizer** (mind map) |
+| Ask questions about something I just read | **Chat** |
+| Deep-dive into a concept I didn't fully understand | **Deep Explain** |
+
+## Features
+
+- **Summarizer** — Condenses web pages, YouTube videos, PDFs, and pasted text into clear summaries with adjustable depth.
+- **Podcast Generator** — Produces a full audio podcast from any content using AI-generated scripts and multi-provider TTS (Gemini TTS, ElevenLabs, Deepgram).
+- **Gossip Mode** — Generates a casual, conversational audio episode styled as a gossip podcast — a second voice format with its own queue worker.
+- **Quiz Generator** — Creates interactive multiple-choice and open-ended quizzes from source content.
+- **Smart Notes** — Produces structured study notes with key concepts, definitions, and takeaways.
+- **Visualizer** — Renders Mermaid diagrams and mind maps to illustrate relationships in the content.
+- **Deep Explain** — Provides a thorough, step-by-step conceptual breakdown of complex topics.
+- **Chat** — Ask follow-up questions about any piece of content in a threaded chat panel.
+- **Multi-source Input** — Accepts URLs (via Firecrawl), YouTube links (via Supadata), uploaded PDFs, or raw text.
+- **Credits System** — Usage-based credits managed per user.
+- **GitHub OAuth** — Sign in with GitHub in addition to email/password.
+- **Email Notifications** — Transactional email via SMTP (auto-configured Ethereal in development).
+
+## Tech Stack
 
 ### Frontend
-- **Framework**: React 19
-- **Build Tool**: Vite 7
-- **Styling**: Tailwind CSS 4, Shadcn/UI (Radix Primitives)
-- **Icons**: Lucide React
-- **State/Data**: Axios, React Router 7
+| Layer | Technology |
+|---|---|
+| Framework | React 19 |
+| Build | Vite 7 |
+| Styling | Tailwind CSS 4, Shadcn/UI (Radix Primitives) |
+| Animation | Framer Motion |
+| Diagrams | Mermaid |
+| Charts | Recharts |
+| Drag-and-drop | dnd-kit |
+| Forms | React Hook Form + Zod |
+| Markdown | react-markdown (with GFM + math via KaTeX) |
+| Export | html2canvas, jsPDF |
+| Routing | React Router 7 |
+| HTTP | Axios |
+| Icons | Lucide React, Tabler Icons |
 
 ### Backend
-- **Runtime**: Node.js
-- **Framework**: Express 5
-- **Database**: PostgreSQL (via Supabase)
-- **ORM**: Prisma
-- **Queue**: BullMQ (Redis)
-- **AI/ML**: Google GenAI SDK, Firecrawl JS
-- **Storage**: Supabase Storage
+| Layer | Technology |
+|---|---|
+| Runtime | Node.js |
+| Framework | Express 5 |
+| Database | PostgreSQL via Supabase |
+| ORM | Prisma 6 |
+| Queue | BullMQ + Redis (ioredis) |
+| Text AI | OpenRouter (model-swappable) |
+| Script/TTS AI | Google Gemini (Flash) |
+| TTS | Gemini TTS · ElevenLabs · Deepgram |
+| Web Scraping | Firecrawl |
+| YouTube Transcripts | Supadata |
+| PDF Parsing | pdf-parse |
+| Storage | Supabase Storage |
+| Auth | JWT + bcrypt + GitHub OAuth |
+| Email | Nodemailer (SMTP) |
+| Security | Helmet, express-rate-limit, Zod |
 
-## 🏗️ Architecture
+## Architecture
 
-Explainer-AI follows a decoupled client-server architecture:
-1.  **Frontend**: A React SPA that interacts with the backend REST API.
-2.  **API Server**: Handles requests, authentication, and dispatches jobs to the queue.
-3.  **Worker Service**: A dedicated background worker that picks up jobs from Redis to perform resource-intensive tasks (scraping, script generation, audio synthesis) without blocking the main API.
+```
+┌─────────────┐     REST API     ┌──────────────┐     BullMQ     ┌──────────────────┐
+│  React SPA  │ ───────────────► │  API Server  │ ─────────────► │  Podcast Worker  │
+│  (Vite)     │ ◄─────────────── │  (Express)   │                └──────────────────┘
+└─────────────┘                  └──────────────┘     BullMQ     ┌──────────────────┐
+                                        │            ─────────────► │  Gossip Worker   │
+                                        ▼                          └──────────────────┘
+                               ┌──────────────────┐
+                               │  PostgreSQL       │
+                               │  (Supabase)       │
+                               │  Redis (BullMQ)   │
+                               │  Supabase Storage │
+                               └──────────────────┘
+```
 
-## 🚀 Getting Started
+Long-running tasks (audio generation, script synthesis) are dispatched to background workers via Redis queues so the API responds immediately and the client polls for results.
 
-Follow these steps to set up the project locally.
+## Getting Started
 
 ### Prerequisites
-- **Node.js** (v20+ recommended)
-- **npm** or **yarn**
-- **Redis** server running locally or remotely (required for job queues)
+- **Node.js** v20+
+- **Redis** running locally or via a cloud provider
+- Accounts / API keys for the external services listed in the environment variables section
 
 ### Installation
 
-1.  **Clone the repository**
-    ```bash
-    git clone https://github.com/nyxsky404/Explainer-AI.git
-    cd Explainer-AI
-    ```
+1. **Clone the repository**
+   ```bash
+   git clone https://github.com/nyxsky404/Explainer-AI.git
+   cd Explainer-AI
+   ```
 
-2.  **Install Dependencies**
-    
-    Backend:
-    ```bash
-    cd backend
-    npm install
-    ```
+2. **Install dependencies**
+   ```bash
+   # Backend
+   cd backend && npm install
 
-    Frontend:
-    ```bash
-    cd ../frontend
-    npm install
-    ```
+   # Frontend
+   cd ../frontend && npm install
+   ```
 
-3.  **Environment Variables**
+3. **Configure environment variables**
 
-    Create a `.env` file in the **backend** directory:
-    ```env
-    # backend/.env
+   Copy `.env.example` in the `backend/` directory to `.env` and fill in values:
 
-    # AI & Scraping
-    FIRECRAWL_API_KEY=your_firecrawl_key
-    GEMINI_API_KEY=your_gemini_key
+   ```env
+   # ── Database ──────────────────────────────────────────────────────────────────
+   DATABASE_URL="postgresql://USER:PASSWORD@HOST:PORT/DATABASE?schema=public"
+   DIRECT_URL="postgresql://USER:PASSWORD@HOST:PORT/DATABASE"
 
-    # Auth
-    JWT_SECRET=your_jwt_secret
+   # ── Auth ──────────────────────────────────────────────────────────────────────
+   JWT_SECRET="your-very-long-random-secret-here"
+   NODE_ENV="development"   # development | production
 
-    # Database & Storage (Supabase)
-    SUPABASE_URL=your_supabase_url
-    SUPABASE_SERVICE_KEY=your_supabase_service_key
-    DATABASE_URL=your_database_url
-    DIRECT_URL=your_direct_url_for_migrations
+   # ── Server ────────────────────────────────────────────────────────────────────
+   PORT=3000
+   FRONTEND_URL="http://localhost:5173"
 
-    # Queue
-    REDIS_URL=redis://localhost:6379
-    ```
+   # ── AI Providers ──────────────────────────────────────────────────────────────
+   OPENROUTER_API_KEY=""    # https://openrouter.ai/keys
+   GEMINI_API_KEY=""        # https://aistudio.google.com/app/apikey
+   MODEL="openai/gpt-oss-120b:free"   # OpenRouter model (swap to change globally)
+   GEMINI_TEXT_MODEL="gemini-2.5-flash"
+   GEMINI_SCRIPT_MODEL="gemini-3-flash-preview"
+   GEMINI_TTS_MODEL="gemini-3.1-flash-tts-preview"
 
-    Create a `.env` file in the **frontend** directory:
-    ```env
-    # frontend/.env
+   # ── OAuth ─────────────────────────────────────────────────────────────────────
+   GITHUB_CLIENT_ID=""
+   GITHUB_CLIENT_SECRET=""
 
-    VITE_API_URL=http://localhost:3000/api
-    ```
+   # ── Storage (Supabase) ────────────────────────────────────────────────────────
+   SUPABASE_URL=""
+   SUPABASE_SERVICE_KEY=""  # Use the Service Role key, not the anon key
 
-4.  **Database Setup**
-    Initialize the database schema using Prisma:
-    ```bash
-    cd backend
-    npx prisma migrate deploy
-    npx prisma generate
-    ```
+   # ── Cache / Queue ─────────────────────────────────────────────────────────────
+   REDIS_URL="redis://localhost:6379"
+
+   # ── Email / SMTP ──────────────────────────────────────────────────────────────
+   # In development, an Ethereal test account is auto-created — no config needed.
+   # In production set all of the following:
+   SMTP_HOST=""
+   SMTP_PORT="587"
+   SMTP_SECURE="false"      # true for port 465
+   SMTP_USER=""
+   SMTP_PASS=""
+   SMTP_FROM=""             # e.g. noreply@yourapp.com
+
+   # ── Audio TTS (optional alternatives to Gemini TTS) ───────────────────────────
+   ELEVENLABS_API_KEY=""    # https://elevenlabs.io
+   DEEPGRAM_API_KEY=""      # https://deepgram.com
+
+   # ── Web Scraping ───────────────────────────────────────────────────────────────
+   FIRECRAWL_API_KEY=""     # https://firecrawl.dev  — required for URL summarization
+   SUPADATA_API_KEY=""      # https://supadata.ai    — required for YouTube transcripts
+   ```
+
+   Create `frontend/.env`:
+   ```env
+   VITE_API_URL=http://localhost:3000/api
+   ```
+
+4. **Initialize the database**
+   ```bash
+   cd backend
+   npx prisma migrate deploy
+   npx prisma generate
+   ```
 
 ### Running the Application
 
-1.  **Start the Backend (API + Worker)**
-    It is recommended to run the server and worker. Check `package.json` for specific scripts, but usually:
-    ```bash
-    # Terminal 1: specific backend path
-    cd backend
-    npm run dev
-    # OR if separate worker script exists
-    npm run worker
-    ```
+You need three terminals — the API server and both queue workers must run concurrently.
 
-2.  **Start the Frontend**
-    ```bash
-    # Terminal 2
-    cd frontend
-    npm run dev
-    ```
+```bash
+# Terminal 1 — API server
+cd backend && npm run dev
 
-3.  Access the app at `http://localhost:5173` (or the port shown in your terminal).
+# Terminal 2 — Podcast worker
+cd backend && npm run worker
 
-## 🤝 Contributing
+# Terminal 3 — Frontend
+cd frontend && npm run dev
+```
 
-Contributions are welcome! Please fork the repository and submit a pull request for any improvements or bug fixes.
+Open `http://localhost:5173` in your browser.
+
+## Contributing
+
+Contributions are welcome. Fork the repository and open a pull request for any improvements or bug fixes.
